@@ -1,7 +1,7 @@
 {
   "name": "bree",
   "description": "The best job scheduler for Node.js with support for cron, ms, and human-friendly strings.  Uses workers and spawns sandboxed processes.  Supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Lad.",
-  "version": "0.0.5",
+  "version": "0.0.6",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
     "files": [
