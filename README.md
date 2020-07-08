@@ -277,9 +277,11 @@ More detailed examples can be found in [Forward Email][forward-email] and [Lad][
 
 ## Alternatives that are not production-ready
 
+Kudos to the authors of all these packages, however they did not work well enough for myself in real-world production environments.
+
 * [bull][] has core issues with [repeatable jobs](https://github.com/OptimalBits/bull/issues/1739), [emptying of jobs](https://github.com/OptimalBits/bull/issues/1792), and [event emitters](https://github.com/OptimalBits/bull/issues/1659)
 * [@ladjs/bull][] used [bull][] internally, but was unusable due to [bull issues](https://github.com/ladjs/bull/issues/2)
-* [agenda][] had memory leaks, [12 issues filed by myself alone](https://github.com/agenda/agenda/issues?q=author%3Aniftylettuce), has 100+ open issues, and is poorly architected
+* [agenda][] had memory leaks, [12 issues filed by myself alone](https://github.com/agenda/agenda/issues?q=author%3Aniftylettuce), has 100+ open issues, and its structure leads it to be hard to maintain (in my biased opinion)
 * [kue][] is no longer maintained, has core bugs, and recommends [bull][] (and its Redis backed too)
 * [node-cron][] does not provide enough functionality out of the box, as it only provides function invocation using cron expression intervals
 * [sfn-scheduler][] did [not support](https://github.com/hyurl/sfn-scheduler/issues/1) cronjob syntax and did not have any means to spawn worker threads nor jobs in general
@@ -297,7 +299,7 @@ More detailed examples can be found in [Forward Email][forward-email] and [Lad][
 [MIT](LICENSE) © [Nick Baugh](http://niftylettuce.com/)
 
 
-##
+## 
 
 [ms]: https://github.com/vercel/ms
 
