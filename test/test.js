@@ -1,27 +1,26 @@
+const path = require('path');
+
 const test = require('ava');
 
-const Script = require('..');
+const Bree = require('..');
 
-test.beforeEach(t => {
-  const script = new Script({});
-  Object.assign(t.context, { script });
-});
+test('creates a basic job and runs it', async t => {
+  const bree = new Bree({
+    root: path.join(__dirname, 'jobs'),
+    jobs: ['basic']
+  });
 
-test('returns itself', t => {
-  t.true(t.context.script instanceof Script);
-});
-
-test('sets a config object', t => {
-  const script = new Script(false);
-  t.true(script instanceof Script);
-});
-
-test('renders name', t => {
-  const { script } = t.context;
-  t.is(script.renderName(), 'script');
-});
-
-test('sets a default name', t => {
-  const { script } = t.context;
-  t.is(script._name, 'script');
+  bree.start();
+  await new Promise(resolve => setTimeout(resolve, 1));
+  t.log(bree);
+  t.true(typeof bree.workers.basic === 'object');
+  await new Promise((resolve, reject) => {
+    bree.workers.basic.on('error', reject);
+    bree.workers.basic.on('exit', code => {
+      t.true(code === 0);
+      resolve();
+    });
+  });
+  t.true(typeof bree.workers.basic === 'undefined');
+  bree.stop();
 });
