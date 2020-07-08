@@ -1,12 +1,12 @@
-# [**bree**](https://github.com/bree)
+# [**bree**](https://github.com/breejs/bree)
 
-[![build status](https://img.shields.io/travis/com/bree.svg)](https://travis-ci.com/bree)
-[![code coverage](https://img.shields.io/codecov/c/github/bree.svg)](https://codecov.io/gh/bree)
+[![build status](https://img.shields.io/travis/com/breejs/bree.svg)](https://travis-ci.com/breejs/bree)
+[![code coverage](https://img.shields.io/codecov/c/github/breejs/bree.svg)](https://codecov.io/gh/breejs/bree)
 [![code style](https://img.shields.io/badge/code_style-XO-5ed9c7.svg)](https://github.com/sindresorhus/xo)
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![made with lass](https://img.shields.io/badge/made_with-lass-95CC28.svg)](https://lass.js.org)
-[![license](https://img.shields.io/github/license/bree.svg)](LICENSE)
-[![npm downloads](https://img.shields.io/npm/dt/bree.svg)](https://npm.im/bree)
+[![license](https://img.shields.io/github/license/breejs/bree.svg)](LICENSE)
+[![npm downloads](https://img.shields.io/npm/dt/breejs/bree.svg)](https://npm.im/bree)
 
 > The best job scheduler for [Node.js][node] with support for [cron][], [ms][], and [human-friendly][human-interval] strings.  Uses [workers][] and spawns sandboxed processes.  Supports [async/await][async-await], [retries][p-retry], [throttling][p-throttle], [concurrency](#concurrency), and [cancelable][p-cancelable] jobs (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for [Forward Email][forward-email] and [Lad][].
 
@@ -297,7 +297,7 @@ More detailed examples can be found in [Forward Email][forward-email] and [Lad][
 [MIT](LICENSE) © [Nick Baugh](http://niftylettuce.com/)
 
 
-## 
+##
 
 [ms]: https://github.com/vercel/ms
 
