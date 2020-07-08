@@ -104,8 +104,9 @@ class Bree {
         if (!this.config.root) {
           errors.push(
             new Error(
-              `Job #${i +
-                1} "${job}" requires root directory option to auto-populate path`
+              `Job #${
+                i + 1
+              } "${job}" requires root directory option to auto-populate path`
             )
           );
           continue;
@@ -296,52 +297,55 @@ class Bree {
     if (errors.length > 0) throw combineErrors(errors);
   }
 
-  getHumanToMs(val) {
-    val = humanInterval(val);
-    if (Number.isNaN(val)) val = ms(val);
-    return val;
+  getHumanToMs(value) {
+    value = humanInterval(value);
+    if (Number.isNaN(value)) value = ms(value);
+    return value;
   }
 
-  getTimeout(val) {
-    if (this.isSchedule(val)) return val;
+  getTimeout(value) {
+    if (this.isSchedule(value)) return value;
 
-    if (isSANB(val)) {
-      const schedule = later.schedule(later.parse.text(val));
+    if (isSANB(value)) {
+      const schedule = later.schedule(later.parse.text(value));
       if (schedule.isValid()) return schedule;
-      val = this.getHumanToMs(val);
+      value = this.getHumanToMs(value);
     }
 
-    if (!Number.isFinite(val) || val < 0)
+    if (!Number.isFinite(value) || value < 0)
       throw new Error(
-        `Value ${val} must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://bunkat.github.io/later/parsers.html#text> for examples)`
+        `Value ${value} must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://bunkat.github.io/later/parsers.html#text> for examples)`
       );
 
-    return val;
+    return value;
   }
 
-  getInterval(val) {
-    if (this.isSchedule(val)) return val;
+  getInterval(value) {
+    if (this.isSchedule(value)) return value;
 
-    if (isSANB(val)) {
-      const schedule = later.schedule(later.parse.text(val));
+    if (isSANB(value)) {
+      const schedule = later.schedule(later.parse.text(value));
       if (schedule.isValid()) return schedule;
-      val = this.getHumanToMs(val);
+      value = this.getHumanToMs(value);
     }
 
     // will throw error re-using existing logic
-    return this.getTimeout(val);
+    return this.getTimeout(value);
   }
 
-  isSchedule(val) {
-    return typeof val === 'object' && Array.isArray(val.schedules);
+  isSchedule(value) {
+    return typeof value === 'object' && Array.isArray(value.schedules);
   }
 
   run(name) {
     debug('run', name);
     if (name) {
-      const job = this.config.jobs.find(j => j.name === name);
+      const job = this.config.jobs.find((j) => j.name === name);
       if (!job) throw new Error(`Job "${name}" does not exist`);
-      if (this.workers[name]) throw new Error(`Job "${name}" already running`);
+      if (this.workers[name])
+        return this.config.logger.error(
+          new Error(`Job "${name}" is already running`)
+        );
       debug('starting worker', name);
       this.workers[name] = new Worker(job.path, {
         workerData: { job }
@@ -364,16 +368,16 @@ class Bree {
       this.workers[name].on('online', () => {
         this.config.logger.info(`${prefix} online`);
       });
-      this.workers[name].on('message', message => {
+      this.workers[name].on('message', (message) => {
         this.config.logger.info(`${prefix} sent a message`, { message });
       });
-      this.workers[name].on('messageerror', err => {
+      this.workers[name].on('messageerror', (err) => {
         this.config.logger.error(`${prefix} had a message error`, { err });
       });
-      this.workers[name].on('error', err => {
+      this.workers[name].on('error', (err) => {
         this.config.logger.error(`${prefix} had an error`, { err });
       });
-      this.workers[name].on('exit', code => {
+      this.workers[name].on('exit', (code) => {
         delete this.workers[name];
         this.config.logger[code === 0 ? 'info' : 'error'](
           `${prefix} exited with code ${code}`
@@ -390,10 +394,12 @@ class Bree {
   start(name) {
     debug('start', name);
     if (name) {
-      const job = this.config.jobs.find(j => j.name === name);
+      const job = this.config.jobs.find((j) => j.name === name);
       if (!job) throw new Error(`Job ${name} does not exist`);
       if (this.timeouts[name] || this.intervals[name])
-        throw new Error(`Job "${name}" is already started`);
+        return this.config.logger.error(
+          new Error(`Job "${name}" is already started`)
+        );
 
       debug('job', job);
 
@@ -506,7 +512,7 @@ class Bree {
       }
 
       if (this.workers[name]) {
-        this.workers[name].once('message', message => {
+        this.workers[name].once('message', (message) => {
           if (message === 'cancelled') {
             this.config.logger.info(
               `Gracefully cancelled worker for job "${name}"`

@@ -34,7 +34,7 @@
     "ava": "latest",
     "codecov": "latest",
     "cross-env": "latest",
-    "eslint": "6.x",
+    "eslint": "^7.4.0",
     "eslint-config-xo-lass": "latest",
     "fixpack": "latest",
     "husky": "latest",
@@ -42,10 +42,10 @@
     "nyc": "latest",
     "remark-cli": "latest",
     "remark-preset-github": "latest",
-    "xo": "0.25"
+    "xo": "^0.32.1"
   },
   "engines": {
-    "node": ">= 12"
+    "node": ">= 12.11.0"
   },
   "homepage": "https://github.com/breejs/bree",
   "husky": {
