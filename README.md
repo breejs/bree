@@ -6,7 +6,7 @@
 [![styled with prettier](https://img.shields.io/badge/styled_with-prettier-ff69b4.svg)](https://github.com/prettier/prettier)
 [![made with lass](https://img.shields.io/badge/made_with-lass-95CC28.svg)](https://lass.js.org)
 [![license](https://img.shields.io/github/license/breejs/bree.svg)](LICENSE)
-[![npm downloads](https://img.shields.io/npm/dt/breejs/bree.svg)](https://npm.im/bree)
+[![npm downloads](https://img.shields.io/npm/dt/bree.svg)](https://npm.im/bree)
 
 > The best job scheduler for [Node.js][node] with support for [cron][], [ms][], and [human-friendly][human-interval] strings.  Uses [workers][] and spawns sandboxed processes.  Supports [async/await][async-await], [retries][p-retry], [throttling][p-throttle], [concurrency](#concurrency), and [cancelable][p-cancelable] jobs (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for [Forward Email][forward-email] and [Lad][].
 
