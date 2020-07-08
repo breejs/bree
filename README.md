@@ -59,7 +59,7 @@ The example below assumes that you have a directory `jobs` in the root of the di
 
 Inside this `jobs` directory are individual scripts which are run using [Workers][] per optional timeouts, and additionally, an optional interval or cron expression.  Examples to help clarify this are provided in the code snippet below.
 
-The option `jobs` passed to a new instance of `Cron` (as shown below) is an Array.  It contains values which can either be a String (name of a job in the `jobs` directory, which is run on boot) OR it can be an Object with `name`, `path`, `timeout`, and `interval` properties.  If you do not supply a `path`, then the path is created using the root directory (defaults to `jobs`) in combination with the `name`.  If you do not supply values for `timeout` and/nor `interval`, then these values are defaulted to `0` (which is the default for both, see [index.js](index.js) for more insight into configurable default options).
+The option `jobs` passed to a new instance of `Bree` (as shown below) is an Array.  It contains values which can either be a String (name of a job in the `jobs` directory, which is run on boot) OR it can be an Object with `name`, `path`, `timeout`, and `interval` properties.  If you do not supply a `path`, then the path is created using the root directory (defaults to `jobs`) in combination with the `name`.  If you do not supply values for `timeout` and/nor `interval`, then these values are defaulted to `0` (which is the default for both, see [index.js](index.js) for more insight into configurable default options).
 
 ```js
 const path = require('path');
@@ -297,7 +297,7 @@ More detailed examples can be found in [Forward Email][forward-email] and [Lad][
 [MIT](LICENSE) © [Nick Baugh](http://niftylettuce.com/)
 
 
-## 
+##
 
 [ms]: https://github.com/vercel/ms
 
