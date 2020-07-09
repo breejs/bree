@@ -33,6 +33,10 @@ class Bree {
       closeWorkerAfterMs: 0,
       // could also be mjs if desired (?)
       defaultExtension: 'js',
+      // default worker options to pass to `new Worker`
+      // (can be overriden on a per job basis)
+      // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
+      worker: {},
       ...config
     };
 
@@ -391,7 +395,15 @@ class Bree {
         );
       debug('starting worker', name);
       this.workers[name] = new Worker(job.path, {
-        workerData: { job }
+        ...(this.config.worker ? this.config.worker : {}),
+        ...(job.worker ? job.worker : {}),
+        workerData: {
+          job,
+          ...(this.config.worker && this.config.worker.workerData
+            ? this.config.worker.workerData
+            : {}),
+          ...(job.worker && job.worker.workerData ? job.worker.workerData : {})
+        }
       });
       debug('worker started', name);
 

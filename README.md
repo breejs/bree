@@ -22,6 +22,7 @@
 * [Callbacks, Done, and Completion States](#callbacks-done-and-completion-states)
 * [Long-running jobs](#long-running-jobs)
 * [Complex timeouts and intervals](#complex-timeouts-and-intervals)
+* [Custom Worker Options](#custom-worker-options)
 * [Concurrency](#concurrency)
 * [Real-world usage](#real-world-usage)
 * [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)
@@ -101,13 +102,15 @@ const bree = new Bree({
 
     // runs `./jobs/foo-bar.js` on start
     {
-      name: 'foo-bar'
+      name: 'foo-bar',
+      timeout: 0
     },
 
     // runs `./jobs/some-other-path.js` on start
     {
-     name: 'beep',
-     path: path.join(__dirname, 'jobs', 'some-other-path')
+      name: 'beep',
+      path: path.join(__dirname, 'jobs', 'some-other-path'),
+      timeout: 0
     },
 
     // runs `./jobs/worker-1.js` on the last day of the month
@@ -197,6 +200,19 @@ const bree = new Bree({
       name: 'worker-13',
       timeout: 0,
       interval: '2m'
+    },
+
+    // runs `./jobs/worker-14.js` on start with custom `new Worker` options (see below)
+    {
+      name: 'worker-14',
+      timeout: 0,
+      // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
+      worker: {
+        workerData: {
+          foo: 'bar',
+          beep: 'boop'
+        }
+      }
     }
   ]
 });
@@ -323,6 +339,17 @@ If you wish to specify a maximum time (in milliseconds) that a worker can run, t
 Since we use [later][], you can pass an instance of `later.schedule` as the `timeout` or `interval` property values (e.g. if you need to construct something manually).
 
 You can also use [dayjs][] to construct dates (e.g. from now or a certain date) to millisecond differences using `dayjs().diff(new Date(), 'milliseconds')`.  You would then pass that returned Number value as `timeout` or `interval` as needed.
+
+
+## Custom Worker Options
+
+You can pass a default worker configuration object as `new Bree({ worker: { ... } });`.
+
+These options are passed to the `options` argument when we internally invoke `new Worker(path, options)`.
+
+Additionally, you can pass custom worker options on a per-job basis through a `worker` property Object on the job definition.
+
+See complete documentation here for options <https://nodejs.org/api/worker_threads.html#worker_thre> (but you usually don't have to modify these).
 
 
 ## Concurrency
