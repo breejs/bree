@@ -371,7 +371,7 @@ class Bree {
   }
 
   getWorkerMetadata(name, meta = {}) {
-    if (this.config.outputWorkerMetadata) return;
+    if (!this.config.outputWorkerMetadata) return;
     return this.workers[name]
       ? {
           ...meta,
