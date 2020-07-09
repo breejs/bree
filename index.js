@@ -37,6 +37,7 @@ class Bree {
       // (can be overriden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
       worker: {},
+      outputWorkerMetadata: false,
       ...config
     };
 
@@ -370,6 +371,7 @@ class Bree {
   }
 
   getWorkerMetadata(name, meta = {}) {
+    if (this.config.outputWorkerMetadata) return;
     return this.workers[name]
       ? {
           ...meta,
