@@ -371,7 +371,8 @@ class Bree {
       if (!job) throw new Error(`Job "${name}" does not exist`);
       if (this.workers[name])
         return this.config.logger.error(
-          new Error(`Job "${name}" is already running`)
+          new Error(`Job "${name}" is already running`),
+          { worker: this.workers[name] }
         );
       debug('starting worker', name);
       this.workers[name] = new Worker(job.path, {
@@ -393,28 +394,44 @@ class Bree {
 
       const prefix = `Worker for job "${name}"`;
       this.workers[name].on('online', () => {
-        this.config.logger.info(`${prefix} online`);
+        this.config.logger.info(`${prefix} online`, {
+          worker: this.workers[name]
+        });
       });
       this.workers[name].on('message', (message) => {
-        this.config.logger.info(`${prefix} sent a message`, { message });
         if (message === 'done') {
+          this.config.logger.info(`${prefix} signaled completion`, {
+            worker: this.workers[name]
+          });
           this.workers[name].removeAllListeners('message');
           this.workers[name].removeAllListeners('exit');
           this.workers[name].terminate();
           delete this.workers[name];
+          return;
         }
+
+        this.config.logger.info(`${prefix} sent a message`, {
+          message,
+          worker: this.workers[name]
+        });
       });
       this.workers[name].on('messageerror', (err) => {
-        this.config.logger.error(`${prefix} had a message error`, { err });
+        this.config.logger.error(`${prefix} had a message error`, {
+          err,
+          worker: this.workers[name]
+        });
       });
       this.workers[name].on('error', (err) => {
-        this.config.logger.error(`${prefix} had an error`, { err });
+        this.config.logger.error(`${prefix} had an error`, {
+          err,
+          worker: this.workers[name]
+        });
       });
       this.workers[name].on('exit', (code) => {
+        this.config.logger[
+          code === 0 ? 'info' : 'error'
+        ](`${prefix} exited with code ${code}`, { worker: this.workers[name] });
         delete this.workers[name];
-        this.config.logger[code === 0 ? 'info' : 'error'](
-          `${prefix} exited with code ${code}`
-        );
       });
       return;
     }
@@ -548,7 +565,8 @@ class Bree {
         this.workers[name].once('message', (message) => {
           if (message === 'cancelled') {
             this.config.logger.info(
-              `Gracefully cancelled worker for job "${name}"`
+              `Gracefully cancelled worker for job "${name}"`,
+              { worker: this.workers[name] }
             );
             this.workers[name].terminate();
             delete this.workers[name];
