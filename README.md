@@ -140,7 +140,7 @@ const bree = new Bree({
       timeout: '10m'
     },
 
-    // runs `./jobs/worker-6.js` every 5 minutes after 1 minute has elapsed
+    // runs `./jobs/worker-6.js` after 1 minute and every 5 minutes thereafter
     {
       name: 'worker-6',
       timeout: '1m',
@@ -190,6 +190,13 @@ const bree = new Bree({
       // date: moment('1/1/20', 'M/D/YY').toDate()
       // you can pass Date instances (if it's in the past it will not get run)
       // date: new Date()
+    },
+
+    // runs `./jobs/worker-13.js` on start and every 2 minutes
+    {
+      name: 'worker-13',
+      timeout: 0,
+      interval: '2m'
     }
   ]
 });
