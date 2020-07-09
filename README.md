@@ -64,16 +64,35 @@ The option `jobs` passed to a new instance of `Bree` (as shown below) is an Arra
 ```js
 const path = require('path');
 
-const ms = require('ms'); // optional
-const dayjs = require('dayjs'); // optional
-const Graceful = require('@ladjs/graceful'); // optional
+// optional
+const ms = require('ms');
+const dayjs = require('dayjs');
+const Graceful = require('@ladjs/graceful');
+const Cabin = require('cabin');
 
+// required
 const Bree = require('bree');
 
 //
 // NOTE: see index.js for full list of options and defaults
 //
 const bree = new Bree({
+  //
+  // NOTE: by default the `logger` is set to `console`
+  // however we recommend you to use CabinJS as it
+  // will automatically add application and worker metadata
+  // to your log output, and also masks sensitive data for you
+  // <https://cabinjs.com>
+  //
+  logger: new Cabin(),
+
+  //
+  // NOTE: instead of passing this Array as an option
+  // you can create a `./jobs/index.js` file, exporting
+  // this exact same array as `module.exports = [ ... ]`
+  // doing so will allow you to keep your job configuration and the jobs
+  // themselves all in the same folder and very organized
+  //
   jobs: [
     // runs `./jobs/foo.js` on start
     'foo',
@@ -230,6 +249,8 @@ If you'd like jobs to retry, simply wrap your usage of promises with [p-retry][]
 
 We leave it up to you to have as much fine-grained control as you wish.
 
+See [@ladjs/graceful][lad-graceful] for more insight into how this package works.
+
 
 ## Interval, Timeout, and Cron Validation
 
@@ -350,3 +371,5 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [async-await]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function
 
 [mongodb]: https://www.mongodb.com/
+
+[lad-graceful]: https://github.com/ladjs/graceful

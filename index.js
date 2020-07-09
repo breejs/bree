@@ -63,6 +63,21 @@ class Bree {
     debug('interval', this.config.interval);
 
     //
+    // if `this.config.jobs` is an empty array
+    // then we should try to load `jobs/index.js`
+    //
+    if (
+      this.config.root &&
+      (!Array.isArray(this.config.jobs) || this.config.jobs.length === 0)
+    ) {
+      try {
+        this.config.jobs = require(this.config.root);
+      } catch (err) {
+        this.config.logger.error(err);
+      }
+    }
+
+    //
     // validate jobs
     //
     if (!Array.isArray(this.config.jobs))
