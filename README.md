@@ -18,6 +18,8 @@
 * [Usage and Examples](#usage-and-examples)
 * [Cancellation, Retries, Stalled Jobs, and Graceful Reloading](#cancellation-retries-stalled-jobs-and-graceful-reloading)
 * [Interval, Timeout, and Cron Validation](#interval-timeout-and-cron-validation)
+* [Writing jobs with Promises and async-await](#writing-jobs-with-promises-and-async-await)
+* [Callbacks, Done, and Completion States](#callbacks-done-and-completion-states)
 * [Long-running jobs](#long-running-jobs)
 * [Complex timeouts and intervals](#complex-timeouts-and-intervals)
 * [Concurrency](#concurrency)
@@ -263,6 +265,40 @@ If you pass a `cron` property, then it is validated against [cron-validate][].
 You can pass a Date as the `date` property, but you cannot combine both `date` and `timeout`.
 
 If you do pass a Date, then it is only run if it is in the future.
+
+
+## Writing jobs with Promises and async-await
+
+Until Node LTS has a stable release with top-level async-await support, here is the working alternative:
+
+```js
+const { parentPort } = require('worker_threads');
+
+const delay = require('delay');
+const ms = require('ms');
+
+(async () => {
+  // wait for a promise to finish
+  await delay(ms('10s'));
+
+  // signal to parent that the job is done
+  parentPort.postMessage('done');
+
+  // you could also `process.exit(0);` when done
+})();
+```
+
+
+## Callbacks, Done, and Completion States
+
+To close out the worker and signal that it is done, you can simply `parentPort.postMessage('done');` OR `process.exit(0)`.
+
+While writing your jobs (which will run in [worker][workers] threads), you should do one of the following:
+
+* Signal to the main thread that the process has completed by sending a "done" message (per the example above in [Writing jobs with Promises and async-await](#writing-jobs-with-promises-and-async-await))
+* Exit the process if there is NOT an error with code `0` (e.g. `process.exit(0);`)
+* Throw an error if an error occurs (this will bubble up to the worker event error listener and terminate it)
+* Exit the process if there IS an error with code `1` (e.g. `process.exit(1)`)
 
 
 ## Long-running jobs

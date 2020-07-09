@@ -397,6 +397,11 @@ class Bree {
       });
       this.workers[name].on('message', (message) => {
         this.config.logger.info(`${prefix} sent a message`, { message });
+        if (message === 'done') {
+          this.workers[name].off('message');
+          this.workers[name].terminate();
+          delete this.workers[name];
+        }
       });
       this.workers[name].on('messageerror', (err) => {
         this.config.logger.error(`${prefix} had a message error`, { err });
