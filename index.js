@@ -306,6 +306,18 @@ class Bree {
         );
     }
 
+    // don't allow a job to have the `index` file name
+    if (
+      names.includes('index') ||
+      names.includes('index.js') ||
+      names.includes('index.mjs')
+    )
+      errors.push(
+        new Error(
+          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+        )
+      );
+
     debug('this.config.jobs', this.config.jobs);
 
     // if there were any errors then throw them
