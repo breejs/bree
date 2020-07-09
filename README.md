@@ -239,12 +239,14 @@ function cancel() {
   // send a message to the parent that we're ready to terminate
   // (you could do `process.exit(0)` or `process.exit(1)` instead if desired
   // but this is a bit of a cleaner approach for worker termination
-  parentPort.postMessage('cancelled');
+  if (parentPort) parentPort.postMessage('cancelled');
+  else process.exit(0);
 }
 
-parentPort.once('message', message => {
-  if (message === 'cancel') return cancel();
-});
+if (parentPort)
+  parentPort.once('message', message => {
+    if (message === 'cancel') return cancel();
+  });
 ```
 
 If you'd like jobs to retry, simply wrap your usage of promises with [p-retry][].
@@ -282,16 +284,15 @@ const ms = require('ms');
   await delay(ms('10s'));
 
   // signal to parent that the job is done
-  parentPort.postMessage('done');
-
-  // you could also `process.exit(0);` when done
+  if (parentPort) parentPort.postMessage('done');
+  else process.exit(0);
 })();
 ```
 
 
 ## Callbacks, Done, and Completion States
 
-To close out the worker and signal that it is done, you can simply `parentPort.postMessage('done');` OR `process.exit(0)`.
+To close out the worker and signal that it is done, you can simply `parentPort.postMessage('done');` and/or `process.exit(0)`.
 
 While writing your jobs (which will run in [worker][workers] threads), you should do one of the following:
 
