@@ -324,9 +324,9 @@ class Bree {
     if (errors.length > 0) throw combineErrors(errors);
   }
 
-  getHumanToMs(value) {
-    value = humanInterval(value);
-    if (Number.isNaN(value)) value = ms(value);
+  getHumanToMs(_value) {
+    const value = humanInterval(_value);
+    if (Number.isNaN(value)) return ms(_value);
     return value;
   }
 
