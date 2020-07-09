@@ -43,6 +43,7 @@ class Bree {
     this.timeouts = {};
     this.intervals = {};
 
+    this.getWorkerMetadata = this.getWorkerMetadata.bind(this);
     this.run = this.run.bind(this);
     this.start = this.start.bind(this);
     this.stop = this.stop.bind(this);
@@ -364,6 +365,20 @@ class Bree {
     return typeof value === 'object' && Array.isArray(value.schedules);
   }
 
+  getWorkerMetadata(name, meta = {}) {
+    return this.workers[name]
+      ? {
+          ...meta,
+          worker: {
+            isMainThread: this.workers[name].isMainThread,
+            resourceLimits: this.workers[name].resourceLimits,
+            threadId: this.workers[name].threadId,
+            workerData: this.workers[name].workerData
+          }
+        }
+      : meta;
+  }
+
   run(name) {
     debug('run', name);
     if (name) {
@@ -372,7 +387,7 @@ class Bree {
       if (this.workers[name])
         return this.config.logger.error(
           new Error(`Job "${name}" is already running`),
-          { worker: this.workers[name] }
+          this.getWorkerMetadata(name)
         );
       debug('starting worker', name);
       this.workers[name] = new Worker(job.path, {
@@ -394,15 +409,17 @@ class Bree {
 
       const prefix = `Worker for job "${name}"`;
       this.workers[name].on('online', () => {
-        this.config.logger.info(`${prefix} online`, {
-          worker: this.workers[name]
-        });
+        this.config.logger.info(
+          `${prefix} online`,
+          this.getWorkerMetadata(name)
+        );
       });
       this.workers[name].on('message', (message) => {
         if (message === 'done') {
-          this.config.logger.info(`${prefix} signaled completion`, {
-            worker: this.workers[name]
-          });
+          this.config.logger.info(
+            `${prefix} signaled completion`,
+            this.getWorkerMetadata(name)
+          );
           this.workers[name].removeAllListeners('message');
           this.workers[name].removeAllListeners('exit');
           this.workers[name].terminate();
@@ -410,27 +427,28 @@ class Bree {
           return;
         }
 
-        this.config.logger.info(`${prefix} sent a message`, {
-          message,
-          worker: this.workers[name]
-        });
+        this.config.logger.info(
+          `${prefix} sent a message`,
+          this.getWorkerMetadata(name, { message })
+        );
       });
       this.workers[name].on('messageerror', (err) => {
-        this.config.logger.error(`${prefix} had a message error`, {
-          err,
-          worker: this.workers[name]
-        });
+        this.config.logger.error(
+          `${prefix} had a message error`,
+          this.getWorkerMetadata(name, { err })
+        );
       });
       this.workers[name].on('error', (err) => {
-        this.config.logger.error(`${prefix} had an error`, {
-          err,
-          worker: this.workers[name]
-        });
+        this.config.logger.error(
+          `${prefix} had an error`,
+          this.getWorkerMetadata(name, { err })
+        );
       });
       this.workers[name].on('exit', (code) => {
-        this.config.logger[
-          code === 0 ? 'info' : 'error'
-        ](`${prefix} exited with code ${code}`, { worker: this.workers[name] });
+        this.config.logger[code === 0 ? 'info' : 'error'](
+          `${prefix} exited with code ${code}`,
+          this.getWorkerMetadata(name)
+        );
         delete this.workers[name];
       });
       return;
@@ -566,7 +584,7 @@ class Bree {
           if (message === 'cancelled') {
             this.config.logger.info(
               `Gracefully cancelled worker for job "${name}"`,
-              { worker: this.workers[name] }
+              this.getWorkerMetadata(name)
             );
             this.workers[name].terminate();
             delete this.workers[name];
