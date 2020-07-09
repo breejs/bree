@@ -398,7 +398,7 @@ class Bree {
       this.workers[name].on('message', (message) => {
         this.config.logger.info(`${prefix} sent a message`, { message });
         if (message === 'done') {
-          this.workers[name].off('message');
+          this.workers[name].removeAllListeners('message');
           this.workers[name].terminate();
           delete this.workers[name];
         }
