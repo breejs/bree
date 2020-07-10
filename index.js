@@ -293,12 +293,14 @@ class Bree {
           //
           const result = cron(job.cron, this.cronValidate);
           if (result.isValid()) {
-            const schedule = later.parse.cron(
-              job.cron,
-              boolean(
-                typeof job.hasSeconds === 'undefined'
-                  ? this.config.hasSeconds
-                  : job.hasSeconds
+            const schedule = later.schedule(
+              later.parse.cron(
+                job.cron,
+                boolean(
+                  typeof job.hasSeconds === 'undefined'
+                    ? this.config.hasSeconds
+                    : job.hasSeconds
+                )
               )
             );
             if (schedule.isValid()) {
