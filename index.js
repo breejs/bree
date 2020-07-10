@@ -21,22 +21,42 @@ class Bree {
       // set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
       root: resolve('jobs'),
+      // default timeout for jobs
+      // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
+      // default interval for jobs
+      // (set this to `0` for no interval, and > 0 for a default interval to be set)
       interval: 0,
+      // this is an Array of your job definitions (see README for examples)
       jobs: [],
       // <https://bunkat.github.io/later/parsers.html#cron>
       // (can be overridden on a job basis with same prop name)
       hasSeconds: false,
       // <https://github.com/Airfooox/cron-validate>
       cronValidate: {},
-      // if you set a value > 0 here, then it will kill workers after this time (ms)
+      // if you set a value > 0 here, then it will terminate workers after this time (ms)
       closeWorkerAfterMs: 0,
-      // could also be mjs if desired (?)
+      // could also be mjs if desired
+      // (this is the default extension if you just specify a job's name without ".js" or ".mjs")
       defaultExtension: 'js',
       // default worker options to pass to `new Worker`
       // (can be overriden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
       worker: {},
+      //
+      // if you set this to `true`, then a second arg is passed to log output
+      // and it will be an Object with `{ worker: Object }` set, for example:
+      // (see the documentation at <https://nodejs.org/api/worker_threads.html> for more insight)
+      //
+      // logger.info('...', {
+      //   worker: {
+      //     isMainThread: Boolean
+      //     resourceLimits: Object,
+      //     threadId: String,
+      //     workerData: Object
+      //   }
+      // });
+      //
       outputWorkerMetadata: false,
       ...config
     };
@@ -61,11 +81,11 @@ class Bree {
     }
 
     // validate timeout
-    this.config.timeout = this.getTimeout(this.config.timeout);
+    this.config.timeout = this.parseValue(this.config.timeout);
     debug('timeout', this.config.timeout);
 
     // validate interval
-    this.config.interval = this.getInterval(this.config.interval);
+    this.config.interval = this.parseValue(this.config.interval);
     debug('interval', this.config.interval);
 
     //
@@ -234,7 +254,7 @@ class Bree {
       // validate timeout
       if (typeof job.timeout !== 'undefined') {
         try {
-          this.config.jobs[i].timeout = this.getTimeout(job.timeout);
+          this.config.jobs[i].timeout = this.parseValue(job.timeout);
         } catch (err) {
           errors.push(
             combineErrors([
@@ -248,7 +268,7 @@ class Bree {
       // validate interval
       if (typeof job.interval !== 'undefined') {
         try {
-          this.config.jobs[i].interval = this.getInterval(job.interval);
+          this.config.jobs[i].interval = this.parseValue(job.interval);
         } catch (err) {
           errors.push(
             combineErrors([
@@ -263,7 +283,7 @@ class Bree {
       if (typeof job.cron !== 'undefined') {
         if (this.isSchedule(job.cron)) {
           this.config.jobs[i].interval = job.cron;
-          delete this.config.jobs[i].cron;
+          // delete this.config.jobs[i].cron;
         } else {
           //
           // validate cron pattern
@@ -283,7 +303,7 @@ class Bree {
             );
             if (schedule.isValid()) {
               this.config.jobs[i].interval = schedule;
-              delete this.config.jobs[i].cron;
+              // delete this.config.jobs[i].cron;
             } else {
               errors.push(
                 new Error(
@@ -310,6 +330,30 @@ class Bree {
         errors.push(
           `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0`
         );
+
+      // if timeout was undefined, cron was undefined,
+      // and date was undefined then set the default
+      // (as long as the default timeout is >= 0)
+      if (
+        Number.isFinite(this.config.timeout) &&
+        this.config.timeout >= 0 &&
+        typeof this.config.jobs[i].timeout === 'undefined' &&
+        typeof job.cron === 'undefined' &&
+        typeof job.date === 'undefined'
+      )
+        this.config.jobs[i].timeout = this.config.timeout;
+
+      // if interval was undefined, cron was undefined,
+      // and date was undefined then set the default
+      // (as long as the default interval is > 0)
+      if (
+        Number.isFinite(this.config.interval) &&
+        this.config.interval > 0 &&
+        typeof this.config.jobs[i].interval === 'undefined' &&
+        typeof job.cron === 'undefined' &&
+        typeof job.date === 'undefined'
+      )
+        this.config.jobs[i].interval = this.config.interval;
     }
 
     // don't allow a job to have the `index` file name
@@ -336,7 +380,9 @@ class Bree {
     return value;
   }
 
-  getTimeout(value) {
+  parseValue(value) {
+    if (value === false) return value;
+
     if (this.isSchedule(value)) return value;
 
     if (isSANB(value)) {
@@ -353,25 +399,14 @@ class Bree {
     return value;
   }
 
-  getInterval(value) {
-    if (this.isSchedule(value)) return value;
-
-    if (isSANB(value)) {
-      const schedule = later.schedule(later.parse.text(value));
-      if (schedule.isValid()) return schedule;
-      value = this.getHumanToMs(value);
-    }
-
-    // will throw error re-using existing logic
-    return this.getTimeout(value);
-  }
-
   isSchedule(value) {
     return typeof value === 'object' && Array.isArray(value.schedules);
   }
 
   getWorkerMetadata(name, meta = {}) {
-    if (!this.config.outputWorkerMetadata) return;
+    const job = this.config.jobs.find((j) => j.name === name);
+    if (!job) throw new Error(`Job "${name}" does not exist`);
+    if (!this.config.outputWorkerMetadata && !job.outputWorkerMetadata) return;
     return this.workers[name]
       ? {
           ...meta,

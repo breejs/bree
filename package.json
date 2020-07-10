@@ -1,6 +1,6 @@
 {
   "name": "bree",
-  "description": "The best job scheduler for Node.js with support for cron, ms, and human-friendly strings.  Uses workers and spawns sandboxed processes.  Supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Lad.",
+  "description": "The best job scheduler for Node.js with support for cron, dates, ms, later, and human-friendly strings.  Uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Forward Email and Lad.",
   "version": "1.0.0",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
@@ -47,6 +47,9 @@
   "engines": {
     "node": ">= 12.11.0"
   },
+  "files": [
+    "index.js"
+  ],
   "homepage": "https://github.com/breejs/bree",
   "husky": {
     "hooks": {
@@ -72,6 +75,7 @@
     "cronjob",
     "crontab",
     "date",
+    "dates",
     "day",
     "dayjs",
     "delay",
@@ -88,12 +92,14 @@
     "interval",
     "job",
     "jobs",
+    "js",
     "koa",
     "koatiming",
     "lad",
     "lass",
     "later",
     "moment",
+    "momentjs",
     "mongo",
     "mongodb",
     "mongoose",
