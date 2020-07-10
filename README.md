@@ -317,7 +317,7 @@ These values can include Number, Object, and String variable types:
 
 * Number values indicates the number of milliseconds for the timeout or interval
 * Object values must be a [later][] schedule object value (e.g. `later.schedule(later.parse.cron('15 10 * * ? *')))`)
-* String values can be either a [human-interval][] String or a [ms][] value (e.g. either [human-interval][] supports Strings such as `3 days and 4 hours`, and [ms][] supports short, human-friendly Strings such as `4h` for four hours)
+* String values can be either a [later][], [human-interval][], or [ms][] String values (e.g. [later][] supports Strings such as `every 5 mins`, [human-interval][] supports Strings such as `3 days and 4 hours`, and [ms][] supports Strings such as `4h` for four hours)
 
 
 ## Cancellation, Retries, Stalled Jobs, and Graceful Reloading
@@ -360,13 +360,15 @@ See [@ladjs/graceful][lad-graceful] for more insight into how this package works
 
 If you need help writing cron expressions, you can reference [crontab.guru](https://crontab.guru/).
 
-We support [ms][], [human-interval][], and [later][] String values for both `timeout` and `interval`.
+We support [later][], [human-interval][], or [ms][] String values for both `timeout` and `interval`.
 
 If you pass a `cron` property, then it is validated against [cron-validate][].
 
 You can pass a Date as the `date` property, but you cannot combine both `date` and `timeout`.
 
 If you do pass a Date, then it is only run if it is in the future.
+
+See [Job Interval and Timeout Values](#job-interval-and-timeout-values) above for more insight.
 
 
 ## Writing jobs with Promises and async-await
