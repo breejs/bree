@@ -40,7 +40,7 @@ class Bree {
       // (this is the default extension if you just specify a job's name without ".js" or ".mjs")
       defaultExtension: 'js',
       // default worker options to pass to `new Worker`
-      // (can be overriden on a per job basis)
+      // (can be overridden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
       worker: {},
       //
