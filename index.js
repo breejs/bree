@@ -63,7 +63,7 @@ class Bree {
 
     debug('config', this.config);
 
-    this.closeWorkersAfterMs = {};
+    this.closeWorkerAfterMs = {};
     this.workers = {};
     this.timeouts = {};
     this.intervals = {};
@@ -330,7 +330,7 @@ class Bree {
           job.closeWorkerAfterMs <= 0)
       )
         errors.push(
-          `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0`
+          `${prefix} had an invalid closeWorkerAfterMs value of ${job.closeWorkerAfterMs} (it must be a finite number > 0`
         );
 
       // if timeout was undefined, cron was undefined,
@@ -644,9 +644,9 @@ class Bree {
         this.workers[name].postMessage('cancel');
       }
 
-      if (this.closeWorkersAfterMs[name]) {
-        clearTimeout(this.closeWorkersAfterMs[name]);
-        delete this.closeWorkersAfterMs[name];
+      if (this.closeWorkerAfterMs[name]) {
+        clearTimeout(this.closeWorkerAfterMs[name]);
+        delete this.closeWorkerAfterMs[name];
       }
 
       return;
