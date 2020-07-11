@@ -448,8 +448,8 @@ class Bree {
 
       // if we specified a value for `closeWorkerAfterMs`
       // then we need to terminate it after that execution time
-      const closeWorkerAfterMs = Number.isFinite(job.closerWorkerAfterMs)
-        ? job.closerWorkerAfterMs
+      const closeWorkerAfterMs = Number.isFinite(job.closeWorkerAfterMs)
+        ? job.closeWorkerAfterMs
         : this.config.closeWorkerAfterMs;
       if (Number.isFinite(closeWorkerAfterMs) && closeWorkerAfterMs > 0) {
         debug('worker has close set', name, closeWorkerAfterMs);
