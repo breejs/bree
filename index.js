@@ -408,7 +408,11 @@ class Bree {
   getWorkerMetadata(name, meta = {}) {
     const job = this.config.jobs.find((j) => j.name === name);
     if (!job) throw new Error(`Job "${name}" does not exist`);
-    if (!this.config.outputWorkerMetadata && !job.outputWorkerMetadata) return;
+    if (!this.config.outputWorkerMetadata && !job.outputWorkerMetadata)
+      return meta &&
+        (typeof meta.err !== 'undefined' || typeof meta.message !== 'undefined')
+        ? meta
+        : undefined;
     return this.workers[name]
       ? {
           ...meta,
