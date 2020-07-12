@@ -147,7 +147,7 @@ const bree = new Bree({
     {
       name: 'worker-3',
       interval: 'at 10:15 am also at 5:15pm except on Tuesday'
-    }
+    },
 
     // runs `./jobs/worker-4.js` at 10:15am every weekday
     {
@@ -229,7 +229,7 @@ const bree = new Bree({
           beep: 'boop'
         }
       }
-    }
+    },
 
     // runs `./jobs/worker-15.js` **NOT** on start, but every 2 minutes
     {
