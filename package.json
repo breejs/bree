@@ -7,7 +7,8 @@
     "files": [
       "test/*.js",
       "test/**/*.js",
-      "!test/jobs"
+      "!test/jobs",
+      "!test/noIndexJobs"
     ],
     "verbose": true
   },
@@ -31,13 +32,16 @@
   "devDependencies": {
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
+    "@sinonjs/fake-timers": "^6.0.1",
     "ava": "latest",
     "codecov": "latest",
     "cross-env": "latest",
+    "delay": "^4.3.0",
     "eslint": "^7.4.0",
     "eslint-config-xo-lass": "latest",
     "fixpack": "latest",
     "husky": "latest",
+    "into-stream": "^5.1.1",
     "lint-staged": "latest",
     "nyc": "latest",
     "remark-cli": "latest",

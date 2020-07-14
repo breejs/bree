@@ -229,12 +229,13 @@ class Bree {
       if (
         typeof job.interval !== 'undefined' &&
         typeof job.cron !== 'undefined'
-      )
+      ) {
         errors.push(
           new Error(
             `${prefix} cannot have both interval and cron configuration`
           )
         );
+      }
 
       // don't allow users to mix timeout AND date
       if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined')
@@ -306,13 +307,14 @@ class Bree {
             if (schedule.isValid()) {
               this.config.jobs[i].interval = schedule;
               // delete this.config.jobs[i].cron;
-            } else {
-              errors.push(
-                new Error(
-                  `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`
-                )
-              );
-            }
+            } // else {
+            //   errors.push(
+            //     new Error(
+            //       `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`
+            //     )
+            //   );
+            // }
+            // above code will never be called
           } else {
             for (const message of result.getError()) {
               errors.push(
@@ -330,7 +332,9 @@ class Bree {
           job.closeWorkerAfterMs <= 0)
       )
         errors.push(
-          `${prefix} had an invalid closeWorkerAfterMs value of ${job.closeWorkerAfterMs} (it must be a finite number > 0`
+          new Error(
+            `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0)`
+          )
         );
 
       // if timeout was undefined, cron was undefined,
