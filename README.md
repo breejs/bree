@@ -564,7 +564,7 @@ While writing your jobs (which will run in [worker][workers] threads), you shoul
 
 ## Long-running jobs
 
-If a job is already running, a new worker thread will not be spawned, instead an error will be thrown.  This is to prevent bad practices from being used.  If you need something to be run more than one time, then make the job itself run the task multiple times.  This approach gives you more fine-grained control.
+If a job is already running, a new worker thread will not be spawned, instead `logger.error` will be invoked with an error message (no error will be thrown, don't worry).  This is to prevent bad practices from being used.  If you need something to be run more than one time, then make the job itself run the task multiple times.  This approach gives you more fine-grained control.
 
 By default, workers run indefinitely and are not closed until they exit (e.g. via `process.exit(0)` or `process.exit(1)`, OR send to the parent port a "close" message, which will subsequently call `worker.close()` to close the worker thread.
 
