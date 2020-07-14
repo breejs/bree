@@ -8,12 +8,14 @@ const Bree = require('..');
 const later = require('later');
 const delay = require('delay');
 
+const root = path.join(__dirname, 'jobs');
+
 test('creates a basic job and runs it', async (t) => {
   const logger = _.cloneDeep(console);
   logger.info = () => {};
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic'],
     logger
   });
@@ -48,7 +50,7 @@ test('fails if root is not a directory', (t) => {
 
 test('finds jobs from index.js', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: []
   });
 
@@ -72,7 +74,7 @@ test('fails if duplicate job names when given names', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: ['basic', 'basic']
       }),
     { message: /Job .* has a duplicate job name of */ }
@@ -96,7 +98,7 @@ test('fails if job file does not exist', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: ['leroy']
       }),
     { message: /Job #.* ".*" path missing: */ }
@@ -107,7 +109,7 @@ test('fails if job is not a pure object', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [['basic']]
       }),
     { message: /Job #.* must be an Object/ }
@@ -118,7 +120,7 @@ test('fails if job name is empty', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: '' }]
       }),
     { message: /Job #.* must have a non-empty name/ }
@@ -142,7 +144,7 @@ test('fails if path is missing', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', path: path.join(__dirname, 'jobs/leroy.js') }]
       }),
     { message: /Job #.* named .* path missing: */ }
@@ -151,7 +153,7 @@ test('fails if path is missing', (t) => {
 
 test('creates path if root provided and path !isSANB', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'basic', path: null }]
   });
 
@@ -162,7 +164,7 @@ test('fails if root path given but no name and path is empty', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ path: '' }]
       }),
     { message: /Job #.* named .* path missing/ }
@@ -173,7 +175,7 @@ test('fails if interval and cron are set', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', interval: '3s', cron: '* * * * *' }]
       }),
     {
@@ -186,7 +188,7 @@ test('fails if timeout and date are set', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', timeout: '', date: '' }]
       }),
     { message: /Job #.* named .* cannot have both timeout and date/ }
@@ -197,7 +199,7 @@ test('fails if duplicate job name and given objects', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic' }, { name: 'basic' }]
       }),
     { message: /Job #.* named .* has a duplicate job name of */ }
@@ -208,7 +210,7 @@ test('fails if date is invalid', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', date: null }]
       }),
     { message: /Job #.* named .* had an invalid Date of */ }
@@ -217,7 +219,7 @@ test('fails if date is invalid', (t) => {
 
 test('creates job with correct timeout and uses default interval', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'basic', timeout: '3s', interval: '1s' }]
   });
 
@@ -229,7 +231,7 @@ test('fails if timeout is invalid', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', timeout: '' }]
       }),
     { message: /Job #.* named .* had an invalid timeout of */ }
@@ -238,7 +240,7 @@ test('fails if timeout is invalid', (t) => {
 
 test('creates job with correct interval and uses default timeout', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'basic', interval: '3s' }]
   });
 
@@ -250,7 +252,7 @@ test('fails if interval is invalid', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', interval: '' }]
       }),
     { message: /Job #.* named .* had an invalid interval of */ }
@@ -260,7 +262,7 @@ test('fails if interval is invalid', (t) => {
 test('creates cron job with schedule object', (t) => {
   const cron = later.parse.cron('* * * * *');
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'basic', cron }]
   });
 
@@ -269,7 +271,7 @@ test('creates cron job with schedule object', (t) => {
 
 test('creates job with cron string', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'basic', cron: '* * * * *' }]
   });
 
@@ -280,7 +282,7 @@ test('fails if cron pattern is invalid', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', cron: '* * * *' }]
       }),
     { message: /Job #.* named .* had an invalid cron pattern: */ }
@@ -291,7 +293,7 @@ test('fails if closeWorkersAfterMs is <= 0 or infinite', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', closeWorkerAfterMs: 0 }]
       }),
     {
@@ -304,7 +306,7 @@ test('fails if reserved job name: index, index.js, index.mjs', (t) => {
   t.throws(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'index' }]
       }),
     {
@@ -316,7 +318,7 @@ test('fails if reserved job name: index, index.js, index.mjs', (t) => {
 
 test('getHumanToMs()', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic']
   });
 
@@ -326,7 +328,7 @@ test('getHumanToMs()', (t) => {
 
 test('parseValue()', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic']
   });
 
@@ -352,7 +354,7 @@ test('parseValue()', (t) => {
 
 test('isSchedule()', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic']
   });
 
@@ -363,7 +365,7 @@ test('isSchedule()', (t) => {
 
 test('getWorkerMetadata()', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic']
   });
 
@@ -380,7 +382,7 @@ test('getWorkerMetadata()', (t) => {
 
 test('run > job does not exist', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic']
   });
 
@@ -398,7 +400,7 @@ test('run > job already running', (t) => {
   logger.info = () => {};
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic'],
     logger
   });
@@ -414,7 +416,7 @@ test.serial('run > job terminates after set time', async (t) => {
   logger.error = () => {};
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'infinite', closeWorkerAfterMs: 1000 }],
     logger
   });
@@ -442,7 +444,7 @@ test('run > job terminates on message "done"', async (t) => {
   logger.info = () => {};
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'done' }],
     logger
   });
@@ -470,7 +472,7 @@ test('run > job sent a message', async (t) => {
   };
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'message' }],
     logger
   });
@@ -494,7 +496,7 @@ test('run > job sent an error', async (t) => {
   };
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'message' }],
     logger
   });
@@ -514,7 +516,7 @@ test('run > jobs run all when no name designated', async (t) => {
   logger.info = () => {};
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic'],
     logger
   });
@@ -537,7 +539,7 @@ test('run > jobs run all when no name designated', async (t) => {
 
 test('start > throws error if job does not exist', (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['basic']
   });
 
@@ -551,7 +553,7 @@ test('start > fails if job already started', async (t) => {
   };
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['short'],
     logger
   });
@@ -565,7 +567,7 @@ test('start > fails if job already started', async (t) => {
 
 test('start > fails if date is in the past', async (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'basic', date: new Date() }]
   });
 
@@ -580,7 +582,7 @@ test('start > fails if date is in the past', async (t) => {
 
 test.serial('start > sets timeout if date is in the future', async (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [
       {
         name: 'infinite',
@@ -608,7 +610,7 @@ test.serial(
     t.plan(3);
 
     const bree = new Bree({
-      root: path.join(__dirname, 'jobs'),
+      root,
       jobs: [
         {
           name: 'infinite',
@@ -648,7 +650,7 @@ test.serial(
     t.plan(3);
 
     const bree = new Bree({
-      root: path.join(__dirname, 'jobs'),
+      root,
       jobs: [
         {
           name: 'infinite',
@@ -688,7 +690,7 @@ test.serial(
     t.plan(6);
 
     const bree = new Bree({
-      root: path.join(__dirname, 'jobs'),
+      root,
       jobs: [
         {
           name: 'infinite',
@@ -732,7 +734,7 @@ test.serial(
     t.plan(6);
 
     const bree = new Bree({
-      root: path.join(__dirname, 'jobs'),
+      root,
       jobs: [
         {
           name: 'infinite',
@@ -776,7 +778,7 @@ test.serial(
     t.plan(6);
 
     const bree = new Bree({
-      root: path.join(__dirname, 'jobs'),
+      root,
       jobs: [
         {
           name: 'infinite',
@@ -820,7 +822,7 @@ test.serial(
     t.plan(6);
 
     const bree = new Bree({
-      root: path.join(__dirname, 'jobs'),
+      root,
       jobs: [
         {
           name: 'infinite',
@@ -862,7 +864,7 @@ test.serial('start > sets interval if interval is schedule', async (t) => {
   t.plan(3);
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['infinite'],
     timeout: false,
     interval: later.parse.cron('* * * * *')
@@ -895,7 +897,7 @@ test.serial('start > sets interval if interval is number', async (t) => {
   t.plan(3);
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: ['infinite'],
     timeout: false,
     interval: 1000
@@ -934,7 +936,7 @@ test.serial('stop > job stops when "cancel" message is sent', async (t) => {
   };
 
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'message' }],
     logger
   });
@@ -954,7 +956,7 @@ test.serial('stop > job stops when "cancel" message is sent', async (t) => {
 
 test('stop > clears closeWorkerAfterMs', async (t) => {
   const bree = new Bree({
-    root: path.join(__dirname, 'jobs'),
+    root,
     jobs: [{ name: 'basic', closeWorkerAfterMs: 10 }]
   });
 
@@ -984,7 +986,7 @@ test('job with custom worker instance options', (t) => {
   t.notThrows(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: [{ name: 'basic', worker: { argv: ['test'] } }]
       })
   );
@@ -994,7 +996,7 @@ test('job that combines date and cron', (t) => {
   t.notThrows(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: ['basic'],
         date: new Date(Date.now() + 100),
         cron: '* * * * *'
@@ -1006,10 +1008,30 @@ test('job that combines timeout and cron', (t) => {
   t.notThrows(
     () =>
       new Bree({
-        root: path.join(__dirname, 'jobs'),
+        root,
         jobs: ['basic'],
         timeout: 100,
         cron: '* * * * *'
       })
   );
 });
+
+test('set default interval', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic' }],
+    interval: 100
+  });
+  t.is(bree.config.jobs[0].interval, 100);
+});
+
+test.todo(
+  'job new Bree({ jobs: ["test.js", "test.mjs"] }) with defined extension in top level Array'
+);
+test.todo('job name ends with js, mjs, and none to use default');
+test.todo('job with custom hasSeconds option passed');
+
+// TODO: there are a bunch of uncovered line numbers
+// `yarn run test-coverage` to see
+// once you can increase this, then we can increase "branches" threshold
+// in the root dir file named `.nycrc`

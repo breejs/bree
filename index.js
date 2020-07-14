@@ -491,6 +491,9 @@ class Bree {
           this.getWorkerMetadata(name, { message })
         );
       });
+      // NOTE: you cannot catch messageerror since it is a Node internal
+      //       (if anyone has any idea how to catch this in tests let us know)
+      /* istanbul ignore next */
       this.workers[name].on('messageerror', (err) => {
         this.config.logger.error(
           `${prefix} had a message error`,
