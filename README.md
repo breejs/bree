@@ -429,6 +429,8 @@ ul
 = 'Welcome to Tesla'
 ```
 
+**NOTE:** We have provided a complete demo example using Express at <https://github.com/breejs/express-example>.
+
 
 ## Instance Options
 
@@ -627,7 +629,7 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [MIT](LICENSE) © [Nick Baugh](http://niftylettuce.com/)
 
 
-##
+## 
 
 <a href="#"><img src="https://d1i8ikybhfrv4r.cloudfront.net/bree/footer.png" alt="#" /></a>
 
