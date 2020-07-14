@@ -1588,10 +1588,10 @@ create-hmac@^1.1.0, create-hmac@^1.1.4, create-hmac@^1.1.7:
     safe-buffer "^5.0.1"
     sha.js "^2.4.8"
 
-cron-validate@^1.1.4:
-  version "1.1.4"
-  resolved "https://registry.yarnpkg.com/cron-validate/-/cron-validate-1.1.4.tgz#bb0390c69dd59d1cd259f9c99e8a4edaa6bccd08"
-  integrity sha512-vr2r+S8qKJKQKn1Bi+x/voX3AldN4/5KjjhDtU3LU2yvyu3iqYpSNFhWZx42DUNAUmKKTwh5aIBuG6dzh6JqVg==
+cron-validate@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/cron-validate/-/cron-validate-1.1.5.tgz#a8629c88d2c37e24dadac9a0315fd44a7aff341d"
+  integrity sha512-xsXvvG0+A+1rJCZbJVCyDWvSHdEDbklQ8xCxLo7iJqoq56OpoxwTltMr25tKgYoEmEUSJCoWmoyOCWE/YS1OiQ==
   dependencies:
     yup "0.29.1"
 
@@ -5251,7 +5251,7 @@ remark-heading-gap@^3.1.2:
   resolved "https://registry.yarnpkg.com/remark-heading-gap/-/remark-heading-gap-3.1.2.tgz#480b71a655e793848db42b714358b5533d7d5ec3"
   integrity sha512-LNm1B4UveH1BkSLx4OPab0vW/p3KOc+8wV4kd94CHXmhuJ8i+kdroG2AonkUVzbOElc8U8ylxF3WPfmqYbRjJg==
 
-"remark-license@github:niftylettuce/remark-license":
+remark-license@niftylettuce/remark-license:
   version "4.0.1"
   resolved "https://codeload.github.com/niftylettuce/remark-license/tar.gz/17ecb8f64f8f6082414d14f9267a12764e6ddbfb"
   dependencies:

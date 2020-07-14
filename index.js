@@ -3,7 +3,7 @@ const { resolve, join } = require('path');
 const { statSync } = require('fs');
 
 const combineErrors = require('combine-errors');
-const cron = require('cron-validate').default;
+const cron = require('cron-validate');
 const debug = require('debug')('bree');
 const humanInterval = require('human-interval');
 const isSANB = require('is-string-and-not-blank');

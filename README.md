@@ -27,6 +27,7 @@
 * [Foreword](#foreword)
 * [Install](#install)
 * [Usage and Examples](#usage-and-examples)
+* [Node.js Email Queue Job Scheduling Example](#nodejs-email-queue-job-scheduling-example)
 * [Instance Options](#instance-options)
 * [Job Options](#job-options)
 * [Job Interval and Timeout Values](#job-interval-and-timeout-values)
@@ -274,6 +275,161 @@ bree.run('beep');
 ```
 
 
+## Node.js Email Queue Job Scheduling Example
+
+A very common use case for a Node.js job scheduler is the sending of emails.
+
+We highly recommend you to use Bree in combination with the [email-templates](https://email-templates.js.org/) package (made by the same author).  Not only does it let you easily manage email templates, but it also automatically opens email previews in your browser for you during local development (using [preview-email](https://github.com/forwardemail/preview-email).
+
+You will then create in your application a MongoDB "email" collection (or SQL table) with the following properties (or SQL columns):
+
+* `template` (String) - the name of the email template
+* `message` (Object) - a Nodemailer message object
+* `locals` (Object) - an Object of locals that are passed to the template for rendering
+
+Here are optional properties/columns that you may want to also add (you'll need to implement the logic yourself as the example provided below does not include it):
+
+* `send_at` (Date) - the Date you want to send an email (should default to current `Date.now()` when record is created, and can be overridden on a per job basis)
+* `sent_at` (Date) - the Date that the email actually got sent (set by your job in Bree - you would use this when querying for emails to send, and specifically exclude any emails that have a `sent_at` value sent in your query)
+* `response` (Object) - the mixed Object that is returned from Nodemailer sending the message (you should store this for historical data and so you can detect bounces)
+
+In your application, you will then need to save a new record into the collection or table (where you want to trigger an email to be queued) with values for these properties.
+
+Lastly, you will need to set up Bree to fetch from the email collection every minute (you can configure how frequent you wish, however you may want to implement locking, by setting a `is_locked` Boolean property, and subsequently unlocking any jobs locked more than X minutes ago – but **typically this is not needed** unless you are sending thousands of emails and have a slow SMTP transport).
+
+```js
+const Bree = require('bree');
+const Graceful = require('@ladjs/graceful');
+const Cabin = require('cabin');
+
+//
+// we recommend using Cabin as it is security-focused
+// and you can easily hook in Slack webhooks and more
+// <https://cabinjs.com>
+//
+const logger = new Cabin();
+
+const bree = new Bree({
+  logger,
+  jobs: [
+    {
+      // runs `./jobs/email.js` on start and every minute
+      name: 'email',
+      interval: '1m'
+    }
+  ]
+});
+```
+
+> Example contents of a file named `./jobs/email.js`:
+
+```js
+const os = require('os');
+const { parentPort } = require('worker_threads');
+
+const Cabin = require('cabin');
+const Email = require('email-templates');
+const pMap = require('p-map');
+
+//
+// we recommend using Cabin as it is security-focused
+// and you can easily hook in Slack webhooks and more
+// <https://cabinjs.com>
+//
+const logger = new Cabin();
+
+//
+// we recommend using email-templates to
+// create, send, and manage your emails
+// <https://email-templates.js.org>
+//
+const email = new Email({
+  message: {
+    // set a default from that will be set on all messages
+    // (unless you specifically override it on an individual basis)
+    from: 'elon@tesla.com'
+  }
+});
+
+// store boolean if the job is cancelled
+let isCancelled = false;
+
+// how many emails to send at once
+const concurrency = os.cpus().length;
+
+// example database results
+const results = [
+  {
+    template: 'welcome',
+    message: {
+      to: 'elon@spacex.com'
+    },
+    locals: {
+      foo: 'bar',
+      beep: 'boop'
+    }
+  }
+  // ...
+];
+
+async function mapper(result) {
+  // return early if the job was already cancelled
+  if (isCancelled) return;
+  try {
+    const response = await email.send(result);
+    logger.info('sent email', { response });
+    // here is where you would write to the database that it was sent
+    return response;
+  } catch (err) {
+    // catch the error so if one email fails they all don't fail
+    logger.error(err);
+  }
+}
+
+// handle cancellation (this is a very simple example)
+if (parentPort)
+  parentPort.once('message', message => {
+    //
+    // TODO: once we can manipulate concurrency option to p-map
+    // we could make it `Number.MAX_VALUE` here to speed cancellation up
+    // <https://github.com/sindresorhus/p-map/issues/28>
+    //
+    if (message === 'cancel') isCancelled = true;
+  });
+
+(async () => {
+  // query database results for emails not sent
+  // and iterate over them with concurrency
+  await pMap(results, mapper, { concurrency });
+
+  // signal to parent that the job is done
+  if (parentPort) parentPort.postMessage('done');
+  else process.exit(0);
+})();
+```
+
+> Example contents of a file named `./emails/welcome/html.pug`:
+
+```pug
+p Welcome to Tesla
+ul
+  li
+    strong Foo value:
+    = ' '
+    = foo
+  li
+    strong Beep value:
+    = ' '
+    = beep
+```
+
+> Example contents of a file named `./emails/welcome/subject.pug`:
+
+```pug
+= 'Welcome to Tesla'
+```
+
+
 ## Instance Options
 
 Here is the full list of options and their defaults.  See [index.js](index.js) for more insight if necessary.
@@ -460,9 +616,10 @@ Kudos to the authors of all these packages, however they did not work well enoug
 
 ## Contributors
 
-| Name           | Website                    |
-| -------------- | -------------------------- |
-| **Nick Baugh** | <http://niftylettuce.com/> |
+| Name             | Website                           |
+| ---------------- | --------------------------------- |
+| **Nick Baugh**   | <http://niftylettuce.com/>        |
+| **shadowgate15** | <https://github.com/shadowgate15> |
 
 
 ## License
