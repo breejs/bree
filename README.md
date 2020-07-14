@@ -279,7 +279,7 @@ bree.run('beep');
 
 A very common use case for a Node.js job scheduler is the sending of emails.
 
-We highly recommend you to use Bree in combination with the [email-templates](https://email-templates.js.org/) package (made by the same author).  Not only does it let you easily manage email templates, but it also automatically opens email previews in your browser for you during local development (using [preview-email](https://github.com/forwardemail/preview-email).
+We highly recommend you to use Bree in combination with the [email-templates](https://email-templates.js.org/) package (made by the same author).  Not only does it let you easily manage email templates, but it also automatically opens email previews in your browser for you during local development (using [preview-email](https://github.com/forwardemail/preview-email)).
 
 You will then create in your application a MongoDB "email" collection (or SQL table) with the following properties (or SQL columns):
 
@@ -627,7 +627,7 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [MIT](LICENSE) © [Nick Baugh](http://niftylettuce.com/)
 
 
-## 
+##
 
 <a href="#"><img src="https://d1i8ikybhfrv4r.cloudfront.net/bree/footer.png" alt="#" /></a>
 
