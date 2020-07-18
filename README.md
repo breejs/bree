@@ -31,6 +31,7 @@
 * [Instance Options](#instance-options)
 * [Job Options](#job-options)
 * [Job Interval and Timeout Values](#job-interval-and-timeout-values)
+* [Listening for events](#listening-for-events)
 * [Cancellation, Retries, Stalled Jobs, and Graceful Reloading](#cancellation-retries-stalled-jobs-and-graceful-reloading)
 * [Interval, Timeout, Date, and Cron Validation](#interval-timeout-date-and-cron-validation)
 * [Writing jobs with Promises and async-await](#writing-jobs-with-promises-and-async-await)
@@ -476,6 +477,28 @@ These values can include Number, Object, and String variable types:
 * Number values indicates the number of milliseconds for the timeout or interval
 * Object values must be a [later][] schedule object value (e.g. `later.schedule(later.parse.cron('15 10 * * ? *')))`)
 * String values can be either a [later][], [human-interval][], or [ms][] String values (e.g. [later][] supports Strings such as `every 5 mins`, [human-interval][] supports Strings such as `3 days and 4 hours`, and [ms][] supports Strings such as `4h` for four hours)
+
+
+## Listening for events
+
+Bree extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter) and emits two events:
+
+* `worker created` with an argument of `name`
+* `worker deleted` with an argument of `name`
+
+If you'd like to know when your workers are created (or deleted), you can do so through this example:
+
+```js
+bree.on('worker created', (name) => {
+  console.log('worker created', name);
+  console.log(bree.workers[name]);
+});
+
+bree.on('worker deleted', (name) => {
+  console.log('worker deleted', name);
+  console.log(typeof bree.workers[name] === 'undefined');
+});
+```
 
 
 ## Cancellation, Retries, Stalled Jobs, and Graceful Reloading

@@ -1025,6 +1025,29 @@ test('set default interval', (t) => {
   t.is(bree.config.jobs[0].interval, 100);
 });
 
+test('emits "worker created" and "worker started" events', async (t) => {
+  const bree = new Bree({
+    root,
+    jobs: ['basic'],
+    timeout: 100
+  });
+  let created;
+  let deleted;
+  bree.start();
+  bree.on('worker created', (name) => {
+    t.log('worker created', name);
+    t.true(typeof bree.workers[name] === 'object');
+    created = true;
+  });
+  bree.on('worker deleted', (name) => {
+    t.log('worker deleted', name);
+    t.true(typeof bree.workers[name] === 'undefined');
+    deleted = true;
+  });
+  await delay(1000);
+  t.true(created && deleted);
+});
+
 test.todo(
   'job new Bree({ jobs: ["test.js", "test.mjs"] }) with defined extension in top level Array'
 );

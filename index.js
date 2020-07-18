@@ -1,3 +1,4 @@
+const EventEmitter = require('events');
 const { Worker } = require('worker_threads');
 const { resolve, join } = require('path');
 const { statSync } = require('fs');
@@ -11,9 +12,10 @@ const later = require('later');
 const ms = require('ms');
 const { boolean } = require('boolean');
 
-class Bree {
+class Bree extends EventEmitter {
   // eslint-disable-next-line complexity
   constructor(config) {
+    super();
     this.config = {
       // we recommend using Cabin for logging
       // <https://cabinjs.com>
@@ -452,6 +454,7 @@ class Bree {
           ...(job.worker && job.worker.workerData ? job.worker.workerData : {})
         }
       });
+      this.emit('worker created', name);
       debug('worker started', name);
 
       // if we specified a value for `closeWorkerAfterMs`
@@ -512,6 +515,7 @@ class Bree {
           this.getWorkerMetadata(name)
         );
         delete this.workers[name];
+        this.emit('worker deleted', name);
       });
       return;
     }
