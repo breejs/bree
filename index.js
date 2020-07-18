@@ -11,6 +11,7 @@ const isSANB = require('is-string-and-not-blank');
 const later = require('later');
 const ms = require('ms');
 const { boolean } = require('boolean');
+const { setTimeout, setInterval } = require('safe-timers');
 
 class Bree extends EventEmitter {
   // eslint-disable-next-line complexity
@@ -631,7 +632,6 @@ class Bree extends EventEmitter {
           typeof this.timeouts[name].clear === 'function'
         )
           this.timeouts[name].clear();
-        else clearTimeout(this.timeouts[name]);
         delete this.timeouts[name];
       }
 
@@ -641,7 +641,6 @@ class Bree extends EventEmitter {
           typeof this.intervals[name].clear === 'function'
         )
           this.intervals[name].clear();
-        else clearInterval(this.intervals[name]);
         delete this.intervals[name];
       }
 
@@ -660,7 +659,11 @@ class Bree extends EventEmitter {
       }
 
       if (this.closeWorkerAfterMs[name]) {
-        clearTimeout(this.closeWorkerAfterMs[name]);
+        if (
+          typeof this.closeWorkerAfterMs[name] === 'object' &&
+          typeof this.closeWorkerAfterMs[name].clear === 'function'
+        )
+          this.closeWorkerAfterMs[name].clear();
         delete this.closeWorkerAfterMs[name];
       }
 

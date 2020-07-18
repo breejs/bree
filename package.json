@@ -28,7 +28,8 @@
     "human-interval": "^1.0.0",
     "is-string-and-not-blank": "^0.0.2",
     "later": "^1.2.0",
-    "ms": "^2.1.2"
+    "ms": "^2.1.2",
+    "safe-timers": "^1.1.0"
   },
   "devDependencies": {
     "@commitlint/cli": "latest",
