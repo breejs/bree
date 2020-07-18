@@ -1044,7 +1044,7 @@ test('emits "worker created" and "worker started" events', async (t) => {
     t.true(typeof bree.workers[name] === 'undefined');
     deleted = true;
   });
-  await delay(1000);
+  await delay(3000);
   t.true(created && deleted);
 });
 
