@@ -7,6 +7,7 @@ const FakeTimers = require('@sinonjs/fake-timers');
 const Bree = require('..');
 const later = require('later');
 const delay = require('delay');
+const humanInterval = require('human-interval');
 
 const root = path.join(__dirname, 'jobs');
 
@@ -378,6 +379,9 @@ test('getWorkerMetadata()', (t) => {
   bree.config.outputWorkerMetadata = true;
   bree.config.jobs[0].outputWorkerMetadata = true;
   t.snapshot(bree.getWorkerMetadata('basic'));
+
+  bree.workers.basic = { isMainThread: 'test' };
+  t.is(bree.getWorkerMetadata('basic').worker.isMainThread, 'test');
 });
 
 test('run > job does not exist', (t) => {
@@ -417,7 +421,7 @@ test.serial('run > job terminates after set time', async (t) => {
 
   const bree = new Bree({
     root,
-    jobs: [{ name: 'infinite', closeWorkerAfterMs: 1000 }],
+    jobs: [{ name: 'infinite', closeWorkerAfterMs: 50 }],
     logger
   });
 
@@ -773,6 +777,48 @@ test.serial(
 );
 
 test.serial(
+  'start > sets timeout if interval is 0 and timeout is schedule',
+  async (t) => {
+    t.plan(4);
+
+    const bree = new Bree({
+      root,
+      jobs: [
+        {
+          name: 'infinite',
+          timeout: later.parse.cron('* * * * *'),
+          interval: 0
+        }
+      ]
+    });
+
+    const clock = FakeTimers.install({ now: Date.now() });
+
+    t.is(typeof bree.timeouts.infinite, 'undefined');
+
+    bree.start('infinite');
+
+    t.is(typeof bree.timeouts.infinite, 'object');
+
+    await clock.nextAsync();
+    t.is(typeof bree.timeouts.infinie, 'undefined');
+
+    const promise = new Promise((resolve, reject) => {
+      bree.workers.infinite.on('error', reject);
+      bree.workers.infinite.on('exit', (code) => {
+        t.true(code === 0);
+        resolve();
+      });
+    });
+    clock.next();
+    await promise;
+
+    bree.stop();
+    clock.uninstall();
+  }
+);
+
+test.serial(
   'start > sets timeout if interval is schedule and timeout is number',
   async (t) => {
     t.plan(6);
@@ -926,6 +972,25 @@ test.serial('start > sets interval if interval is number', async (t) => {
   clock.uninstall();
 });
 
+test.serial('start > does not set interval if interval is 0', (t) => {
+  t.plan(2);
+
+  const bree = new Bree({
+    root,
+    jobs: ['infinite'],
+    timeout: false,
+    interval: 0
+  });
+
+  t.is(typeof bree.intervals.infinite, 'undefined');
+
+  bree.start('infinite');
+
+  t.is(typeof bree.intervals.infinite, 'undefined');
+
+  bree.stop();
+});
+
 test.serial('stop > job stops when "cancel" message is sent', async (t) => {
   t.plan(4);
 
@@ -954,6 +1019,32 @@ test.serial('stop > job stops when "cancel" message is sent', async (t) => {
   t.is(typeof bree.workers.message, 'undefined');
 });
 
+test.serial(
+  'stop > does not send graceful notice if no cancelled message',
+  async (t) => {
+    const logger = {
+      info: (message) => {
+        if (message === 'Gracefully cancelled worker for job "message"')
+          t.fail();
+      },
+      error: () => {}
+    };
+
+    const bree = new Bree({
+      root,
+      jobs: ['message-ungraceful'],
+      logger
+    });
+
+    bree.start('message-ungraceful');
+    await delay(1);
+    bree.stop('message-ungraceful');
+    await delay(100);
+
+    t.pass();
+  }
+);
+
 test('stop > clears closeWorkerAfterMs', async (t) => {
   const bree = new Bree({
     root,
@@ -970,6 +1061,51 @@ test('stop > clears closeWorkerAfterMs', async (t) => {
   bree.stop('basic');
 
   t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+});
+
+test('stop > deletes closeWorkerAfterMs', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', closeWorkerAfterMs: 10 }]
+  });
+
+  t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+
+  bree.start('basic');
+  bree.closeWorkerAfterMs.basic = 'test';
+  bree.stop('basic');
+
+  t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+});
+
+test('stop > deletes timeouts', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', timeout: 1000 }]
+  });
+
+  t.is(typeof bree.timeouts.basic, 'undefined');
+
+  bree.start('basic');
+  bree.timeouts.basic = 'test';
+  bree.stop('basic');
+
+  t.is(typeof bree.timeouts.basic, 'undefined');
+});
+
+test('stop > deletes intervals', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', interval: 1000 }]
+  });
+
+  t.is(typeof bree.intervals.basic, 'undefined');
+
+  bree.start('basic');
+  bree.intervals.basic = 'test';
+  bree.stop('basic');
+
+  t.is(typeof bree.intervals.basic, 'undefined');
 });
 
 test('does not throw an error when root directory option is set to false', (t) => {
@@ -1035,12 +1171,10 @@ test('emits "worker created" and "worker started" events', async (t) => {
   let deleted;
   bree.start();
   bree.on('worker created', (name) => {
-    t.log('worker created', name);
     t.true(typeof bree.workers[name] === 'object');
     created = true;
   });
   bree.on('worker deleted', (name) => {
-    t.log('worker deleted', name);
     t.true(typeof bree.workers[name] === 'undefined');
     deleted = true;
   });
@@ -1048,12 +1182,144 @@ test('emits "worker created" and "worker started" events', async (t) => {
   t.true(created && deleted);
 });
 
-test.todo(
-  'job new Bree({ jobs: ["test.js", "test.mjs"] }) with defined extension in top level Array'
-);
-test.todo('job name ends with js, mjs, and none to use default');
-test.todo('job with custom hasSeconds option passed');
+test('jobs with .js, .mjs and no extension', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: ['basic', 'basic.js', 'basic.mjs']
+  });
 
+  t.is(bree.config.jobs[0].path, `${root}/basic.js`);
+  t.is(bree.config.jobs[1].path, `${root}/basic.js`);
+  t.is(bree.config.jobs[2].path, `${root}/basic.mjs`);
+});
+
+test('jobs with blank path and .js, .mjs, and no extension', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [
+      { name: 'basic', path: '' },
+      { name: 'basic.js', path: '' },
+      { name: 'basic.mjs', path: '' }
+    ]
+  });
+
+  t.is(bree.config.jobs[0].path, `${root}/basic.js`);
+  t.is(bree.config.jobs[1].path, `${root}/basic.js`);
+  t.is(bree.config.jobs[2].path, `${root}/basic.mjs`);
+});
+
+test('job with custom hasSeconds option passed', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', cron: '* * * * * *', hasSeconds: true }]
+  });
+
+  t.is(typeof bree.config.jobs[0].interval, 'object');
+});
+
+test.serial('job with long timeout runs', (t) => {
+  t.plan(2);
+
+  const bree = new Bree({
+    root,
+    jobs: ['infinite'],
+    timeout: '3 months'
+  });
+
+  t.is(bree.config.jobs[0].timeout, humanInterval('3 months'));
+
+  const now = Date.now();
+  const clock = FakeTimers.install({ now: Date.now() });
+
+  bree.start('infinite');
+  bree.on('worker created', () => {
+    t.is(clock.now - now, humanInterval('3 months'));
+  });
+  // should run till worker stops running
+  clock.runAll();
+
+  clock.uninstall();
+});
+
+test.serial('job with worker data sent by default', async (t) => {
+  t.plan(1);
+
+  const logger = {
+    info: (...args) => {
+      if (!args[1] || !args[1].message) return;
+      t.is(args[1].message.test, 'test');
+    },
+    error: () => {}
+  };
+
+  const bree = new Bree({
+    root,
+    jobs: ['worker-data'],
+    worker: { workerData: { test: 'test' } },
+    outputWorkerMetadata: true,
+    logger
+  });
+
+  bree.run('worker-data');
+  await delay(1000);
+});
+
+test.serial('job with worker data sent by job', async (t) => {
+  t.plan(1);
+
+  const logger = {
+    info: (...args) => {
+      if (!args[1] || !args[1].message) return;
+      t.is(args[1].message.test, 'test');
+    },
+    error: () => {}
+  };
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'worker-data', worker: { workerData: { test: 'test' } } }],
+    outputWorkerMetadata: true,
+    logger
+  });
+
+  bree.run('worker-data');
+  await delay(1000);
+});
+
+test.serial('job with false worker options sent by default', async (t) => {
+  t.plan(1);
+
+  const bree = new Bree({
+    root,
+    jobs: ['basic'],
+    worker: false
+  });
+
+  bree.start('basic');
+  bree.on('worker created', () => {
+    t.pass();
+  });
+
+  await delay(1000);
+  bree.stop();
+});
+
+test.serial('job with false worker options sent by job', async (t) => {
+  t.plan(1);
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', worker: false }]
+  });
+
+  bree.run('basic');
+  bree.on('worker deleted', () => {
+    t.pass();
+  });
+
+  await delay(1000);
+  bree.stop();
+});
 // TODO: there are a bunch of uncovered line numbers
 // `yarn run test-coverage` to see
 // once you can increase this, then we can increase "branches" threshold
