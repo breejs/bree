@@ -378,10 +378,11 @@ class Bree extends EventEmitter {
                 )
               )
             );
-            if (schedule.isValid()) {
-              this.config.jobs[i].interval = schedule;
-              // delete this.config.jobs[i].cron;
-            } // else {
+            // NOTE: it is always valid
+            this.config.jobs[i].interval = schedule;
+            // if (schedule.isValid()) {
+            //   this.config.jobs[i].interval = schedule;
+            // } // else {
             //   errors.push(
             //     new Error(
             //       `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`

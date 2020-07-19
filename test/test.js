@@ -1320,7 +1320,101 @@ test.serial('job with false worker options sent by job', async (t) => {
   await delay(1000);
   bree.stop();
 });
-// TODO: there are a bunch of uncovered line numbers
-// `yarn run test-coverage` to see
-// once you can increase this, then we can increase "branches" threshold
-// in the root dir file named `.nycrc`
+
+test('validate hasSeconds', (t) => {
+  const bree = new Bree({ root, jobs: [{ name: 'basic', hasSeconds: true }] });
+  t.true(bree.config.jobs[0].hasSeconds);
+  t.throws(
+    () => new Bree({ root, jobs: [{ name: 'basic', hasSeconds: 'true' }] }),
+    { message: /it must be a Boolean/ }
+  );
+});
+
+test('validate cronValidate', (t) => {
+  t.throws(
+    () => new Bree({ root, jobs: [{ name: 'basic', cronValidate: false }] }),
+    { message: /it must be an Object/ }
+  );
+});
+
+test('set cronValidate when hasSeconds is true', (t) => {
+  const bree = new Bree({ root, hasSeconds: true, jobs: [{ name: 'basic' }] });
+  t.true(bree.config.hasSeconds);
+  t.true(typeof bree.config.cronValidate === 'object');
+  t.is(bree.config.cronValidate.preset, 'default');
+  t.true(typeof bree.config.cronValidate.override === 'object');
+  t.is(bree.config.cronValidate.override.useSeconds, true);
+});
+
+test('hasSeconds and job.hasSeconds', (t) => {
+  const bree = new Bree({
+    root,
+    hasSeconds: true,
+    jobs: [{ name: 'basic', hasSeconds: true }]
+  });
+  t.true(bree.config.hasSeconds);
+  t.true(bree.config.jobs[0].hasSeconds);
+  t.deepEqual(bree.config.cronValidate, {
+    preset: 'default',
+    override: {
+      useSeconds: true
+    }
+  });
+  t.deepEqual(bree.config.jobs[0].cronValidate, {
+    preset: 'default',
+    override: {
+      useSeconds: true
+    }
+  });
+});
+
+test('cronValidate and job.cronValidate', (t) => {
+  const bree = new Bree({
+    root,
+    cronValidate: {
+      preset: 'none'
+    },
+    jobs: [{ name: 'basic', cronValidate: { preset: 'none' } }]
+  });
+  t.is(bree.config.cronValidate.preset, 'none');
+  t.is(bree.config.jobs[0].cronValidate.preset, 'none');
+});
+
+test('hasSeconds, job.hasSeconds, cronValidate, job.cronValidate', (t) => {
+  const bree = new Bree({
+    root,
+    hasSeconds: true,
+    cronValidate: {
+      preset: 'default',
+      override: {
+        useSeconds: true
+      }
+    },
+    jobs: [
+      {
+        name: 'basic',
+        hasSeconds: true,
+        cronValidate: {
+          preset: 'default',
+          override: {
+            useSeconds: true
+          }
+        }
+      }
+    ]
+  });
+  t.true(bree.config.hasSeconds);
+  t.true(bree.config.jobs[0].hasSeconds);
+  t.deepEqual(bree.config.cronValidate, {
+    preset: 'default',
+    override: {
+      useSeconds: true
+    }
+  });
+  t.deepEqual(bree.config.jobs[0].cronValidate, {
+    preset: 'default',
+    override: {
+      useSeconds: true
+    }
+  });
+});
