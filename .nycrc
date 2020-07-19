@@ -6,7 +6,7 @@
   "temp-dir": "./.nyc_output",
   "reporter": ["lcov", "html", "text"],
   "check-coverage": true,
-  "lines": 100,
+  "lines": 98,
   "functions": 100,
-  "branches": 93
+  "branches": 92
 }

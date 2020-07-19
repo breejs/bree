@@ -302,6 +302,53 @@ class Bree extends EventEmitter {
         }
       }
 
+      // validate hasSeconds
+      if (
+        typeof job.hasSeconds !== 'undefined' &&
+        typeof job.hasSeconds !== 'boolean'
+      )
+        errors.push(
+          new Error(
+            `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
+          )
+        );
+
+      // validate cronValidate
+      if (
+        typeof job.cronValidate !== 'undefined' &&
+        typeof job.cronValidate !== 'object'
+      )
+        errors.push(
+          new Error(
+            `${prefix} had cronValidate value set, but it must be an Object`
+          )
+        );
+
+      // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
+      if (job.hasSeconds) {
+        const preset =
+          job.cronValidate && job.cronValidate.preset
+            ? job.cronValidate.preset
+            : this.config.cronValidate && this.config.cronValidate.preset
+            ? this.config.cronValidate.preset
+            : 'default';
+        const override = {
+          ...(this.config.cronValidate && this.config.cronValidate.override
+            ? this.config.cronValidate.override
+            : {}),
+          ...(job.cronValidate && job.cronValidate.override
+            ? job.cronValidate.override
+            : {}),
+          useSeconds: true
+        };
+        this.config.jobs[i].cronValidate = {
+          ...this.config.cronValidate,
+          ...job.cronValidate,
+          preset,
+          override
+        };
+      }
+
       // validate cron
       if (typeof job.cron !== 'undefined') {
         if (this.isSchedule(job.cron)) {
@@ -363,53 +410,6 @@ class Bree extends EventEmitter {
             `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0)`
           )
         );
-
-      // validate hasSeconds
-      if (
-        typeof job.hasSeconds !== 'undefined' &&
-        typeof job.hasSeconds !== 'boolean'
-      )
-        errors.push(
-          new Error(
-            `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
-          )
-        );
-
-      // validate cronValidate
-      if (
-        typeof job.cronValidate !== 'undefined' &&
-        typeof job.cronValidate !== 'object'
-      )
-        errors.push(
-          new Error(
-            `${prefix} had cronValidate value set, but it must be an Object`
-          )
-        );
-
-      // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
-      if (job.hasSeconds) {
-        const preset =
-          job.cronValidate && job.cronValidate.preset
-            ? job.cronValidate.preset
-            : this.config.cronValidate && this.config.cronValidate.preset
-            ? this.config.cronValidate.preset
-            : 'default';
-        const override = {
-          ...(this.config.cronValidate && this.config.cronValidate.override
-            ? this.config.cronValidate.override
-            : {}),
-          ...(job.cronValidate && job.cronValidate.override
-            ? job.cronValidate.override
-            : {}),
-          useSeconds: true
-        };
-        this.config.jobs[i].cronValidate = {
-          ...this.config.cronValidate,
-          ...job.cronValidate,
-          preset,
-          override
-        };
-      }
 
       // if timeout was undefined, cron was undefined,
       // and date was undefined then set the default
