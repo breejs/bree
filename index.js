@@ -55,8 +55,7 @@ class Bree extends EventEmitter {
       //   worker: {
       //     isMainThread: Boolean
       //     resourceLimits: Object,
-      //     threadId: String,
-      //     workerData: Object
+      //     threadId: String
       //   }
       // });
       //
@@ -426,8 +425,7 @@ class Bree extends EventEmitter {
           worker: {
             isMainThread: this.workers[name].isMainThread,
             resourceLimits: this.workers[name].resourceLimits,
-            threadId: this.workers[name].threadId,
-            workerData: this.workers[name].workerData
+            threadId: this.workers[name].threadId
           }
         }
       : meta;
