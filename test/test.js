@@ -414,7 +414,6 @@ test('run > job already running', (t) => {
 });
 
 test.serial('run > job terminates after set time', async (t) => {
-  // this test may fail sometimes due to timing issues.
   const logger = _.cloneDeep(console);
   logger.info = () => {};
   logger.error = () => {};
@@ -425,22 +424,45 @@ test.serial('run > job terminates after set time', async (t) => {
     logger
   });
 
-  const clock = FakeTimers.install({ now: Date.now() });
-
   bree.run('infinite');
   t.true(typeof bree.closeWorkerAfterMs.infinite === 'object');
 
-  // eslint-disable-next-line no-new
-  new Promise((resolve, reject) => {
+  const listeners = new Promise((resolve, reject) => {
     bree.workers.infinite.on('error', reject);
     bree.workers.infinite.on('exit', (code) => {
       t.true(code === 1);
       resolve();
     });
   });
-  await clock.nextAsync();
 
-  clock.uninstall();
+  await delay(100);
+  await listeners;
+});
+
+test.serial('run > job terminates before set time', async (t) => {
+  const logger = _.cloneDeep(console);
+  logger.info = () => {};
+  logger.error = () => {};
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', closeWorkerAfterMs: 150 }],
+    logger
+  });
+
+  bree.run('basic');
+  t.true(typeof bree.closeWorkerAfterMs.basic === 'object');
+
+  const listeners = new Promise((resolve, reject) => {
+    bree.workers.basic.on('error', reject);
+    bree.workers.basic.on('exit', (code) => {
+      t.true(code === 0);
+      resolve();
+    });
+  });
+
+  await delay(150);
+  await listeners;
 });
 
 test('run > job terminates on message "done"', async (t) => {
