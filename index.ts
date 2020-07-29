@@ -545,7 +545,7 @@ class Bree extends EventEmitter {
           ...(job.worker?.workerData ? job.worker.workerData : {})
         }
       };
-      this.workers[name] = new Worker(job.path, workerOptions as any);
+      this.workers[name] = new Worker(job.path!, workerOptions as any);
       this.emit('worker created', name);
       debug('worker started', name);
 
@@ -648,7 +648,11 @@ class Bree extends EventEmitter {
               () => this.run(name),
               job.interval as any
             );
-          } else if (Number.isFinite(job.interval) && job.interval > 0) {
+          } else if (
+            typeof job.interval === 'number' &&
+            Number.isFinite(job.interval) &&
+            job.interval > 0
+          ) {
             debug('job.interval is finite', job);
             this.intervals[name] = setInterval(
               () => this.run(name),
@@ -670,7 +674,11 @@ class Bree extends EventEmitter {
               () => this.run(name),
               job.interval as any
             );
-          } else if (Number.isFinite(job.interval) && job.interval > 0) {
+          } else if (
+            typeof job.interval === 'number' &&
+            Number.isFinite(job.interval) &&
+            job.interval > 0
+          ) {
             debug('job.interval is finite', job);
             this.intervals[name] = setInterval(
               () => this.run(name),
@@ -691,7 +699,11 @@ class Bree extends EventEmitter {
               () => this.run(name),
               job.interval as any
             );
-          } else if (Number.isFinite(job.interval) && job.interval > 0) {
+          } else if (
+            typeof job.interval === 'number' &&
+            Number.isFinite(job.interval) &&
+            job.interval > 0
+          ) {
             debug('job.interval is finite', job.interval);
             this.intervals[name] = setInterval(
               () => this.run(name),
@@ -705,7 +717,11 @@ class Bree extends EventEmitter {
           () => this.run(name),
           job.interval as any
         );
-      } else if (Number.isFinite(job.interval) && job.interval > 0) {
+      } else if (
+        typeof job.interval === 'number' &&
+        Number.isFinite(job.interval) &&
+        job.interval > 0
+      ) {
         debug('job.interval is finite', job);
         this.intervals[name] = setInterval(
           () => this.run(name),
@@ -856,15 +872,15 @@ export interface BreeJobOptions {
   /**
    * The path of the job used for spawning a new Worker with. If not specified, then it defaults to the value for name plus the default file extension specified under Instance Options.
    */
-  path: string;
+  path?: string;
   /**
    * Sets the duration in milliseconds before the job starts (it overrides the default inherited timeout as set in Instance Options. A value of 0 indicates it will start immediately. This value can be a Number, String, or a Boolean of false (which indicates it will NOT inherit the default timeout from Instance Options). See Job Interval and Timeout Values below for more insight into how this value is parsed.
    */
-  timeout: number | string | boolean | later.Schedule;
+  timeout?: number | string | boolean | later.Schedule;
   /**
    * Sets the duration in milliseconds for the job to repeat itself, otherwise known as its interval (it overrides the default inherited interval as set in Instance Options). A value of 0 indicates it will not repeat and there will be no interval. If the value is greater than 0 then this value will be used as the interval. See Job Interval and Timeout Values below for more insight into how this value is parsed.
    */
-  interval: number | string | later.Schedule;
+  interval?: number | string | later.Schedule;
   /**
    * This must be a valid JavaScript Date (we use instance of Date for comparison). If this value is in the past, then it is not run when jobs are started (or run manually). We recommend using dayjs for creating this date, and then formatting it using the toDate() method (e.g. dayjs().add('3, 'days').toDate()). You could also use moment or any other JavaScript date library, as long as you convert the value to a Date instance here.
    */
