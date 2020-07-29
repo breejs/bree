@@ -4,7 +4,7 @@ const path = require('path');
 const test = require('ava');
 const FakeTimers = require('@sinonjs/fake-timers');
 
-const Bree = require('..');
+const Bree = require('../dist').default;
 const later = require('later');
 const delay = require('delay');
 const humanInterval = require('human-interval');

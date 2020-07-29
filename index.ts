@@ -1,21 +1,40 @@
-const EventEmitter = require('events');
-const { Worker } = require('worker_threads');
-const { resolve, join } = require('path');
-const { statSync } = require('fs');
+import { EventEmitter } from 'events';
+import { Worker, WorkerOptions } from 'worker_threads';
+import { resolve, join } from 'path';
+import { statSync } from 'fs';
 
-const combineErrors = require('combine-errors');
-const cron = require('cron-validate');
-const debug = require('debug')('bree');
-const humanInterval = require('human-interval');
-const isSANB = require('is-string-and-not-blank');
-const later = require('later');
-const ms = require('ms');
-const { boolean } = require('boolean');
-const { setTimeout, setInterval } = require('safe-timers');
+import combineErrors from 'combine-errors';
+import cron from 'cron-validate';
+import createDebug from 'debug';
+import humanInterval from 'human-interval';
+import isSANB from 'is-string-and-not-blank';
+import later, { Schedule } from 'later';
+import ms from 'ms';
+import { boolean } from 'boolean';
+import { setTimeout, setInterval, Timeout, Interval } from 'safe-timers';
 
+const debug = createDebug('bree');
 class Bree extends EventEmitter {
+  config: BreeInstanceConfig;
+
+  closeWorkerAfterMs: {
+    [key: string]: Timeout;
+  };
+
+  workers: {
+    [key: string]: Worker;
+  };
+
+  timeouts: {
+    [key: string]: Timeout;
+  };
+
+  intervals: {
+    [key: string]: Interval;
+  };
+
   // eslint-disable-next-line complexity
-  constructor(config) {
+  constructor(config: BreeInstanceOptions) {
     super();
     this.config = {
       // we recommend using Cabin for logging
@@ -31,12 +50,12 @@ class Bree extends EventEmitter {
       // (set this to `0` for no interval, and > 0 for a default interval to be set)
       interval: 0,
       // this is an Array of your job definitions (see README for examples)
-      jobs: [],
+      jobs: [] as any,
       // <https://bunkat.github.io/later/parsers.html#cron>
       // (can be overridden on a job basis with same prop name)
       hasSeconds: false,
       // <https://github.com/Airfooox/cron-validate>
-      cronValidate: {},
+      cronValidate: {} as any,
       // if you set a value > 0 here, then it will terminate workers after this time (ms)
       closeWorkerAfterMs: 0,
       // could also be mjs if desired
@@ -71,12 +90,11 @@ class Bree extends EventEmitter {
     if (this.config.hasSeconds)
       this.config.cronValidate = {
         ...this.config.cronValidate,
-        preset:
-          this.config.cronValidate && this.config.cronValidate.preset
-            ? this.config.cronValidate.preset
-            : 'default',
+        preset: this.config.cronValidate?.preset
+          ? this.config.cronValidate.preset
+          : 'default',
         override: {
-          ...(this.config.cronValidate && this.config.cronValidate.override
+          ...(this.config.cronValidate?.override
             ? this.config.cronValidate.override
             : {}),
           useSeconds: true
@@ -133,7 +151,7 @@ class Bree extends EventEmitter {
 
     // provide human-friendly errors for complex configurations
     const errors = [];
-    const names = [];
+    const names: string[] = [];
 
     /*
     jobs = [
@@ -271,8 +289,9 @@ class Bree extends EventEmitter {
       else if (job.name) names.push(job.name);
 
       // validate date
-      if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
+      if (typeof job.date !== 'undefined' && !(job.date instanceof Date)) {
         errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
+      }
 
       // validate timeout
       if (typeof job.timeout !== 'undefined') {
@@ -309,7 +328,7 @@ class Bree extends EventEmitter {
       )
         errors.push(
           new Error(
-            `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
+            `${prefix} had hasSeconds value of ${job.hasSeconds!} (it must be a Boolean)`
           )
         );
 
@@ -326,19 +345,16 @@ class Bree extends EventEmitter {
 
       // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
       if (job.hasSeconds) {
-        const preset =
-          job.cronValidate && job.cronValidate.preset
-            ? job.cronValidate.preset
-            : this.config.cronValidate && this.config.cronValidate.preset
-            ? this.config.cronValidate.preset
-            : 'default';
+        const preset = job.cronValidate?.preset
+          ? job.cronValidate.preset
+          : this.config.cronValidate?.preset
+          ? this.config.cronValidate.preset
+          : 'default';
         const override = {
-          ...(this.config.cronValidate && this.config.cronValidate.override
+          ...(this.config.cronValidate?.override
             ? this.config.cronValidate.override
             : {}),
-          ...(job.cronValidate && job.cronValidate.override
-            ? job.cronValidate.override
-            : {}),
+          ...(job.cronValidate?.override || {}),
           useSeconds: true
         };
         this.config.jobs[i].cronValidate = {
@@ -408,7 +424,7 @@ class Bree extends EventEmitter {
       )
         errors.push(
           new Error(
-            `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0)`
+            `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkerAfterMs} (it must be a finite number > 0)`
           )
         );
 
@@ -455,21 +471,21 @@ class Bree extends EventEmitter {
     if (errors.length > 0) throw combineErrors(errors);
   }
 
-  getHumanToMs(_value) {
+  getHumanToMs(_value: string) {
     const value = humanInterval(_value);
     if (Number.isNaN(value)) return ms(_value);
     return value;
   }
 
-  parseValue(value) {
+  parseValue(value: boolean | number | string | Schedule) {
     if (value === false) return value;
 
     if (this.isSchedule(value)) return value;
 
     if (isSANB(value)) {
-      const schedule = later.schedule(later.parse.text(value));
+      const schedule: any = later.schedule(later.parse.text(value));
       if (schedule.isValid()) return schedule;
-      value = this.getHumanToMs(value);
+      value = this.getHumanToMs(value)!;
     }
 
     if (!Number.isFinite(value) || value < 0)
@@ -480,11 +496,14 @@ class Bree extends EventEmitter {
     return value;
   }
 
-  isSchedule(value) {
+  isSchedule(value: any) {
     return typeof value === 'object' && Array.isArray(value.schedules);
   }
 
-  getWorkerMetadata(name, meta = {}) {
+  getWorkerMetadata(
+    name: string,
+    meta: { err?: Error; message?: string } = {}
+  ) {
     const job = this.config.jobs.find((j) => j.name === name);
     if (!job) throw new Error(`Job "${name}" does not exist`);
     if (!this.config.outputWorkerMetadata && !job.outputWorkerMetadata)
@@ -496,7 +515,7 @@ class Bree extends EventEmitter {
       ? {
           ...meta,
           worker: {
-            isMainThread: this.workers[name].isMainThread,
+            isMainThread: (this.workers[name] as any).isMainThread,
             resourceLimits: this.workers[name].resourceLimits,
             threadId: this.workers[name].threadId
           }
@@ -504,7 +523,7 @@ class Bree extends EventEmitter {
       : meta;
   }
 
-  run(name) {
+  run(name?: string) {
     debug('run', name);
     if (name) {
       const job = this.config.jobs.find((j) => j.name === name);
@@ -515,24 +534,25 @@ class Bree extends EventEmitter {
           this.getWorkerMetadata(name)
         );
       debug('starting worker', name);
-      this.workers[name] = new Worker(job.path, {
+      const workerOptions = {
         ...(this.config.worker ? this.config.worker : {}),
         ...(job.worker ? job.worker : {}),
         workerData: {
           job,
-          ...(this.config.worker && this.config.worker.workerData
+          ...(this.config.worker?.workerData
             ? this.config.worker.workerData
             : {}),
-          ...(job.worker && job.worker.workerData ? job.worker.workerData : {})
+          ...(job.worker?.workerData ? job.worker.workerData : {})
         }
-      });
+      };
+      this.workers[name] = new Worker(job.path, workerOptions as any);
       this.emit('worker created', name);
       debug('worker started', name);
 
       // if we specified a value for `closeWorkerAfterMs`
       // then we need to terminate it after that execution time
       const closeWorkerAfterMs = Number.isFinite(job.closeWorkerAfterMs)
-        ? job.closeWorkerAfterMs
+        ? job.closeWorkerAfterMs ?? 0
         : this.config.closeWorkerAfterMs;
       if (Number.isFinite(closeWorkerAfterMs) && closeWorkerAfterMs > 0) {
         debug('worker has close set', name, closeWorkerAfterMs);
@@ -550,7 +570,7 @@ class Bree extends EventEmitter {
           this.getWorkerMetadata(name)
         );
       });
-      this.workers[name].on('message', (message) => {
+      this.workers[name].on('message', (message: string) => {
         if (message === 'done') {
           this.config.logger.info(
             `${prefix} signaled completion`,
@@ -571,19 +591,19 @@ class Bree extends EventEmitter {
       // NOTE: you cannot catch messageerror since it is a Node internal
       //       (if anyone has any idea how to catch this in tests let us know)
       /* istanbul ignore next */
-      this.workers[name].on('messageerror', (err) => {
+      this.workers[name].on('messageerror', (err: Error) => {
         this.config.logger.error(
           `${prefix} had a message error`,
           this.getWorkerMetadata(name, { err })
         );
       });
-      this.workers[name].on('error', (err) => {
+      this.workers[name].on('error', (err: Error) => {
         this.config.logger.error(
           `${prefix} had an error`,
           this.getWorkerMetadata(name, { err })
         );
       });
-      this.workers[name].on('exit', (code) => {
+      this.workers[name].on('exit', (code: number) => {
         this.config.logger[code === 0 ? 'info' : 'error'](
           `${prefix} exited with code ${code}`,
           this.getWorkerMetadata(name)
@@ -599,8 +619,9 @@ class Bree extends EventEmitter {
     }
   }
 
-  start(name) {
+  start(name?: string) {
     debug('start', name);
+
     if (name) {
       const job = this.config.jobs.find((j) => j.name === name);
       if (!job) throw new Error(`Job ${name} does not exist`);
@@ -625,13 +646,13 @@ class Bree extends EventEmitter {
             debug('job.interval is schedule', job);
             this.intervals[name] = later.setInterval(
               () => this.run(name),
-              job.interval
+              job.interval as any
             );
           } else if (Number.isFinite(job.interval) && job.interval > 0) {
             debug('job.interval is finite', job);
             this.intervals[name] = setInterval(
               () => this.run(name),
-              job.interval
+              job.interval as any
             );
           }
         }, job.date.getTime() - Date.now());
@@ -647,16 +668,16 @@ class Bree extends EventEmitter {
             debug('job.interval is schedule', job);
             this.intervals[name] = later.setInterval(
               () => this.run(name),
-              job.interval
+              job.interval as any
             );
           } else if (Number.isFinite(job.interval) && job.interval > 0) {
             debug('job.interval is finite', job);
             this.intervals[name] = setInterval(
               () => this.run(name),
-              job.interval
+              job.interval as any
             );
           }
-        }, job.timeout);
+        }, job.timeout as any);
         return;
       }
 
@@ -668,25 +689,28 @@ class Bree extends EventEmitter {
             debug('job.interval is schedule', job);
             this.intervals[name] = later.setInterval(
               () => this.run(name),
-              job.interval
+              job.interval as any
             );
           } else if (Number.isFinite(job.interval) && job.interval > 0) {
             debug('job.interval is finite', job.interval);
             this.intervals[name] = setInterval(
               () => this.run(name),
-              job.interval
+              job.interval as any
             );
           }
-        }, job.timeout);
+        }, job.timeout as any);
       } else if (this.isSchedule(job.interval)) {
         debug('job.interval is schedule', job);
         this.intervals[name] = later.setInterval(
           () => this.run(name),
-          job.interval
+          job.interval as any
         );
       } else if (Number.isFinite(job.interval) && job.interval > 0) {
         debug('job.interval is finite', job);
-        this.intervals[name] = setInterval(() => this.run(name), job.interval);
+        this.intervals[name] = setInterval(
+          () => this.run(name),
+          job.interval as any
+        );
       }
 
       return;
@@ -697,7 +721,7 @@ class Bree extends EventEmitter {
     }
   }
 
-  stop(name) {
+  stop(name?: string) {
     if (name) {
       if (this.timeouts[name]) {
         if (
@@ -718,7 +742,7 @@ class Bree extends EventEmitter {
       }
 
       if (this.workers[name]) {
-        this.workers[name].once('message', (message) => {
+        this.workers[name].once('message', (message: string) => {
           if (message === 'cancelled') {
             this.config.logger.info(
               `Gracefully cancelled worker for job "${name}"`,
@@ -749,4 +773,124 @@ class Bree extends EventEmitter {
   }
 }
 
-module.exports = Bree;
+export default Bree;
+
+export interface BreeLogger {
+  log: (...str: any[]) => void;
+  info: (...str: any[]) => void;
+  error: (...str: any[]) => void;
+  warn?: (...str: any[]) => void;
+}
+
+export interface CronValidate {
+  preset: any;
+  override: any;
+}
+
+export interface BreeInstanceConfig {
+  logger: BreeLogger;
+  root: string;
+  timeout: number;
+  interval: number;
+  jobs: BreeJobOptions[];
+  hasSeconds: boolean;
+  cronValidate: CronValidate;
+  closeWorkerAfterMs: number;
+  defaultExtension: 'js' | 'mjs';
+  worker: WorkerOptions;
+  outputWorkerMetadata: boolean;
+}
+
+export interface BreeInstanceOptions {
+  /**
+   * This is the default logger. We recommend using Cabin instead of using console as your default logger.
+   */
+  logger?: BreeLogger;
+  /**
+   * Set this value to false to prevent requiring a root directory of jobs (e.g. if your jobs are not all in one directory).
+   */
+  root?: string;
+  /**
+   * Default timeout for jobs (e.g. a value of 0 means that jobs will start on boot by default unless a job has a property of timeout defined. Set this to false if you do not wish for a default value to be set for jobs. This value does not apply to jobs with a property of date.
+   */
+  timeout?: number;
+  /**
+   * Default interval for jobs (e.g. a value of 0 means that there is no interval, and a value greater than zero indicates a default interval will be set with this value). This value does not apply to jobs with a property of cron.
+   */
+  interval?: number;
+  /**
+   * Defaults to an empty Array, but if the root directory has a index.js file, then it will be used. This allows you to keep your jobs and job definition index in the same place. See Job Options below, and Usage and Examples above for more insight.
+   */
+  jobs?: Array<string | BreeJobOptions>;
+  /**
+   * This value is passed to later for parsing jobs, and can be overridden on a per job basis. See later cron parsing documentation for more insight. Note that setting this to true will automatically set cronValidate defaults to have { preset: 'default', override: { useSeconds: true } }
+   */
+  hasSeconds?: boolean;
+  /**
+   * This value is passed to cron-validate for validation of cron expressions. See the cron-validate documentation for more insight.
+   */
+  cronValidate?: CronValidate;
+  /**
+   * If you set a value greater than 0 here, then it will terminate workers after this specified time (in milliseconds). By default there is no termination done, and jobs can run for infinite periods of time.
+   */
+  closeWorkerAfterMs?: number;
+  /**
+   * This value can either be js or mjs. The default is js, and is the default extension added to jobs that are simply defined with a name and without a path. For example, if you define a job test, then it will look for /path/to/root/test.js as the file used for workers.
+   */
+  defaultExtension?: 'js' | 'mjs';
+  /**
+   * These are default options to pass when creating a new Worker instance. See the Worker class documentation for more insight.
+   */
+  worker?: WorkerOptions;
+  /**
+   * By default worker metadata is not passed to the second Object argument of logger. However if you set this to true, then logger will be invoked internally with two arguments (e.g. logger.info('...', { worker: ... })). This worker property contains isMainThread (Boolean), resourceLimits (Object), and threadId (String) properties; all of which correspond to Workers metadata. This can be overridden on a per job basis.
+   */
+  outputWorkerMetadata?: boolean;
+}
+
+export interface BreeJobOptions {
+  /**
+   * The name of the job. This should match the base file path (e.g. foo if foo.js is located at /path/to/jobs/foo.js) unless path option is specified. A value of index, index.js, and index.mjs are reserved values and cannot be used here.
+   */
+  name: string;
+  /**
+   * The path of the job used for spawning a new Worker with. If not specified, then it defaults to the value for name plus the default file extension specified under Instance Options.
+   */
+  path: string;
+  /**
+   * Sets the duration in milliseconds before the job starts (it overrides the default inherited timeout as set in Instance Options. A value of 0 indicates it will start immediately. This value can be a Number, String, or a Boolean of false (which indicates it will NOT inherit the default timeout from Instance Options). See Job Interval and Timeout Values below for more insight into how this value is parsed.
+   */
+  timeout: number | string | boolean | later.Schedule;
+  /**
+   * Sets the duration in milliseconds for the job to repeat itself, otherwise known as its interval (it overrides the default inherited interval as set in Instance Options). A value of 0 indicates it will not repeat and there will be no interval. If the value is greater than 0 then this value will be used as the interval. See Job Interval and Timeout Values below for more insight into how this value is parsed.
+   */
+  interval: number | string | later.Schedule;
+  /**
+   * This must be a valid JavaScript Date (we use instance of Date for comparison). If this value is in the past, then it is not run when jobs are started (or run manually). We recommend using dayjs for creating this date, and then formatting it using the toDate() method (e.g. dayjs().add('3, 'days').toDate()). You could also use moment or any other JavaScript date library, as long as you convert the value to a Date instance here.
+   */
+  date?: Date;
+  /**
+   * A cron expression to use as the job's interval, which is validated against cron-validate and parsed by later.
+   */
+  cron?: string;
+  /**
+   * Overrides the Instance Options hasSeconds property if set. Note that setting this to true will automatically set cronValidate defaults to have { preset: 'default', override: { useSeconds: true } }
+   */
+  hasSeconds?: boolean;
+  /**
+   * Overrides the Instance Options cronValidate property if set.
+   */
+  cronValidate?: CronValidate;
+  /**
+   * Overrides the Instance Options hasSeconds property if set. Note that setting this to true will automatically set cronValidate defaults to have { preset: 'default', override: { useSeconds: true } }
+   */
+  closeWorkerAfterMs?: number;
+  /**
+   * Overrides the Instance Options worker property if set.
+   */
+  worker?: Worker & { workerData: any };
+  /**
+   * Overrides the Instance Options outputWorkerMetadata property if set.
+   */
+  outputWorkerMetadata?: boolean;
+}

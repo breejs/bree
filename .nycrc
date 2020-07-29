@@ -1,6 +1,7 @@
 {
+  "extends": "@istanbuljs/nyc-config-typescript",
   "extension": [
-    ".js"
+    ".js", ".ts"
   ],
   "report-dir": "./coverage",
   "temp-dir": "./.nyc_output",

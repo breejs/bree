@@ -4,6 +4,14 @@
   "version": "1.1.21",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
+    "typescript": {
+      "extensions": [
+        "ts"
+      ],
+      "rewritePaths": {
+        "../": "dist/"
+      }
+    },
     "files": [
       "test/*.js",
       "test/**/*.js",
@@ -32,15 +40,24 @@
     "safe-timers": "^1.1.0"
   },
   "devDependencies": {
+    "@ava/typescript": "1.1.1",
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
+    "@istanbuljs/nyc-config-typescript": "1.0.1",
     "@sinonjs/fake-timers": "^6.0.1",
+    "@types/debug": "4.1.5",
+    "@types/human-interval": "1.0.0",
+    "@types/later": "1.2.6",
+    "@types/ms": "0.7.31",
+    "@types/node": "14.0.27",
+    "@types/safe-timers": "1.1.0",
     "ava": "latest",
     "codecov": "latest",
     "cross-env": "latest",
     "delay": "^4.3.0",
     "eslint": "^7.4.0",
     "eslint-config-xo-lass": "latest",
+    "eslint-config-xo-typescript": "0.31.0",
     "fixpack": "latest",
     "husky": "latest",
     "into-stream": "^5.1.1",
@@ -48,6 +65,7 @@
     "nyc": "latest",
     "remark-cli": "latest",
     "remark-preset-github": "latest",
+    "typescript": "3.9.7",
     "xo": "^0.32.1"
   },
   "engines": {
@@ -142,12 +160,13 @@
     "timer",
     "timers",
     "translated",
+    "typescript",
     "universalify",
     "worker",
     "workers"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "dist/index.js",
   "publishConfig": {
     "access": "public"
   },
@@ -156,17 +175,30 @@
     "url": "https://github.com/breejs/bree"
   },
   "scripts": {
+    "build": "rm -rf dist/ && tsc",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "lint": "yarn run lint:js && yarn run lint:md",
     "lint:js": "xo",
     "lint:md": "remark . -qfo",
-    "pretest": "yarn run lint",
+    "prepublish": "yarn run tsc",
+    "pretest": "yarn run lint && yarn run build",
     "test": "cross-env NODE_ENV=test ava",
     "test-coverage": "cross-env NODE_ENV=test nyc yarn run test"
   },
+  "types": "dist/index.d.ts",
   "xo": {
     "prettier": true,
     "space": true,
+    "parserOptions": {
+      "ecmaVersion": 2017,
+      "sourceType": "module"
+    },
+    "rules": {
+      "@typescript-eslint/restrict-template-expressions": 0,
+      "@typescript-eslint/no-floating-promises": 0,
+      "@typescript-eslint/no-base-to-string": 0,
+      "@typescript-eslint/no-dynamic-delete": 0
+    },
     "extends": [
       "xo-lass"
     ],
