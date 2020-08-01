@@ -39,6 +39,7 @@
 * [Long-running jobs](#long-running-jobs)
 * [Complex timeouts and intervals](#complex-timeouts-and-intervals)
 * [Custom Worker Options](#custom-worker-options)
+* [Using functions for jobs](#using-functions-for-jobs)
 * [Concurrency](#concurrency)
 * [Real-world usage](#real-world-usage)
 * [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)
@@ -459,7 +460,7 @@ See [Interval, Timeout, Date, and Cron Validate](#interval-timeout-date-and-cron
 | Property               | Type                               | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     |
 | ---------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `name`                 | String                             | The name of the job.  This should match the base file path (e.g. `foo` if `foo.js` is located at `/path/to/jobs/foo.js`) unless `path` option is specified.  A value of `index`, `index.js`, and `index.mjs` are reserved values and cannot be used here.                                                                                                                                                                                                                                                       |
-| `path`                 | String                             | The path of the job used for spawning a new [Worker][workers] with.  If not specified, then it defaults to the value for `name` plus the default file extension specified under [Instance Options](#instance-options).                                                                                                                                                                                                                                                                                          |
+| `path`                 | String                             | The path of the job or function used for spawning a new [Worker][workers] with.  If not specified, then it defaults to the value for `name` plus the default file extension specified under [Instance Options](#instance-options).                                                                                                                                                                                                                                                                              |
 | `timeout`              | Number, Object, String, or Boolean | Sets the duration in milliseconds before the job starts (it overrides the default inherited `timeout` as set in [Instance Options](#instance-options).  A value of `0` indicates it will start immediately.  This value can be a Number, String, or a Boolean of `false` (which indicates it will NOT inherit the default `timeout` from [Instance Options](#instance-options)).  See [Job Interval and Timeout Values](#job-interval-and-timeout-values) below for more insight into how this value is parsed. |
 | `interval`             | Number, Object, or String          | Sets the duration in milliseconds for the job to repeat itself, otherwise known as its interval (it overrides the default inherited `interval` as set in [Instance Options](#instance-options)).  A value of `0` indicates it will not repeat and there will be no interval.  If the value is greater than `0` then this value will be used as the interval.  See [Job Interval and Timeout Values](#job-interval-and-timeout-values) below for more insight into how this value is parsed.                     |
 | `date`                 | Date                               | This must be a valid JavaScript Date (we use `instance of Date` for comparison).  If this value is in the past, then it is not run when jobs are started (or run manually).  We recommend using [dayjs][] for creating this date, and then formatting it using the `toDate()` method (e.g. `dayjs().add('3, 'days').toDate()`).  You could also use [moment][] or any other JavaScript date library, as long as you convert the value to a Date instance here.                                                  |
@@ -611,6 +612,35 @@ These options are passed to the `options` argument when we internally invoke `ne
 Additionally, you can pass custom worker options on a per-job basis through a `worker` property Object on the job definition.
 
 See complete documentation here for options <https://nodejs.org/api/worker_threads.html#worker_thre> (but you usually don't have to modify these).
+
+
+## Using functions for jobs
+
+It is highly recommended to use files instead of functions. However, sometimes it is necessary to use functions.
+
+You can pass a function to be run as a job:
+
+```js
+new Bree({ jobs: [someFunction] });
+```
+
+or
+
+```js
+new Bree({
+  jobs: [
+    {
+      name: 'job with function',
+      path: someFunction
+    }
+  ]
+});
+```
+
+Note that you cannot pass a built-in/bound function.
+
+The function will be run as if it is in it's own file, therefore no variables or dependendencies will be shared from the local context by default.
+You should be able to pass data via `worker.workerData`, see [Custom Worker Options](#custom-worker-options).
 
 
 ## Concurrency
