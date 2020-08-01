@@ -196,6 +196,31 @@ class Bree extends EventEmitter {
         }
 
         continue;
+      } else if (typeof job === 'function') {
+        // TODO check for anonymous function and error
+        // throw an error if duplicate job names
+        if (names.includes(job.name))
+          errors.push(
+            new Error(`Job #${i + 1} has a duplicate job name of ${job}`)
+          );
+        else names.push(job.name);
+
+        const path = `(${job.toString()})()`;
+        // can't be a built-in or bound function
+        if (path.includes('[native code]'))
+          errors.push(
+            new Error(`Job #${i + 1} can't be a bound or built-in function`)
+          );
+
+        this.config.jobs[i] = {
+          name: job.name,
+          path,
+          worker: { eval: true },
+          timeout: this.config.timeout,
+          interval: this.config.interval
+        };
+
+        continue;
       }
 
       // must be a pure object
@@ -213,7 +238,21 @@ class Bree extends EventEmitter {
       // use a prefix for errors
       const prefix = `Job #${i + 1} named "${job.name || ''}"`;
 
-      if (!isSANB(job.path) && !this.config.root) {
+      if (typeof job.path === 'function') {
+        const path = `(${job.path.toString()})()`;
+
+        // can't be a built-in or bound function
+        if (path.includes('[native code]'))
+          errors.push(
+            new Error(`Job #${i + 1} can't be a bound or built-in function`)
+          );
+
+        this.config.jobs[i].path = path;
+        this.config.jobs[i].worker = {
+          eval: true,
+          ...job.worker
+        };
+      } else if (!isSANB(job.path) && !this.config.root) {
         errors.push(
           new Error(
             `${prefix} requires root directory option to auto-populate path`
@@ -234,10 +273,8 @@ class Bree extends EventEmitter {
         if (path) {
           try {
             const stats = statSync(path);
-            // eslint-disable-next-line max-depth
             if (!stats.isFile())
               throw new Error(`${prefix} path missing: ${path}`);
-            // eslint-disable-next-line max-depth
             if (!isSANB(job.path)) this.config.jobs[i].path = path;
           } catch (err) {
             errors.push(err);
