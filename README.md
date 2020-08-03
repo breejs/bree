@@ -624,7 +624,7 @@ You can pass a function to be run as a job:
 new Bree({ jobs: [someFunction] });
 ```
 
-or
+(or)
 
 ```js
 new Bree({
@@ -637,10 +637,11 @@ new Bree({
 });
 ```
 
-Note that you cannot pass a built-in/bound function.
+The function will be run as if it's in its own file, therefore no variables or dependencies will be shared from the local context by default.
 
-The function will be run as if it is in it's own file, therefore no variables or dependendencies will be shared from the local context by default.
-You should be able to pass data via `worker.workerData`, see [Custom Worker Options](#custom-worker-options).
+You should be able to pass data via `worker.workerData` (see [Custom Worker Options](#custom-worker-options)).
+
+Note that you cannot pass a built-in nor bound function.
 
 
 ## Concurrency
