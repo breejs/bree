@@ -1,7 +1,7 @@
 {
   "name": "bree",
   "description": "The best job scheduler for Node.js with support for cron, dates, ms, later, and human-friendly strings.  Uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Forward Email and Lad.",
-  "version": "1.1.21",
+  "version": "1.1.22",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
     "files": [
@@ -23,7 +23,7 @@
   "dependencies": {
     "boolean": "^3.0.1",
     "combine-errors": "^3.0.3",
-    "cron-validate": "^1.1.5",
+    "cron-validate": "^1.2.0",
     "debug": "^4.1.1",
     "human-interval": "^1.0.0",
     "is-string-and-not-blank": "^0.0.2",
@@ -38,8 +38,8 @@
     "ava": "latest",
     "codecov": "latest",
     "cross-env": "latest",
-    "delay": "^4.3.0",
-    "eslint": "^7.4.0",
+    "delay": "^4.4.0",
+    "eslint": "^7.6.0",
     "eslint-config-xo-lass": "latest",
     "fixpack": "latest",
     "husky": "latest",
