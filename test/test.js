@@ -1440,3 +1440,126 @@ test('hasSeconds, job.hasSeconds, cronValidate, job.cronValidate', (t) => {
     }
   });
 });
+
+test('creates job from function', async (t) => {
+  const fn = () => {
+    console.log('function');
+  };
+
+  const bree = new Bree({
+    root: false,
+    jobs: [fn]
+  });
+
+  t.is(typeof bree.config.jobs[0], 'object');
+
+  bree.start();
+  await delay(1);
+
+  t.true(typeof bree.workers.fn === 'object');
+
+  await new Promise((resolve, reject) => {
+    bree.workers.fn.on('error', reject);
+    bree.workers.fn.on('exit', (code) => {
+      t.true(code === 0);
+      resolve();
+    });
+  });
+
+  t.true(typeof bree.workers.fn === 'undefined');
+  bree.stop();
+});
+
+test('creates job from function passing in object', async (t) => {
+  const fn = () => {
+    console.log('function');
+  };
+
+  const bree = new Bree({
+    root: false,
+    jobs: [
+      {
+        name: 'object',
+        path: fn
+      }
+    ]
+  });
+
+  t.is(typeof bree.config.jobs[0], 'object');
+
+  bree.start();
+  await delay(1);
+
+  t.true(typeof bree.workers.object === 'object');
+
+  await new Promise((resolve, reject) => {
+    bree.workers.object.on('error', reject);
+    bree.workers.object.on('exit', (code) => {
+      t.true(code === 0);
+      resolve();
+    });
+  });
+
+  t.true(typeof bree.workers.object === 'undefined');
+  bree.stop();
+});
+
+test('fails if bound/built-in function', (t) => {
+  const fn = () => {
+    console.log('function');
+  };
+
+  const boundFn = fn.bind(this);
+
+  t.throws(
+    () =>
+      new Bree({
+        root: false,
+        jobs: [boundFn]
+      }),
+    {
+      message: /Job .* can't be a bound or built-in function/
+    }
+  );
+});
+
+test('fails if bound/built-in function in object', (t) => {
+  const fn = () => {
+    console.log('function');
+  };
+
+  const boundFn = fn.bind(this);
+
+  t.throws(
+    () =>
+      new Bree({
+        root: false,
+        jobs: [
+          {
+            name: 'boundFn',
+            path: boundFn
+          }
+        ]
+      }),
+    {
+      message: /Job .* can't be a bound or built-in function/
+    }
+  );
+});
+
+test('fails if multiple function jobs with same name', (t) => {
+  const fn = () => {
+    console.log('function');
+  };
+
+  t.throws(
+    () =>
+      new Bree({
+        root: false,
+        jobs: [fn, fn]
+      }),
+    {
+      message: /Job .* has a duplicate job name of .*/
+    }
+  );
+});
