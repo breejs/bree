@@ -95,6 +95,7 @@ class Bree extends EventEmitter {
     this.start = this.start.bind(this);
     this.stop = this.stop.bind(this);
     this.add = this.add.bind(this);
+    this.remove = this.remove.bind(this);
 
     // validate root (sync check)
     if (isSANB(this.config.root)) {
@@ -156,9 +157,7 @@ class Bree extends EventEmitter {
     for (let i = 0; i < this.config.jobs.length; i++) {
       const job = this.config.jobs[i];
 
-      const validation = this.validateJob(job, i, names, errors);
-      errors.concat(validation.errors);
-      names.concat(validation.names);
+      this.validateJob(job, i, names, errors);
     }
 
     // don't allow a job to have the `index` file name
@@ -796,7 +795,7 @@ class Bree extends EventEmitter {
   }
 
   add(jobs) {
-    const names = [];
+    const names = this.config.jobs.map((j) => j.name);
     const errors = [];
     //
     // validate jobs
@@ -804,9 +803,7 @@ class Bree extends EventEmitter {
     if (!Array.isArray(jobs)) throw new Error('Jobs must be an Array');
 
     for (const job of jobs) {
-      const validation = this.validateJob(job, this.config.jobs.length);
-      names.concat(validation.names);
-      errors.concat(validation.errors);
+      this.validateJob(job, this.config.jobs.length, names, errors);
     }
 
     // don't allow a job to have the `index` file name
@@ -825,6 +822,16 @@ class Bree extends EventEmitter {
 
     // if there were any errors then throw them
     if (errors.length > 0) throw combineErrors(errors);
+  }
+
+  remove(name) {
+    const job = this.config.jobs.find((j) => j.name === name);
+    if (!job) throw new Error(`Job "${name}" does not exist`);
+
+    this.config.jobs = this.config.jobs.find((j) => j.name !== name);
+
+    // make sure it also closes any open workers
+    this.stop(name);
   }
 }
 
