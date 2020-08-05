@@ -274,8 +274,12 @@ bree.run();
 // run a specific job (...)
 bree.run('beep');
 
-// add a job after initialization:
+// add a job array after initialization:
 bree.add(['boop']);
+// this must then be started using one of the above methods
+
+// add a job after initialization:
+bree.add('boop');
 // this must then be started using one of the above methods
 
 // remove a job after initialization:
