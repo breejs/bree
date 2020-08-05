@@ -308,6 +308,20 @@ test('fails if reserved job name: index, index.js, index.mjs', (t) => {
     () =>
       new Bree({
         root,
+        jobs: ['index']
+      }),
+    {
+      message:
+        'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+    }
+  );
+});
+
+test('fails if reserved job name in object: index, index.js, index.mjs', (t) => {
+  t.throws(
+    () =>
+      new Bree({
+        root,
         jobs: [{ name: 'index' }]
       }),
     {
@@ -1562,4 +1576,59 @@ test('fails if multiple function jobs with same name', (t) => {
       message: /Job .* has a duplicate job name of .*/
     }
   );
+});
+
+test('add > successfully add jobs', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: ['infinite']
+  });
+
+  t.is(typeof bree.config.jobs[1], 'undefined');
+
+  bree.add(['basic']);
+
+  t.is(typeof bree.config.jobs[1], 'object');
+});
+
+test('add > fails if jobs is not an array', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: ['infinite']
+  });
+
+  t.throws(() => bree.add('basic'), { message: 'Jobs must be an Array' });
+});
+
+test('add > fails if job already exists', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: ['basic']
+  });
+
+  t.throws(() => bree.add(['basic']), {
+    message: /Job .* has a duplicate job name of */
+  });
+});
+
+test('remove > successfully remove jobs', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: ['basic', 'infinite']
+  });
+
+  t.is(typeof bree.config.jobs[1], 'object');
+
+  bree.remove('infinite');
+
+  t.is(typeof bree.config.jobs[1], 'undefined');
+});
+
+test('remove > fails if job does not exist', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: ['infinite']
+  });
+
+  t.throws(() => bree.remove('basic'), { message: /Job .* does not exist/ });
 });

@@ -14,7 +14,6 @@ const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
 
 class Bree extends EventEmitter {
-  // eslint-disable-next-line complexity
   constructor(config) {
     super();
     this.config = {
@@ -90,10 +89,13 @@ class Bree extends EventEmitter {
     this.timeouts = {};
     this.intervals = {};
 
+    this.validateJob = this.validateJob.bind(this);
     this.getWorkerMetadata = this.getWorkerMetadata.bind(this);
     this.run = this.run.bind(this);
     this.start = this.start.bind(this);
     this.stop = this.stop.bind(this);
+    this.add = this.add.bind(this);
+    this.remove = this.remove.bind(this);
 
     // validate root (sync check)
     if (isSANB(this.config.root)) {
@@ -155,341 +157,357 @@ class Bree extends EventEmitter {
     for (let i = 0; i < this.config.jobs.length; i++) {
       const job = this.config.jobs[i];
 
-      // support a simple string which we will transform to have a path
-      if (isSANB(job)) {
-        // throw an error if duplicate job names
-        if (names.includes(job))
-          errors.push(
-            new Error(`Job #${i + 1} has a duplicate job name of ${job}`)
-          );
-        else names.push(job);
+      this.validateJob(job, i, names, errors);
+    }
 
-        if (!this.config.root) {
-          errors.push(
-            new Error(
-              `Job #${
-                i + 1
-              } "${job}" requires root directory option to auto-populate path`
-            )
-          );
-          continue;
-        }
+    debug('this.config.jobs', this.config.jobs);
 
-        const path = join(
-          this.config.root,
-          job.endsWith('.js') || job.endsWith('.mjs')
-            ? job
-            : `${job}.${this.config.defaultExtension}`
+    // if there were any errors then throw them
+    if (errors.length > 0) throw combineErrors(errors);
+  }
+
+  // eslint-disable-next-line complexity
+  validateJob(job, i, names, errors) {
+    // support a simple string which we will transform to have a path
+    if (isSANB(job)) {
+      // don't allow a job to have the `index` file name
+      if (['index', 'index.js', 'index.mjs'].includes(job)) {
+        errors.push(
+          new Error(
+            'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+          )
         );
-        try {
-          const stats = statSync(path);
-          if (!stats.isFile())
-            throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
-          this.config.jobs[i] = {
-            name: job,
-            path,
-            timeout: this.config.timeout,
-            interval: this.config.interval
-          };
-        } catch (err) {
-          errors.push(err);
-        }
 
-        continue;
-      } else if (typeof job === 'function') {
-        // TODO check for anonymous function and error
-        // throw an error if duplicate job names
-        if (names.includes(job.name))
-          errors.push(
-            new Error(`Job #${i + 1} has a duplicate job name of ${job}`)
-          );
-        else names.push(job.name);
+        return { names, errors };
+      }
 
-        const path = `(${job.toString()})()`;
-        // can't be a built-in or bound function
-        if (path.includes('[native code]'))
-          errors.push(
-            new Error(`Job #${i + 1} can't be a bound or built-in function`)
-          );
+      // throw an error if duplicate job names
+      if (names.includes(job))
+        errors.push(
+          new Error(`Job #${i + 1} has a duplicate job name of ${job}`)
+        );
+      else names.push(job);
 
+      if (!this.config.root) {
+        errors.push(
+          new Error(
+            `Job #${
+              i + 1
+            } "${job}" requires root directory option to auto-populate path`
+          )
+        );
+        return { names, errors };
+      }
+
+      const path = join(
+        this.config.root,
+        job.endsWith('.js') || job.endsWith('.mjs')
+          ? job
+          : `${job}.${this.config.defaultExtension}`
+      );
+      try {
+        const stats = statSync(path);
+        if (!stats.isFile())
+          throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
         this.config.jobs[i] = {
-          name: job.name,
+          name: job,
           path,
-          worker: { eval: true },
           timeout: this.config.timeout,
           interval: this.config.interval
         };
-
-        continue;
+      } catch (err) {
+        errors.push(err);
       }
 
-      // must be a pure object
-      if (typeof job !== 'object' || Array.isArray(job)) {
-        errors.push(new Error(`Job #${i + 1} must be an Object`));
-        continue;
-      }
-
-      // validate name
-      if (!isSANB(job.name)) {
-        errors.push(new Error(`Job #${i + 1} must have a non-empty name`));
-        delete job.name;
-      }
-
-      // use a prefix for errors
-      const prefix = `Job #${i + 1} named "${job.name || ''}"`;
-
-      if (typeof job.path === 'function') {
-        const path = `(${job.path.toString()})()`;
-
-        // can't be a built-in or bound function
-        if (path.includes('[native code]'))
-          errors.push(
-            new Error(`Job #${i + 1} can't be a bound or built-in function`)
-          );
-
-        this.config.jobs[i].path = path;
-        this.config.jobs[i].worker = {
-          eval: true,
-          ...job.worker
-        };
-      } else if (!isSANB(job.path) && !this.config.root) {
-        errors.push(
-          new Error(
-            `${prefix} requires root directory option to auto-populate path`
-          )
-        );
-      } else {
-        // validate path
-        const path = isSANB(job.path)
-          ? job.path
-          : job.name
-          ? join(
-              this.config.root,
-              job.name.endsWith('.js') || job.name.endsWith('.mjs')
-                ? job.name
-                : `${job.name}.${this.config.defaultExtension}`
-            )
-          : false;
-        if (path) {
-          try {
-            const stats = statSync(path);
-            if (!stats.isFile())
-              throw new Error(`${prefix} path missing: ${path}`);
-            if (!isSANB(job.path)) this.config.jobs[i].path = path;
-          } catch (err) {
-            errors.push(err);
-          }
-        } else {
-          errors.push(new Error(`${prefix} path missing`));
-        }
-      }
-
-      // don't allow users to mix interval AND cron
-      if (
-        typeof job.interval !== 'undefined' &&
-        typeof job.cron !== 'undefined'
-      ) {
-        errors.push(
-          new Error(
-            `${prefix} cannot have both interval and cron configuration`
-          )
-        );
-      }
-
-      // don't allow users to mix timeout AND date
-      if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined')
-        errors.push(new Error(`${prefix} cannot have both timeout and date`));
-
-      // throw an error if duplicate job names
-      if (job.name && names.includes(job.name))
-        errors.push(
-          new Error(`${prefix} has a duplicate job name of ${job.name}`)
-        );
-      else if (job.name) names.push(job.name);
-
-      // validate date
-      if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
-        errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
-
-      // validate timeout
-      if (typeof job.timeout !== 'undefined') {
-        try {
-          this.config.jobs[i].timeout = this.parseValue(job.timeout);
-        } catch (err) {
-          errors.push(
-            combineErrors([
-              new Error(`${prefix} had an invalid timeout of ${job.timeout}`),
-              err
-            ])
-          );
-        }
-      }
-
-      // validate interval
-      if (typeof job.interval !== 'undefined') {
-        try {
-          this.config.jobs[i].interval = this.parseValue(job.interval);
-        } catch (err) {
-          errors.push(
-            combineErrors([
-              new Error(`${prefix} had an invalid interval of ${job.interval}`),
-              err
-            ])
-          );
-        }
-      }
-
-      // validate hasSeconds
-      if (
-        typeof job.hasSeconds !== 'undefined' &&
-        typeof job.hasSeconds !== 'boolean'
-      )
-        errors.push(
-          new Error(
-            `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
-          )
-        );
-
-      // validate cronValidate
-      if (
-        typeof job.cronValidate !== 'undefined' &&
-        typeof job.cronValidate !== 'object'
-      )
-        errors.push(
-          new Error(
-            `${prefix} had cronValidate value set, but it must be an Object`
-          )
-        );
-
-      // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
-      if (job.hasSeconds) {
-        const preset =
-          job.cronValidate && job.cronValidate.preset
-            ? job.cronValidate.preset
-            : this.config.cronValidate && this.config.cronValidate.preset
-            ? this.config.cronValidate.preset
-            : 'default';
-        const override = {
-          ...(this.config.cronValidate && this.config.cronValidate.override
-            ? this.config.cronValidate.override
-            : {}),
-          ...(job.cronValidate && job.cronValidate.override
-            ? job.cronValidate.override
-            : {}),
-          useSeconds: true
-        };
-        this.config.jobs[i].cronValidate = {
-          ...this.config.cronValidate,
-          ...job.cronValidate,
-          preset,
-          override
-        };
-      }
-
-      // validate cron
-      if (typeof job.cron !== 'undefined') {
-        if (this.isSchedule(job.cron)) {
-          this.config.jobs[i].interval = job.cron;
-          // delete this.config.jobs[i].cron;
-        } else {
-          //
-          // validate cron pattern
-          // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
-          //
-          // TODO: <https://github.com/Airfooox/cron-validate/issues/67>
-          //
-          const result = cron(
-            job.cron,
-            typeof job.cronValidate === 'undefined'
-              ? this.config.cronValidate
-              : job.cronValidate
-          );
-          if (result.isValid()) {
-            const schedule = later.schedule(
-              later.parse.cron(
-                job.cron,
-                boolean(
-                  typeof job.hasSeconds === 'undefined'
-                    ? this.config.hasSeconds
-                    : job.hasSeconds
-                )
-              )
-            );
-            // NOTE: it is always valid
-            this.config.jobs[i].interval = schedule;
-            // if (schedule.isValid()) {
-            //   this.config.jobs[i].interval = schedule;
-            // } // else {
-            //   errors.push(
-            //     new Error(
-            //       `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`
-            //     )
-            //   );
-            // }
-            // above code will never be called
-          } else {
-            for (const message of result.getError()) {
-              errors.push(
-                new Error(`${prefix} had an invalid cron pattern: ${message}`)
-              );
-            }
-          }
-        }
-      }
-
-      // validate closeWorkerAfterMs
-      if (
-        typeof job.closeWorkerAfterMs !== 'undefined' &&
-        (!Number.isFinite(job.closeWorkerAfterMs) ||
-          job.closeWorkerAfterMs <= 0)
-      )
-        errors.push(
-          new Error(
-            `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0)`
-          )
-        );
-
-      // if timeout was undefined, cron was undefined,
-      // and date was undefined then set the default
-      // (as long as the default timeout is >= 0)
-      if (
-        Number.isFinite(this.config.timeout) &&
-        this.config.timeout >= 0 &&
-        typeof this.config.jobs[i].timeout === 'undefined' &&
-        typeof job.cron === 'undefined' &&
-        typeof job.date === 'undefined'
-      )
-        this.config.jobs[i].timeout = this.config.timeout;
-
-      // if interval was undefined, cron was undefined,
-      // and date was undefined then set the default
-      // (as long as the default interval is > 0)
-      if (
-        Number.isFinite(this.config.interval) &&
-        this.config.interval > 0 &&
-        typeof this.config.jobs[i].interval === 'undefined' &&
-        typeof job.cron === 'undefined' &&
-        typeof job.date === 'undefined'
-      )
-        this.config.jobs[i].interval = this.config.interval;
+      return { names, errors };
     }
 
-    // don't allow a job to have the `index` file name
+    // job is a function
+    if (typeof job === 'function') {
+      // throw an error if duplicate job names
+      if (names.includes(job.name))
+        errors.push(
+          new Error(`Job #${i + 1} has a duplicate job name of ${job}`)
+        );
+      else names.push(job.name);
+
+      const path = `(${job.toString()})()`;
+      // can't be a built-in or bound function
+      if (path.includes('[native code]'))
+        errors.push(
+          new Error(`Job #${i + 1} can't be a bound or built-in function`)
+        );
+
+      this.config.jobs[i] = {
+        name: job.name,
+        path,
+        worker: { eval: true },
+        timeout: this.config.timeout,
+        interval: this.config.interval
+      };
+
+      return { names, errors };
+    }
+
+    // must be a pure object
+    if (typeof job !== 'object' || Array.isArray(job)) {
+      errors.push(new Error(`Job #${i + 1} must be an Object`));
+      return { names, errors };
+    }
+
+    // validate name
+    if (!isSANB(job.name)) {
+      errors.push(new Error(`Job #${i + 1} must have a non-empty name`));
+      delete job.name;
+    }
+
+    // use a prefix for errors
+    const prefix = `Job #${i + 1} named "${job.name || ''}"`;
+
+    if (typeof job.path === 'function') {
+      const path = `(${job.path.toString()})()`;
+
+      // can't be a built-in or bound function
+      if (path.includes('[native code]'))
+        errors.push(
+          new Error(`Job #${i + 1} can't be a bound or built-in function`)
+        );
+
+      this.config.jobs[i].path = path;
+      this.config.jobs[i].worker = {
+        eval: true,
+        ...job.worker
+      };
+    } else if (!isSANB(job.path) && !this.config.root) {
+      errors.push(
+        new Error(
+          `${prefix} requires root directory option to auto-populate path`
+        )
+      );
+    } else {
+      // validate path
+      const path = isSANB(job.path)
+        ? job.path
+        : job.name
+        ? join(
+            this.config.root,
+            job.name.endsWith('.js') || job.name.endsWith('.mjs')
+              ? job.name
+              : `${job.name}.${this.config.defaultExtension}`
+          )
+        : false;
+      if (path) {
+        try {
+          const stats = statSync(path);
+          if (!stats.isFile())
+            throw new Error(`${prefix} path missing: ${path}`);
+          if (!isSANB(job.path)) this.config.jobs[i].path = path;
+        } catch (err) {
+          errors.push(err);
+        }
+      } else {
+        errors.push(new Error(`${prefix} path missing`));
+      }
+    }
+
+    // don't allow users to mix interval AND cron
     if (
-      names.includes('index') ||
-      names.includes('index.js') ||
-      names.includes('index.mjs')
-    )
+      typeof job.interval !== 'undefined' &&
+      typeof job.cron !== 'undefined'
+    ) {
+      errors.push(
+        new Error(`${prefix} cannot have both interval and cron configuration`)
+      );
+    }
+
+    // don't allow users to mix timeout AND date
+    if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined')
+      errors.push(new Error(`${prefix} cannot have both timeout and date`));
+
+    // don't allow a job to have the `index` file name
+    if (['index', 'index.js', 'index.mjs'].includes(job.name)) {
       errors.push(
         new Error(
           'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
         )
       );
 
-    debug('this.config.jobs', this.config.jobs);
+      return { names, errors };
+    }
 
-    // if there were any errors then throw them
-    if (errors.length > 0) throw combineErrors(errors);
+    // throw an error if duplicate job names
+    if (job.name && names.includes(job.name))
+      errors.push(
+        new Error(`${prefix} has a duplicate job name of ${job.name}`)
+      );
+    else if (job.name) names.push(job.name);
+
+    // validate date
+    if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
+      errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
+
+    // validate timeout
+    if (typeof job.timeout !== 'undefined') {
+      try {
+        this.config.jobs[i].timeout = this.parseValue(job.timeout);
+      } catch (err) {
+        errors.push(
+          combineErrors([
+            new Error(`${prefix} had an invalid timeout of ${job.timeout}`),
+            err
+          ])
+        );
+      }
+    }
+
+    // validate interval
+    if (typeof job.interval !== 'undefined') {
+      try {
+        this.config.jobs[i].interval = this.parseValue(job.interval);
+      } catch (err) {
+        errors.push(
+          combineErrors([
+            new Error(`${prefix} had an invalid interval of ${job.interval}`),
+            err
+          ])
+        );
+      }
+    }
+
+    // validate hasSeconds
+    if (
+      typeof job.hasSeconds !== 'undefined' &&
+      typeof job.hasSeconds !== 'boolean'
+    )
+      errors.push(
+        new Error(
+          `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
+        )
+      );
+
+    // validate cronValidate
+    if (
+      typeof job.cronValidate !== 'undefined' &&
+      typeof job.cronValidate !== 'object'
+    )
+      errors.push(
+        new Error(
+          `${prefix} had cronValidate value set, but it must be an Object`
+        )
+      );
+
+    // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
+    if (job.hasSeconds) {
+      const preset =
+        job.cronValidate && job.cronValidate.preset
+          ? job.cronValidate.preset
+          : this.config.cronValidate && this.config.cronValidate.preset
+          ? this.config.cronValidate.preset
+          : 'default';
+      const override = {
+        ...(this.config.cronValidate && this.config.cronValidate.override
+          ? this.config.cronValidate.override
+          : {}),
+        ...(job.cronValidate && job.cronValidate.override
+          ? job.cronValidate.override
+          : {}),
+        useSeconds: true
+      };
+      this.config.jobs[i].cronValidate = {
+        ...this.config.cronValidate,
+        ...job.cronValidate,
+        preset,
+        override
+      };
+    }
+
+    // validate cron
+    if (typeof job.cron !== 'undefined') {
+      if (this.isSchedule(job.cron)) {
+        this.config.jobs[i].interval = job.cron;
+        // delete this.config.jobs[i].cron;
+      } else {
+        //
+        // validate cron pattern
+        // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
+        //
+        // TODO: <https://github.com/Airfooox/cron-validate/issues/67>
+        //
+        const result = cron(
+          job.cron,
+          typeof job.cronValidate === 'undefined'
+            ? this.config.cronValidate
+            : job.cronValidate
+        );
+        if (result.isValid()) {
+          const schedule = later.schedule(
+            later.parse.cron(
+              job.cron,
+              boolean(
+                typeof job.hasSeconds === 'undefined'
+                  ? this.config.hasSeconds
+                  : job.hasSeconds
+              )
+            )
+          );
+          // NOTE: it is always valid
+          this.config.jobs[i].interval = schedule;
+          // if (schedule.isValid()) {
+          //   this.config.jobs[i].interval = schedule;
+          // } // else {
+          //   errors.push(
+          //     new Error(
+          //       `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`
+          //     )
+          //   );
+          // }
+          // above code will never be called
+        } else {
+          for (const message of result.getError()) {
+            errors.push(
+              new Error(`${prefix} had an invalid cron pattern: ${message}`)
+            );
+          }
+        }
+      }
+    }
+
+    // validate closeWorkerAfterMs
+    if (
+      typeof job.closeWorkerAfterMs !== 'undefined' &&
+      (!Number.isFinite(job.closeWorkerAfterMs) || job.closeWorkerAfterMs <= 0)
+    )
+      errors.push(
+        new Error(
+          `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0)`
+        )
+      );
+
+    // if timeout was undefined, cron was undefined,
+    // and date was undefined then set the default
+    // (as long as the default timeout is >= 0)
+    if (
+      Number.isFinite(this.config.timeout) &&
+      this.config.timeout >= 0 &&
+      typeof this.config.jobs[i].timeout === 'undefined' &&
+      typeof job.cron === 'undefined' &&
+      typeof job.date === 'undefined'
+    )
+      this.config.jobs[i].timeout = this.config.timeout;
+
+    // if interval was undefined, cron was undefined,
+    // and date was undefined then set the default
+    // (as long as the default interval is > 0)
+    if (
+      Number.isFinite(this.config.interval) &&
+      this.config.interval > 0 &&
+      typeof this.config.jobs[i].interval === 'undefined' &&
+      typeof job.cron === 'undefined' &&
+      typeof job.date === 'undefined'
+    )
+      this.config.jobs[i].interval = this.config.interval;
+
+    return { names, errors };
   }
 
   getHumanToMs(_value) {
@@ -783,6 +801,35 @@ class Bree extends EventEmitter {
     for (const job of this.config.jobs) {
       this.stop(job.name);
     }
+  }
+
+  add(jobs) {
+    //
+    // validate jobs
+    //
+    if (!Array.isArray(jobs)) throw new Error('Jobs must be an Array');
+
+    const names = this.config.jobs.map((j) => j.name);
+    const errors = [];
+
+    for (const job of jobs) {
+      this.validateJob(job, this.config.jobs.length, names, errors);
+    }
+
+    debug('jobs added', this.config.jobs);
+
+    // if there were any errors then throw them
+    if (errors.length > 0) throw combineErrors(errors);
+  }
+
+  remove(name) {
+    const job = this.config.jobs.find((j) => j.name === name);
+    if (!job) throw new Error(`Job "${name}" does not exist`);
+
+    this.config.jobs = this.config.jobs.find((j) => j.name !== name);
+
+    // make sure it also closes any open workers
+    this.stop(name);
   }
 }
 
