@@ -308,6 +308,20 @@ test('fails if reserved job name: index, index.js, index.mjs', (t) => {
     () =>
       new Bree({
         root,
+        jobs: ['index']
+      }),
+    {
+      message:
+        'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+    }
+  );
+});
+
+test('fails if reserved job name in object: index, index.js, index.mjs', (t) => {
+  t.throws(
+    () =>
+      new Bree({
+        root,
         jobs: [{ name: 'index' }]
       }),
     {

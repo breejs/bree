@@ -160,18 +160,6 @@ class Bree extends EventEmitter {
       this.validateJob(job, i, names, errors);
     }
 
-    // don't allow a job to have the `index` file name
-    if (
-      names.includes('index') ||
-      names.includes('index.js') ||
-      names.includes('index.mjs')
-    )
-      errors.push(
-        new Error(
-          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-        )
-      );
-
     debug('this.config.jobs', this.config.jobs);
 
     // if there were any errors then throw them
@@ -179,9 +167,20 @@ class Bree extends EventEmitter {
   }
 
   // eslint-disable-next-line complexity
-  validateJob(job, i = 0, names = [], errors = []) {
+  validateJob(job, i, names, errors) {
     // support a simple string which we will transform to have a path
     if (isSANB(job)) {
+      // don't allow a job to have the `index` file name
+      if (['index', 'index.js', 'index.mjs'].includes(job)) {
+        errors.push(
+          new Error(
+            'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+          )
+        );
+
+        return { names, errors };
+      }
+
       // throw an error if duplicate job names
       if (names.includes(job))
         errors.push(
@@ -225,7 +224,6 @@ class Bree extends EventEmitter {
 
     // job is a function
     if (typeof job === 'function') {
-      // TODO check for anonymous function and error
       // throw an error if duplicate job names
       if (names.includes(job.name))
         errors.push(
@@ -325,6 +323,17 @@ class Bree extends EventEmitter {
     // don't allow users to mix timeout AND date
     if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined')
       errors.push(new Error(`${prefix} cannot have both timeout and date`));
+
+    // don't allow a job to have the `index` file name
+    if (['index', 'index.js', 'index.mjs'].includes(job.name)) {
+      errors.push(
+        new Error(
+          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+        )
+      );
+
+      return { names, errors };
+    }
 
     // throw an error if duplicate job names
     if (job.name && names.includes(job.name))
@@ -795,28 +804,17 @@ class Bree extends EventEmitter {
   }
 
   add(jobs) {
-    const names = this.config.jobs.map((j) => j.name);
-    const errors = [];
     //
     // validate jobs
     //
     if (!Array.isArray(jobs)) throw new Error('Jobs must be an Array');
 
+    const names = this.config.jobs.map((j) => j.name);
+    const errors = [];
+
     for (const job of jobs) {
       this.validateJob(job, this.config.jobs.length, names, errors);
     }
-
-    // don't allow a job to have the `index` file name
-    if (
-      names.includes('index') ||
-      names.includes('index.js') ||
-      names.includes('index.mjs')
-    )
-      errors.push(
-        new Error(
-          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-        )
-      );
 
     debug('jobs added', this.config.jobs);
 
