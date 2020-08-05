@@ -1578,7 +1578,7 @@ test('fails if multiple function jobs with same name', (t) => {
   );
 });
 
-test('add > successfully add jobs', (t) => {
+test('add > successfully add jobs as array', (t) => {
   const bree = new Bree({
     root,
     jobs: ['infinite']
@@ -1591,13 +1591,17 @@ test('add > successfully add jobs', (t) => {
   t.is(typeof bree.config.jobs[1], 'object');
 });
 
-test('add > fails if jobs is not an array', (t) => {
+test('add > successfully add job not array', (t) => {
   const bree = new Bree({
     root,
     jobs: ['infinite']
   });
 
-  t.throws(() => bree.add('basic'), { message: 'Jobs must be an Array' });
+  t.is(typeof bree.config.jobs[1], 'undefined');
+
+  bree.add('basic');
+
+  t.is(typeof bree.config.jobs[1], 'object');
 });
 
 test('add > fails if job already exists', (t) => {

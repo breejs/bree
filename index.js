@@ -805,9 +805,9 @@ class Bree extends EventEmitter {
 
   add(jobs) {
     //
-    // validate jobs
+    // make sure jobs is an array
     //
-    if (!Array.isArray(jobs)) throw new Error('Jobs must be an Array');
+    if (!Array.isArray(jobs)) jobs = [jobs];
 
     const names = this.config.jobs.map((j) => j.name);
     const errors = [];
