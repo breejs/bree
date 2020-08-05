@@ -94,6 +94,7 @@ class Bree extends EventEmitter {
     this.run = this.run.bind(this);
     this.start = this.start.bind(this);
     this.stop = this.stop.bind(this);
+    this.add = this.add.bind(this);
 
     // validate root (sync check)
     if (isSANB(this.config.root)) {
@@ -792,6 +793,38 @@ class Bree extends EventEmitter {
     for (const job of this.config.jobs) {
       this.stop(job.name);
     }
+  }
+
+  add(jobs) {
+    const names = [];
+    const errors = [];
+    //
+    // validate jobs
+    //
+    if (!Array.isArray(jobs)) throw new Error('Jobs must be an Array');
+
+    for (const job of jobs) {
+      const validation = this.validateJob(job, this.config.jobs.length);
+      names.concat(validation.names);
+      errors.concat(validation.errors);
+    }
+
+    // don't allow a job to have the `index` file name
+    if (
+      names.includes('index') ||
+      names.includes('index.js') ||
+      names.includes('index.mjs')
+    )
+      errors.push(
+        new Error(
+          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+        )
+      );
+
+    debug('jobs added', this.config.jobs);
+
+    // if there were any errors then throw them
+    if (errors.length > 0) throw combineErrors(errors);
   }
 }
 
