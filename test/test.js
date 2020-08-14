@@ -1204,7 +1204,7 @@ test('set default interval to 10s', (t) => {
     jobs: [{ name: 'basic' }],
     interval: 'every 10 seconds'
   });
-  t.true(bree.config.jobs[0].interval.isValid());
+  t.true(bree.isSchedule(bree.config.jobs[0].interval));
 });
 
 // <https://github.com/breejs/bree/issues/23>
@@ -1214,7 +1214,7 @@ test('job with every 10 seconds as opposed to 10s', (t) => {
     jobs: [{ name: 'basic', interval: 'every 10 seconds' }]
   });
   bree.run('basic');
-  t.true(bree.config.jobs[0].interval.isValid());
+  t.true(bree.isSchedule(bree.config.jobs[0].interval));
 });
 
 test('emits "worker created" and "worker started" events', async (t) => {

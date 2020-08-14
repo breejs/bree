@@ -501,9 +501,7 @@ class Bree extends EventEmitter {
     if (
       ((Number.isFinite(this.config.interval) && this.config.interval > 0) ||
         (typeof this.config.interval === 'object' &&
-          this.isSchedule(this.config.interval)) ||
-        (typeof this.config.interval === 'object' &&
-          typeof this.config.interval.isValid === 'function')) &&
+          this.isSchedule(this.config.interval))) &&
       typeof this.config.jobs[i].interval === 'undefined' &&
       typeof job.cron === 'undefined' &&
       typeof job.date === 'undefined'
@@ -526,7 +524,7 @@ class Bree extends EventEmitter {
 
     if (isSANB(value)) {
       const schedule = later.schedule(later.parse.text(value));
-      if (schedule.isValid()) return schedule;
+      if (schedule.isValid()) return later.parse.text(value);
       value = this.getHumanToMs(value);
     }
 
@@ -562,7 +560,6 @@ class Bree extends EventEmitter {
       : meta;
   }
 
-  // eslint-disable-next-line complexity
   run(name) {
     debug('run', name);
     if (name) {
@@ -578,37 +575,7 @@ class Bree extends EventEmitter {
         ...(this.config.worker ? this.config.worker : {}),
         ...(job.worker ? job.worker : {}),
         workerData: {
-          job: {
-            ...job,
-            // <https://github.com/breejs/bree/issues/23>
-            ...(typeof job.cron === 'undefined'
-              ? {}
-              : {
-                  cron: this.isSchedule(job.cron)
-                    ? '[schedule]'
-                    : typeof job.cron.isValid === 'function'
-                    ? '[later]'
-                    : job.cron
-                }),
-            ...(typeof job.timeout === 'undefined'
-              ? {}
-              : {
-                  timeout: this.isSchedule(job.timeout)
-                    ? '[schedule]'
-                    : typeof job.timeout.isValid === 'function'
-                    ? '[later]'
-                    : job.timeout
-                }),
-            ...(typeof job.interval === 'undefined'
-              ? {}
-              : {
-                  interval: this.isSchedule(job.interval)
-                    ? '[schedule]'
-                    : typeof job.interval.isValid === 'function'
-                    ? '[later]'
-                    : job.interval
-                })
-          },
+          job,
           ...(this.config.worker && this.config.worker.workerData
             ? this.config.worker.workerData
             : {}),
