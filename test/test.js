@@ -1197,6 +1197,26 @@ test('set default interval', (t) => {
   t.is(bree.config.jobs[0].interval, 100);
 });
 
+// <https://github.com/breejs/bree/issues/23>
+test('set default interval to 10s', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic' }],
+    interval: 'every 10 seconds'
+  });
+  t.true(bree.config.jobs[0].interval.isValid());
+});
+
+// <https://github.com/breejs/bree/issues/23>
+test('job with every 10 seconds as opposed to 10s', (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', interval: 'every 10 seconds' }]
+  });
+  bree.run('basic');
+  t.true(bree.config.jobs[0].interval.isValid());
+});
+
 test('emits "worker created" and "worker started" events', async (t) => {
   const bree = new Bree({
     root,

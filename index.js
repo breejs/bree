@@ -497,10 +497,13 @@ class Bree extends EventEmitter {
 
     // if interval was undefined, cron was undefined,
     // and date was undefined then set the default
-    // (as long as the default interval is > 0)
+    // (as long as the default interval is > 0, or it was a schedule, or it was valid)
     if (
-      Number.isFinite(this.config.interval) &&
-      this.config.interval > 0 &&
+      ((Number.isFinite(this.config.interval) && this.config.interval > 0) ||
+        (typeof this.config.interval === 'object' &&
+          this.isSchedule(this.config.interval)) ||
+        (typeof this.config.interval === 'object' &&
+          typeof this.config.interval.isValid === 'function')) &&
       typeof this.config.jobs[i].interval === 'undefined' &&
       typeof job.cron === 'undefined' &&
       typeof job.date === 'undefined'
@@ -559,6 +562,7 @@ class Bree extends EventEmitter {
       : meta;
   }
 
+  // eslint-disable-next-line complexity
   run(name) {
     debug('run', name);
     if (name) {
@@ -570,17 +574,48 @@ class Bree extends EventEmitter {
           this.getWorkerMetadata(name)
         );
       debug('starting worker', name);
-      this.workers[name] = new Worker(job.path, {
+      const object = {
         ...(this.config.worker ? this.config.worker : {}),
         ...(job.worker ? job.worker : {}),
         workerData: {
-          job,
+          job: {
+            ...job,
+            // <https://github.com/breejs/bree/issues/23>
+            ...(typeof job.cron === 'undefined'
+              ? {}
+              : {
+                  cron: this.isSchedule(job.cron)
+                    ? '[schedule]'
+                    : typeof job.cron.isValid === 'function'
+                    ? '[later]'
+                    : job.cron
+                }),
+            ...(typeof job.timeout === 'undefined'
+              ? {}
+              : {
+                  timeout: this.isSchedule(job.timeout)
+                    ? '[schedule]'
+                    : typeof job.timeout.isValid === 'function'
+                    ? '[later]'
+                    : job.timeout
+                }),
+            ...(typeof job.interval === 'undefined'
+              ? {}
+              : {
+                  interval: this.isSchedule(job.interval)
+                    ? '[schedule]'
+                    : typeof job.interval.isValid === 'function'
+                    ? '[later]'
+                    : job.interval
+                })
+          },
           ...(this.config.worker && this.config.worker.workerData
             ? this.config.worker.workerData
             : {}),
           ...(job.worker && job.worker.workerData ? job.worker.workerData : {})
         }
-      });
+      };
+      this.workers[name] = new Worker(job.path, object);
       this.emit('worker created', name);
       debug('worker started', name);
 
