@@ -431,7 +431,7 @@ class Bree extends EventEmitter {
         // validate cron pattern
         // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
         //
-        // TODO: <https://github.com/Airfooox/cron-validate/issues/67>
+        //  <https://github.com/Airfooox/cron-validate/issues/67>
         //
         const result = cron(
           job.cron,
