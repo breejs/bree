@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
+const fs = require('fs');
 const { resolve, join } = require('path');
-const { statSync } = require('fs');
 
 const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
@@ -99,9 +99,14 @@ class Bree extends EventEmitter {
 
     // validate root (sync check)
     if (isSANB(this.config.root)) {
-      const stats = statSync(this.config.root);
-      if (!stats.isDirectory())
-        throw new Error(`Root directory of ${this.config.root} does not exist`);
+      /* istanbul ignore next */
+      if (typeof fs === 'object') {
+        const stats = fs.statSync(this.config.root);
+        if (!stats.isDirectory())
+          throw new Error(
+            `Root directory of ${this.config.root} does not exist`
+          );
+      }
     }
 
     // validate timeout
@@ -206,9 +211,13 @@ class Bree extends EventEmitter {
           : `${job}.${this.config.defaultExtension}`
       );
       try {
-        const stats = statSync(path);
-        if (!stats.isFile())
-          throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
+        /* istanbul ignore next */
+        if (typeof fs === 'object') {
+          const stats = fs.statSync(path);
+          if (!stats.isFile())
+            throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
+        }
+
         this.config.jobs[i] = {
           name: job,
           path,
@@ -298,9 +307,14 @@ class Bree extends EventEmitter {
         : false;
       if (path) {
         try {
-          const stats = statSync(path);
-          if (!stats.isFile())
-            throw new Error(`${prefix} path missing: ${path}`);
+          /* istanbul ignore next */
+          if (typeof fs === 'object') {
+            const stats = fs.statSync(path);
+            // eslint-disable-next-line max-depth
+            if (!stats.isFile())
+              throw new Error(`${prefix} path missing: ${path}`);
+          }
+
           if (!isSANB(job.path)) this.config.jobs[i].path = path;
         } catch (err) {
           errors.push(err);

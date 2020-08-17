@@ -12,6 +12,9 @@
     ],
     "verbose": true
   },
+  "browser": {
+    "fs": false
+  },
   "bugs": {
     "url": "https://github.com/breejs/bree/issues",
     "email": "niftylettuce@gmail.com"
