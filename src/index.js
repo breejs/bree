@@ -13,6 +13,9 @@ const threads = require('bthreads');
 const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
 
+const hasFsStatSync =
+  typeof fs === 'object' && typeof fs.statSync === 'function';
+
 class Bree extends EventEmitter {
   constructor(config) {
     super();
@@ -100,7 +103,7 @@ class Bree extends EventEmitter {
     // validate root (sync check)
     if (isSANB(this.config.root)) {
       /* istanbul ignore next */
-      if (typeof fs === 'object') {
+      if (hasFsStatSync) {
         const stats = fs.statSync(this.config.root);
         if (!stats.isDirectory())
           throw new Error(
@@ -212,7 +215,7 @@ class Bree extends EventEmitter {
       );
       try {
         /* istanbul ignore next */
-        if (typeof fs === 'object') {
+        if (hasFsStatSync) {
           const stats = fs.statSync(path);
           if (!stats.isFile())
             throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
@@ -308,7 +311,7 @@ class Bree extends EventEmitter {
       if (path) {
         try {
           /* istanbul ignore next */
-          if (typeof fs === 'object') {
+          if (hasFsStatSync) {
             const stats = fs.statSync(path);
             // eslint-disable-next-line max-depth
             if (!stats.isFile())
