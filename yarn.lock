@@ -856,10 +856,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@breejs/later@^3.0.0":
-  version "3.0.0"
-  resolved "https://registry.yarnpkg.com/@breejs/later/-/later-3.0.0.tgz#ade2c023d4e1653203365a06761c9728020ab468"
-  integrity sha512-MCLedCzOXR3OaPqeJlxBzzWS2PTEMMBql7RaejbvpnXvQw+r0ipHM7EXs9O//QfW6k2mFsN/r61Hu8AIsWDHYQ==
+"@breejs/later@^3.0.1":
+  version "3.0.1"
+  resolved "https://registry.yarnpkg.com/@breejs/later/-/later-3.0.1.tgz#f2c07d62036b797ed12a0e3111da93af37099248"
+  integrity sha512-ovX7/wXB4AXHGCns9KOjCpUS2nJVQ5ywOj4ezxVDcbyTE9AUVClHRT/pj+xbdgwh6044WhXvqPwOHLAA57Nfsg==
 
 "@commitlint/cli@latest":
   version "9.1.2"
