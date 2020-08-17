@@ -40,6 +40,7 @@
 * [Complex timeouts and intervals](#complex-timeouts-and-intervals)
 * [Custom Worker Options](#custom-worker-options)
 * [Using functions for jobs](#using-functions-for-jobs)
+* [Using Typescript Files for Jobs](#using-typescript-files-for-jobs)
 * [Concurrency](#concurrency)
 * [Real-world usage](#real-world-usage)
 * [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)
@@ -655,6 +656,39 @@ You should be able to pass data via `worker.workerData` (see [Custom Worker Opti
 Note that you cannot pass a built-in nor bound function.
 
 
+## Using Typescript Files for Jobs
+
+Since node does not natively support typescript, you cannot pass a `.ts` file as the source for a new `Worker`. However, if you add the `ts-node` package to your project you can use it to transpile the typescript to javascript dynamically when the job is launched. This requires using a function with custom worker options as the bree job.
+
+Setup your typescript job like this:
+
+```js
+new Bree({
+  jobs: [
+    {
+        name: 'Typescript Worker',
+        path: typescript_worker,
+        interval: 'every 10 seconds',
+        worker: { workerData: { __filename: './src/job_specific_filename_worker.ts' } }
+    }
+  ]
+})
+```
+
+Here is the `typescript_worker` function to use to setup these typescript jobs:
+
+```js
+function typescript_worker() {
+    const path = require('path')
+    require('ts-node').register()
+    const workerData = require('worker_threads').workerData
+    require(path.resolve(__dirname, workerData.__filename))
+}
+```
+
+This same function can be used for multiple jobs, with each job differentiated by the `name` property and the filename specified in the custom worker options `__filename` property.
+
+
 ## Concurrency
 
 We recommend using the following packages in your workers for handling concurrency:
@@ -695,7 +729,7 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [MIT](LICENSE) © [Nick Baugh](http://niftylettuce.com/)
 
 
-## 
+##
 
 <a href="#"><img src="https://d1i8ikybhfrv4r.cloudfront.net/bree/footer.png" alt="#" /></a>
 
