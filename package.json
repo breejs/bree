@@ -1,7 +1,7 @@
 {
   "name": "bree",
   "description": "The best job scheduler for Node.js with support for cron, dates, ms, later, and human-friendly strings.  Works in Node v10+ and browsers (thanks to bthreads polyfill), uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Forward Email and Lad.",
-  "version": "1.1.28",
+  "version": "2.0.0",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
     "files": [
@@ -75,6 +75,7 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
+  "jsdelivr": "dist/bree.min.js",
   "keywords": [
     "agenda",
     "async",
@@ -160,8 +161,6 @@
   ],
   "license": "MIT",
   "main": "lib/index.js",
-  "jsdelivr": "dist/bree.min.js",
-  "unpkg": "dist/bree.min.js",
   "publishConfig": {
     "access": "public"
   },
@@ -188,6 +187,7 @@
     "test": "cross-env NODE_ENV=test ava",
     "test-coverage": "cross-env NODE_ENV=test nyc yarn run test"
   },
+  "unpkg": "dist/bree.min.js",
   "xo": {
     "prettier": true,
     "space": true,
