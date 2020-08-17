@@ -33,6 +33,9 @@
     "ms": "^2.1.2",
     "safe-timers": "^1.1.0"
   },
+  "browser": {
+    "later": "later/index.js"
+  },
   "devDependencies": {
     "@babel/cli": "^7.10.5",
     "@babel/core": "^7.11.1",
