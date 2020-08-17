@@ -25,7 +25,7 @@ class Bree extends EventEmitter {
       logger: console,
       // set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
-      root: resolve('jobs'),
+      root: hasFsStatSync ? resolve('jobs') : false,
       // default timeout for jobs
       // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
