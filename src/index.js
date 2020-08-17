@@ -7,6 +7,7 @@ const cron = require('cron-validate');
 const debug = require('debug')('bree');
 const humanInterval = require('human-interval');
 const isSANB = require('is-string-and-not-blank');
+const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
 const ms = require('ms');
 const threads = require('bthreads');
@@ -103,7 +104,7 @@ class Bree extends EventEmitter {
     // validate root (sync check)
     if (isSANB(this.config.root)) {
       /* istanbul ignore next */
-      if (hasFsStatSync) {
+      if (hasFsStatSync && isValidPath(this.config.root)) {
         const stats = fs.statSync(this.config.root);
         if (!stats.isDirectory())
           throw new Error(
@@ -176,6 +177,7 @@ class Bree extends EventEmitter {
 
   // eslint-disable-next-line complexity
   validateJob(job, i, names, errors) {
+    if (typeof this.config.jobs[i] === 'undefined') this.config.jobs[i] = {};
     // support a simple string which we will transform to have a path
     if (isSANB(job)) {
       // don't allow a job to have the `index` file name
@@ -215,7 +217,7 @@ class Bree extends EventEmitter {
       );
       try {
         /* istanbul ignore next */
-        if (hasFsStatSync) {
+        if (hasFsStatSync && isValidPath(path)) {
           const stats = fs.statSync(path);
           if (!stats.isFile())
             throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
@@ -311,7 +313,7 @@ class Bree extends EventEmitter {
       if (path) {
         try {
           /* istanbul ignore next */
-          if (hasFsStatSync) {
+          if (hasFsStatSync && isValidPath(path)) {
             const stats = fs.statSync(path);
             // eslint-disable-next-line max-depth
             if (!stats.isFile())

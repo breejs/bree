@@ -33,6 +33,7 @@
     "debug": "^4.1.1",
     "human-interval": "^1.0.0",
     "is-string-and-not-blank": "^0.0.2",
+    "is-valid-path": "^0.1.1",
     "ms": "^2.1.2",
     "safe-timers": "^1.1.0"
   },

@@ -1656,3 +1656,10 @@ test('remove > fails if job does not exist', (t) => {
 
   t.throws(() => bree.remove('basic'), { message: /Job .* does not exist/ });
 });
+
+test('add > successfully adds job object', (t) => {
+  const bree = new Bree({ root: false });
+  function noop() {}
+  bree.add({ name: 'basic', path: noop.toString() });
+  t.pass();
+});
