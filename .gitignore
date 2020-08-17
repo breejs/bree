@@ -22,3 +22,5 @@ coverage
 #      Files      #
 ###################
 *.log
+lib
+dist

@@ -1,5 +1,5 @@
 const delay = require('delay');
-const { parentPort } = require('worker_threads');
+const { parentPort } = require('bthreads');
 
 (async () => {
   await delay(1);

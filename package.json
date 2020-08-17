@@ -1,6 +1,6 @@
 {
   "name": "bree",
-  "description": "The best job scheduler for Node.js with support for cron, dates, ms, later, and human-friendly strings.  Uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Forward Email and Lad.",
+  "description": "The best job scheduler for Node.js with support for cron, dates, ms, later, and human-friendly strings.  Works in Node v10+ and browsers (thanks to bthreads polyfill), uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Forward Email and Lad.",
   "version": "1.1.28",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
@@ -21,7 +21,9 @@
     "shadowgate15 (https://github.com/shadowgate15)"
   ],
   "dependencies": {
+    "@babel/runtime": "^7.11.2",
     "boolean": "^3.0.1",
+    "bthreads": "^0.5.1",
     "combine-errors": "^3.0.3",
     "cron-validate": "^1.3.0",
     "debug": "^4.1.1",
@@ -32,15 +34,23 @@
     "safe-timers": "^1.1.0"
   },
   "devDependencies": {
+    "@babel/cli": "^7.10.5",
+    "@babel/core": "^7.11.1",
+    "@babel/plugin-transform-runtime": "^7.11.0",
+    "@babel/preset-env": "^7.11.0",
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
     "@sinonjs/fake-timers": "^6.0.1",
     "ava": "latest",
+    "babelify": "^10.0.0",
+    "browserify": "^16.5.2",
     "codecov": "latest",
     "cross-env": "latest",
     "delay": "^4.4.0",
     "eslint": "^7.7.0",
     "eslint-config-xo-lass": "latest",
+    "eslint-plugin-compat": "^3.8.0",
+    "eslint-plugin-node": "^11.1.0",
     "fixpack": "latest",
     "husky": "latest",
     "into-stream": "^6.0.0",
@@ -48,13 +58,15 @@
     "nyc": "latest",
     "remark-cli": "latest",
     "remark-preset-github": "latest",
+    "tinyify": "^3.0.0",
     "xo": "^0.33.0"
   },
   "engines": {
-    "node": ">= 12.11.0"
+    "node": ">= 10"
   },
   "files": [
-    "index.js"
+    "lib",
+    "dist"
   ],
   "homepage": "https://github.com/breejs/bree",
   "husky": {
@@ -147,7 +159,9 @@
     "workers"
   ],
   "license": "MIT",
-  "main": "index.js",
+  "main": "lib/index.js",
+  "jsdelivr": "dist/bree.min.js",
+  "unpkg": "dist/bree.min.js",
   "publishConfig": {
     "access": "public"
   },
@@ -156,11 +170,21 @@
     "url": "https://github.com/breejs/bree"
   },
   "scripts": {
+    "ava": "cross-env NODE_ENV=test ava",
+    "browserify": "browserify src/index.js -o dist/bree.js -s Bree -g [ babelify --configFile ./.dist.babelrc ]",
+    "build": "npm run build:clean && npm run build:lib && npm run build:dist",
+    "build:clean": "rimraf lib dist",
+    "build:dist": "npm run browserify && npm run minify",
+    "build:lib": "babel --config-file ./.lib.babelrc src --out-dir lib",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
-    "lint": "yarn run lint:js && yarn run lint:md",
+    "lint": "yarn run lint:js && yarn run lint:md && yarn run lint:lib && yarn run lint:dist",
+    "lint:dist": "eslint --no-inline-config -c .dist.eslintrc dist",
     "lint:js": "xo",
+    "lint:lib": "eslint -c .lib.eslintrc lib",
     "lint:md": "remark . -qfo",
-    "pretest": "yarn run lint",
+    "minify": "cross-env NODE_ENV=production browserify src/index.js -o dist/bree.min.js -s Bree -g [ babelify --configFile ./.dist.babelrc ] -p tinyify",
+    "nyc": "cross-env NODE_ENV=test nyc ava",
+    "pretest": "yarn run build && yarn run lint",
     "test": "cross-env NODE_ENV=test ava",
     "test-coverage": "cross-env NODE_ENV=test nyc yarn run test"
   },

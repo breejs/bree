@@ -1,5 +1,4 @@
 const EventEmitter = require('events');
-const { Worker } = require('worker_threads');
 const { resolve, join } = require('path');
 const { statSync } = require('fs');
 
@@ -10,6 +9,7 @@ const humanInterval = require('human-interval');
 const isSANB = require('is-string-and-not-blank');
 const later = require('later');
 const ms = require('ms');
+const threads = require('bthreads');
 const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
 
@@ -41,7 +41,7 @@ class Bree extends EventEmitter {
       // could also be mjs if desired
       // (this is the default extension if you just specify a job's name without ".js" or ".mjs")
       defaultExtension: 'js',
-      // default worker options to pass to `new Worker`
+      // default worker options to pass to ~`new Worker`~ `new threads.Worker`
       // (can be overridden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
       worker: {},
@@ -582,7 +582,7 @@ class Bree extends EventEmitter {
           ...(job.worker && job.worker.workerData ? job.worker.workerData : {})
         }
       };
-      this.workers[name] = new Worker(job.path, object);
+      this.workers[name] = new threads.Worker(job.path, object);
       this.emit('worker created', name);
       debug('worker started', name);
 

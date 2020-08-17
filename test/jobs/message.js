@@ -1,4 +1,4 @@
-const { parentPort } = require('worker_threads');
+const { parentPort } = require('bthreads');
 
 setInterval(() => {}, 10);
 
@@ -11,6 +11,7 @@ if (parentPort) {
     }
 
     parentPort.postMessage(message);
+    // eslint-disable-next-line unicorn/no-process-exit
     process.exit(0);
   });
 }
