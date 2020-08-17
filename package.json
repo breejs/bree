@@ -12,9 +12,6 @@
     ],
     "verbose": true
   },
-  "browser": {
-    "later": "later/index.js"
-  },
   "bugs": {
     "url": "https://github.com/breejs/bree/issues",
     "email": "niftylettuce@gmail.com"
@@ -25,6 +22,7 @@
   ],
   "dependencies": {
     "@babel/runtime": "^7.11.2",
+    "@breejs/later": "^2.0.1",
     "boolean": "^3.0.1",
     "bthreads": "^0.5.1",
     "combine-errors": "^3.0.3",
@@ -32,7 +30,6 @@
     "debug": "^4.1.1",
     "human-interval": "^1.0.0",
     "is-string-and-not-blank": "^0.0.2",
-    "later": "^1.2.0",
     "ms": "^2.1.2",
     "safe-timers": "^1.1.0"
   },

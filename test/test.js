@@ -5,7 +5,7 @@ const test = require('ava');
 const FakeTimers = require('@sinonjs/fake-timers');
 
 const Bree = require('..');
-const later = require('later');
+const later = require('@breejs/later');
 const delay = require('delay');
 const humanInterval = require('human-interval');
 
