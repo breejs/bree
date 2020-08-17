@@ -74,7 +74,7 @@
   "homepage": "https://github.com/breejs/bree",
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm test",
+      "pre-commit": "lint-staged",
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
