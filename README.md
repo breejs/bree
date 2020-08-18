@@ -12,7 +12,7 @@
 </div>
 <br />
 <div align="center">
-  Bree is the best job scheduler for <a href="https://nodejs.org">Node.js</a> and JavaScript with support for <a href="https://en.wikipedia.org/wiki/Cron">cron</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">dates</a>, <a href="https://github.com/vercel/ms">ms</a>, <a href="https://github.com/breejs/later">later</a>, and <a href="https://github.com/agenda/human-interval">human-friendly</a> strings.
+  Bree is the best job scheduler for <a href="https://nodejs.org">Node.js</a> and JavaScript with <a href="https://en.wikipedia.org/wiki/Cron">cron</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">dates</a>, <a href="https://github.com/vercel/ms">ms</a>, <a href="https://github.com/breejs/later">later</a>, and <a href="https://github.com/agenda/human-interval">human-friendly</a> support.
 </div>
 <hr />
 <div align="center">
