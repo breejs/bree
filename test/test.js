@@ -486,7 +486,7 @@ test('run > job terminates on message "done"', async (t) => {
 
   bree.run('done');
   t.is(typeof bree.workers.done, 'object');
-
+  await delay(1);
   await new Promise((resolve, reject) => {
     bree.workers.done.on('error', reject);
     bree.workers.done.on('message', (message) => {
@@ -496,7 +496,7 @@ test('run > job terminates on message "done"', async (t) => {
     });
   });
 
-  await delay(1);
+  await delay(100);
   t.is(typeof bree.workers.done, 'undefined');
 });
 

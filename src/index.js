@@ -29,7 +29,10 @@ class Bree extends EventEmitter {
       logger: console,
       // set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
-      root: threads.browser ? threads.resolve('jobs') : resolve('jobs'),
+      root: threads.browser
+        ? /* istanbul ignore next */
+          threads.resolve('jobs')
+        : resolve('jobs'),
       // default timeout for jobs
       // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
