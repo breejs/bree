@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const fs = require('fs');
-const { resolve, join } = require('path');
+const { join } = require('path');
 
 const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
@@ -14,8 +14,11 @@ const threads = require('bthreads');
 const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
 
-const hasFsStatSync =
-  typeof fs === 'object' && typeof fs.statSync === 'function';
+// bthreads requires us to do this for web workers (see bthreads docs for insight)
+threads.Buffer = Buffer;
+
+// instead of `threads.browser` checks below, we previously used this boolean
+// const hasFsStatSync = typeof fs === 'object' && typeof fs.statSync === 'function';
 
 class Bree extends EventEmitter {
   constructor(config) {
@@ -26,7 +29,7 @@ class Bree extends EventEmitter {
       logger: console,
       // set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
-      root: hasFsStatSync ? resolve('jobs') : false,
+      root: threads.resolve('jobs'),
       // default timeout for jobs
       // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
@@ -35,7 +38,7 @@ class Bree extends EventEmitter {
       interval: 0,
       // this is an Array of your job definitions (see README for examples)
       jobs: [],
-      // <https://bunkat.github.io/later/parsers.html#cron>
+      // <https://breejs.github.io/later/parsers.html#cron>
       // (can be overridden on a job basis with same prop name)
       hasSeconds: false,
       // <https://github.com/Airfooox/cron-validate>
@@ -104,7 +107,7 @@ class Bree extends EventEmitter {
     // validate root (sync check)
     if (isSANB(this.config.root)) {
       /* istanbul ignore next */
-      if (hasFsStatSync && isValidPath(this.config.root)) {
+      if (!threads.browser && isValidPath(this.config.root)) {
         const stats = fs.statSync(this.config.root);
         if (!stats.isDirectory())
           throw new Error(
@@ -130,7 +133,7 @@ class Bree extends EventEmitter {
       (!Array.isArray(this.config.jobs) || this.config.jobs.length === 0)
     ) {
       try {
-        this.config.jobs = require(this.config.root);
+        this.config.jobs = threads.require(this.config.root);
       } catch (err) {
         this.config.logger.error(err);
       }
@@ -144,7 +147,6 @@ class Bree extends EventEmitter {
 
     // provide human-friendly errors for complex configurations
     const errors = [];
-    const names = [];
 
     /*
     jobs = [
@@ -164,39 +166,61 @@ class Bree extends EventEmitter {
     */
 
     for (let i = 0; i < this.config.jobs.length; i++) {
-      const job = this.config.jobs[i];
-
-      this.validateJob(job, i, names, errors);
+      try {
+        this.config.jobs[i] = this.validateJob(this.config.jobs[i], i);
+      } catch (err) {
+        errors.push(err);
+      }
     }
-
-    debug('this.config.jobs', this.config.jobs);
 
     // if there were any errors then throw them
     if (errors.length > 0) throw combineErrors(errors);
+
+    debug('this.config.jobs', this.config.jobs);
+  }
+
+  getName(job) {
+    if (isSANB(job)) return job;
+    if (typeof job === 'object' && isSANB(job.name)) return job.name;
+    if (typeof job === 'function' && isSANB(job.name)) return job.name;
   }
 
   // eslint-disable-next-line complexity
-  validateJob(job, i, names, errors) {
-    if (typeof this.config.jobs[i] === 'undefined') this.config.jobs[i] = {};
-    // support a simple string which we will transform to have a path
-    if (isSANB(job)) {
-      // don't allow a job to have the `index` file name
-      if (['index', 'index.js', 'index.mjs'].includes(job)) {
-        errors.push(
-          new Error(
-            'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-          )
-        );
+  validateJob(job, i, isAdd = false) {
+    const errors = [];
+    const names = [];
 
-        return { names, errors };
+    if (isAdd) {
+      const name = this.getName(job);
+      if (name) names.push(name);
+      else errors.push(new Error(`Job #${i + 1} is missing a name`));
+    }
+
+    for (let j = 0; j < this.config.jobs.length; j++) {
+      const name = this.getName(this.config.jobs[j]);
+      if (!name) {
+        errors.push(new Error(`Job #${i + 1} is missing a name`));
+        continue;
       }
 
       // throw an error if duplicate job names
-      if (names.includes(job))
+      if (names.includes(name))
         errors.push(
-          new Error(`Job #${i + 1} has a duplicate job name of ${job}`)
+          new Error(`Job #${j + 1} has a duplicate job name of ${job}`)
         );
-      else names.push(job);
+
+      names.push(name);
+    }
+
+    if (errors.length > 0) throw combineErrors(errors);
+
+    // support a simple string which we will transform to have a path
+    if (isSANB(job)) {
+      // don't allow a job to have the `index` file name
+      if (['index', 'index.js', 'index.mjs'].includes(job))
+        throw new Error(
+          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+        );
 
       if (!this.config.root) {
         errors.push(
@@ -206,7 +230,7 @@ class Bree extends EventEmitter {
             } "${job}" requires root directory option to auto-populate path`
           )
         );
-        return { names, errors };
+        throw combineErrors(errors);
       }
 
       const path = join(
@@ -215,36 +239,24 @@ class Bree extends EventEmitter {
           ? job
           : `${job}.${this.config.defaultExtension}`
       );
-      try {
-        /* istanbul ignore next */
-        if (hasFsStatSync && isValidPath(path)) {
-          const stats = fs.statSync(path);
-          if (!stats.isFile())
-            throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
-        }
 
-        this.config.jobs[i] = {
-          name: job,
-          path,
-          timeout: this.config.timeout,
-          interval: this.config.interval
-        };
-      } catch (err) {
-        errors.push(err);
+      /* istanbul ignore next */
+      if (!threads.browser) {
+        const stats = fs.statSync(path);
+        if (!stats.isFile())
+          throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
       }
 
-      return { names, errors };
+      return {
+        name: job,
+        path,
+        timeout: this.config.timeout,
+        interval: this.config.interval
+      };
     }
 
     // job is a function
     if (typeof job === 'function') {
-      // throw an error if duplicate job names
-      if (names.includes(job.name))
-        errors.push(
-          new Error(`Job #${i + 1} has a duplicate job name of ${job}`)
-        );
-      else names.push(job.name);
-
       const path = `(${job.toString()})()`;
       // can't be a built-in or bound function
       if (path.includes('[native code]'))
@@ -252,31 +264,19 @@ class Bree extends EventEmitter {
           new Error(`Job #${i + 1} can't be a bound or built-in function`)
         );
 
-      this.config.jobs[i] = {
+      if (errors.length > 0) throw combineErrors(errors);
+
+      return {
         name: job.name,
         path,
         worker: { eval: true },
         timeout: this.config.timeout,
         interval: this.config.interval
       };
-
-      return { names, errors };
-    }
-
-    // must be a pure object
-    if (typeof job !== 'object' || Array.isArray(job)) {
-      errors.push(new Error(`Job #${i + 1} must be an Object`));
-      return { names, errors };
-    }
-
-    // validate name
-    if (!isSANB(job.name)) {
-      errors.push(new Error(`Job #${i + 1} must have a non-empty name`));
-      delete job.name;
     }
 
     // use a prefix for errors
-    const prefix = `Job #${i + 1} named "${job.name || ''}"`;
+    const prefix = `Job #${i + 1} named "${job.name}"`;
 
     if (typeof job.path === 'function') {
       const path = `(${job.path.toString()})()`;
@@ -287,8 +287,8 @@ class Bree extends EventEmitter {
           new Error(`Job #${i + 1} can't be a bound or built-in function`)
         );
 
-      this.config.jobs[i].path = path;
-      this.config.jobs[i].worker = {
+      job.path = path;
+      job.worker = {
         eval: true,
         ...job.worker
       };
@@ -302,30 +302,32 @@ class Bree extends EventEmitter {
       // validate path
       const path = isSANB(job.path)
         ? job.path
-        : job.name
-        ? join(
+        : join(
             this.config.root,
             job.name.endsWith('.js') || job.name.endsWith('.mjs')
               ? job.name
               : `${job.name}.${this.config.defaultExtension}`
-          )
-        : false;
-      if (path) {
+          );
+      if (isValidPath(path)) {
         try {
           /* istanbul ignore next */
-          if (hasFsStatSync && isValidPath(path)) {
+          if (!threads.browser) {
             const stats = fs.statSync(path);
             // eslint-disable-next-line max-depth
             if (!stats.isFile())
               throw new Error(`${prefix} path missing: ${path}`);
           }
 
-          if (!isSANB(job.path)) this.config.jobs[i].path = path;
+          if (!isSANB(job.path)) job.path = path;
         } catch (err) {
           errors.push(err);
         }
       } else {
-        errors.push(new Error(`${prefix} path missing`));
+        // assume that it's a transformed eval string
+        job.worker = {
+          eval: true,
+          ...job.worker
+        };
       }
     }
 
@@ -351,15 +353,8 @@ class Bree extends EventEmitter {
         )
       );
 
-      return { names, errors };
+      throw combineErrors(errors);
     }
-
-    // throw an error if duplicate job names
-    if (job.name && names.includes(job.name))
-      errors.push(
-        new Error(`${prefix} has a duplicate job name of ${job.name}`)
-      );
-    else if (job.name) names.push(job.name);
 
     // validate date
     if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
@@ -368,7 +363,7 @@ class Bree extends EventEmitter {
     // validate timeout
     if (typeof job.timeout !== 'undefined') {
       try {
-        this.config.jobs[i].timeout = this.parseValue(job.timeout);
+        job.timeout = this.parseValue(job.timeout);
       } catch (err) {
         errors.push(
           combineErrors([
@@ -382,7 +377,7 @@ class Bree extends EventEmitter {
     // validate interval
     if (typeof job.interval !== 'undefined') {
       try {
-        this.config.jobs[i].interval = this.parseValue(job.interval);
+        job.interval = this.parseValue(job.interval);
       } catch (err) {
         errors.push(
           combineErrors([
@@ -432,7 +427,7 @@ class Bree extends EventEmitter {
           : {}),
         useSeconds: true
       };
-      this.config.jobs[i].cronValidate = {
+      job.cronValidate = {
         ...this.config.cronValidate,
         ...job.cronValidate,
         preset,
@@ -443,8 +438,8 @@ class Bree extends EventEmitter {
     // validate cron
     if (typeof job.cron !== 'undefined') {
       if (this.isSchedule(job.cron)) {
-        this.config.jobs[i].interval = job.cron;
-        // delete this.config.jobs[i].cron;
+        job.interval = job.cron;
+        // delete job.cron;
       } else {
         //
         // validate cron pattern
@@ -470,9 +465,9 @@ class Bree extends EventEmitter {
             )
           );
           // NOTE: it is always valid
-          this.config.jobs[i].interval = schedule;
+          job.interval = schedule;
           // if (schedule.isValid()) {
-          //   this.config.jobs[i].interval = schedule;
+          //   job.interval = schedule;
           // } // else {
           //   errors.push(
           //     new Error(
@@ -502,17 +497,19 @@ class Bree extends EventEmitter {
         )
       );
 
+    if (errors.length > 0) throw combineErrors(errors);
+
     // if timeout was undefined, cron was undefined,
     // and date was undefined then set the default
     // (as long as the default timeout is >= 0)
     if (
       Number.isFinite(this.config.timeout) &&
       this.config.timeout >= 0 &&
-      typeof this.config.jobs[i].timeout === 'undefined' &&
+      typeof job.timeout === 'undefined' &&
       typeof job.cron === 'undefined' &&
       typeof job.date === 'undefined'
     )
-      this.config.jobs[i].timeout = this.config.timeout;
+      job.timeout = this.config.timeout;
 
     // if interval was undefined, cron was undefined,
     // and date was undefined then set the default
@@ -521,13 +518,13 @@ class Bree extends EventEmitter {
       ((Number.isFinite(this.config.interval) && this.config.interval > 0) ||
         (typeof this.config.interval === 'object' &&
           this.isSchedule(this.config.interval))) &&
-      typeof this.config.jobs[i].interval === 'undefined' &&
+      typeof job.interval === 'undefined' &&
       typeof job.cron === 'undefined' &&
       typeof job.date === 'undefined'
     )
-      this.config.jobs[i].interval = this.config.interval;
+      job.interval = this.config.interval;
 
-    return { names, errors };
+    return job;
   }
 
   getHumanToMs(_value) {
@@ -549,7 +546,7 @@ class Bree extends EventEmitter {
 
     if (!Number.isFinite(value) || value < 0)
       throw new Error(
-        `Value ${value} must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://bunkat.github.io/later/parsers.html#text> for examples)`
+        `Value ${value} must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://breejs.github.io/later/parsers.html#text> for examples)`
       );
 
     return value;
@@ -830,11 +827,15 @@ class Bree extends EventEmitter {
     //
     if (!Array.isArray(jobs)) jobs = [jobs];
 
-    const names = this.config.jobs.map((j) => j.name);
     const errors = [];
 
-    for (const job of jobs) {
-      this.validateJob(job, this.config.jobs.length, names, errors);
+    for (const [i, job_] of jobs.entries()) {
+      try {
+        const job = this.validateJob(job_, i, true);
+        this.config.jobs.push(job);
+      } catch (err) {
+        errors.push(err);
+      }
     }
 
     debug('jobs added', this.config.jobs);
@@ -853,5 +854,19 @@ class Bree extends EventEmitter {
     this.stop(name);
   }
 }
+
+// expose bthreads (useful for tests)
+// https://github.com/chjj/bthreads#api
+Bree.threads = {
+  backend: threads.backend,
+  browser: threads.browser,
+  location: threads.location,
+  filename: threads.filename,
+  dirname: threads.dirname,
+  require: threads.require,
+  resolve: threads.resolve,
+  exit: threads.exit,
+  cores: threads.cores
+};
 
 module.exports = Bree;

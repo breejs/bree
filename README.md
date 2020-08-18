@@ -12,11 +12,11 @@
 </div>
 <br />
 <div align="center">
-  Bree is the best job scheduler for <a href="https://nodejs.org">Node.js</a> with support for <a href="https://en.wikipedia.org/wiki/Cron">cron</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">dates</a>, <a href="https://github.com/vercel/ms">ms</a>, <a href="https://github.com/bunkat/later">later</a>, and <a href="https://github.com/agenda/human-interval">human-friendly</a> strings.
+  Bree is the best job scheduler for <a href="https://nodejs.org">Node.js</a> and JavaScript with support for <a href="https://en.wikipedia.org/wiki/Cron">cron</a>, <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date">dates</a>, <a href="https://github.com/vercel/ms">ms</a>, <a href="https://github.com/breejs/later">later</a>, and <a href="https://github.com/agenda/human-interval">human-friendly</a> strings.
 </div>
 <hr />
 <div align="center">
-  Works in Node v10+ and browsers (thanks to <a href="https://github.com/chjj/bthreads">bthreads</a> polyfill), uses <a href="https://nodejs.org/api/worker_threads.html">workers</a> to spawn sandboxed processes, and supports <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>, <a href="https://github.com/sindresorhus/p-retry">retries</a>, <a href="https://github.com/sindresorhus/p-throttle">throttling</a>, <a href="#concurrency">concurrency</a>, and <a href="#cancellation-retries-stalled-jobs-and-graceful-reloading">cancelable jobs with graceful shutdown</a>.  Simple, fast, and the most lightweight tool for the job.  Made for <a href="https://forwardemail.net">Forward Email</a> and <a href="https://lad.js.org">Lad</a>.
+  Works in Node v10+ and browsers (thanks to <a href="https://github.com/chjj/bthreads">bthreads</a> polyfill), uses <a href="https://nodejs.org/api/worker_threads.html">worker threads</a> (Node.js) and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">web workers</a> (browsers) to spawn sandboxed processes, and supports <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>, <a href="https://github.com/sindresorhus/p-retry">retries</a>, <a href="https://github.com/sindresorhus/p-throttle">throttling</a>, <a href="#concurrency">concurrency</a>, and <a href="#cancellation-retries-stalled-jobs-and-graceful-reloading">cancelable jobs with graceful shutdown</a>.  Simple, fast, and the most lightweight tool for the job.  Made for <a href="https://forwardemail.net">Forward Email</a> and <a href="https://lad.js.org">Lad</a>.
 </div>
 <hr />
 <div align="center">:heart: Love this project? Support <a href="https://github.com/niftylettuce" target="_blank">@niftylettuce's</a> <a href="https://en.wikipedia.org/wiki/Free_and_open-source_software" target="_blank">FOSS</a> on <a href="https://patreon.com/niftylettuce" target="_blank">Patreon</a> or <a href="https://paypal.me/niftylettuce">PayPal</a> :unicorn:</div>
@@ -27,6 +27,8 @@
 * [Foreword](#foreword)
 * [Install](#install)
 * [Usage and Examples](#usage-and-examples)
+  * [Node](#node)
+  * [Browser](#browser)
 * [Node.js Email Queue Job Scheduling Example](#nodejs-email-queue-job-scheduling-example)
 * [Instance Options](#instance-options)
 * [Job Options](#job-options)
@@ -82,6 +84,12 @@ Inside this `jobs` directory are individual scripts which are run using [Workers
 The option `jobs` passed to a new instance of `Bree` (as shown below) is an Array.  It contains values which can either be a String (name of a job in the `jobs` directory, which is run on boot) OR it can be an Object with `name`, `path`, `timeout`, and `interval` properties.  If you do not supply a `path`, then the path is created using the root directory (defaults to `jobs`) in combination with the `name`.  If you do not supply values for `timeout` and/nor `interval`, then these values are defaulted to `0` (which is the default for both, see [index.js](index.js) for more insight into configurable default options).
 
 We have also documented all [Instance Options](#instance-options) and [Job Options](#job-options) in this README below.  Be sure to read those sections so you have a complete understanding of how Bree works.
+
+### Node
+
+Since we use [bthreads][], Node v10+ is supported. For versions prior to Node v11.7.0, a ponyfill is provided for [workers][] that uses `child_process`.  For versions greater than or equal to Node v11.7.0, it uses [workers][] directly.  You can also pass `--experimental-worker` flag for older versions to use `worker_threads` (instead of the `child_process` polyfill).  See the official Node.js documentation for more information.
+
+> **NOTE:** If you are using Node versions prior to Node v11.7.0, then in your worker files – you will need to use [bthreads][] instead of [workers][].  For example, you will `const thread = require('bthreads');` at the top of your file, instead of requiring `worker_threads`.  This will also require you to install `bthreads` in your project with `npm install bthreads` or `yarn add bthreads`.
 
 ```js
 const path = require('path');
@@ -287,6 +295,44 @@ bree.remove('boop');
 */
 ```
 
+### Browser
+
+> **NOTE:** Browser support is currently unstable [until this GitHub issue](https://github.com/breejs/bree/issues/27) is resolved. Contributions are welcome!
+
+If you are using Bree in the browser, then please reference the [Web Workers API][web-workers-api] (since it does not use Node.js [worker threads][workers]).  If the Web Workers API [is not yet available](https://caniuse.com/#feat=webworkers), then it will be [polyfilled][polyfill] accordingly.
+
+#### VanillaJS
+
+This is the solution for you if you're just using `<script>` tags everywhere!
+
+```html
+<script src="https://unpkg.com/bree"></script>
+<script>
+  (function() {
+    function hello() {
+      console.log('hello');
+      postMessage('done');
+    }
+
+    var bree = new Bree({
+      jobs: [
+        {
+          name: 'hello',
+          path: hello,
+          interval: '5s',
+        }
+      ]
+    });
+
+    bree.start();
+  })();
+</script>
+```
+
+#### Bundler
+
+Assuming you are using [browserify][], [webpack][], [rollup][], or another bundler, you can simply follow [Node](#node) usage above.
+
 
 ## Node.js Email Queue Job Scheduling Example
 
@@ -456,7 +502,7 @@ Here is the full list of options and their defaults.  See [index.js](index.js) f
 | `timeout`              | Number  | `0`                    | Default timeout for jobs (e.g. a value of `0` means that jobs will start on boot by default unless a job has a property of `timeout` defined.  Set this to `false` if you do not wish for a default value to be set for jobs.  **This value does not apply to jobs with a property of `date`.**                                                                                                                                                          |   |
 | `interval`             | Number  | `0`                    | Default interval for jobs (e.g. a value of `0` means that there is no interval, and a value greater than zero indicates a default interval will be set with this value).  **This value does not apply to jobs with a property of `cron`**.                                                                                                                                                                                                               |   |
 | `jobs`                 | Array   | `[]`                   | Defaults to an empty Array, but if the `root` directory has a `index.js` file, then it will be used.  This allows you to keep your jobs and job definition index in the same place.  See [Job Options](#job-options) below, and [Usage and Examples](#usage-and-examples) above for more insight.                                                                                                                                                        |   |
-| `hasSeconds`           | Boolean | `false`                | This value is passed to `later` for parsing jobs, and can be overridden on a per job basis.  See [later cron parsing](https://bunkat.github.io/later/parsers.html#cron) documentation for more insight. Note that setting this to `true` will automatically set `cronValidate` defaults to have `{ preset: 'default', override: { useSeconds: true } }`                                                                                                  |   |
+| `hasSeconds`           | Boolean | `false`                | This value is passed to `later` for parsing jobs, and can be overridden on a per job basis.  See [later cron parsing](https://breejs.github.io/later/parsers.html#cron) documentation for more insight. Note that setting this to `true` will automatically set `cronValidate` defaults to have `{ preset: 'default', override: { useSeconds: true } }`                                                                                                  |   |
 | `cronValidate`         | Object  | `{}`                   | This value is passed to `cron-validate` for validation of cron expressions.  See the [cron-validate](https://github.com/Airfooox/cron-validate) documentation for more insight.                                                                                                                                                                                                                                                                          |   |
 | `closeWorkerAfterMs`   | Number  | `0`                    | If you set a value greater than `0` here, then it will terminate workers after this specified time (in milliseconds).  By default there is no termination done, and jobs can run for infinite periods of time.                                                                                                                                                                                                                                           |   |
 | `defaultExtension`     | String  | `js`                   | This value can either be `js` or `mjs`.  The default is `js`, and is the default extension added to jobs that are simply defined with a name and without a path.  For example, if you define a job `test`, then it will look for `/path/to/root/test.js` as the file used for workers.                                                                                                                                                                   |   |
@@ -715,7 +761,7 @@ Kudos to the authors of all these packages, however they did not work well enoug
 
 [p-cancelable]: https://github.com/sindresorhus/p-cancelable
 
-[later]: https://bunkat.github.io/later/parsers.html
+[later]: https://breejs.github.io/later/parsers.html
 
 [cron-validate]: https://github.com/Airfooox/cron-validate
 
@@ -746,3 +792,15 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [cabin]: https://cabinjs.com
 
 [moment]: https://momentjs.com
+
+[bthreads]: https://github.com/chjj/bthreads
+
+[web-workers-api]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers
+
+[polyfill]: https://github.com/chjj/bthreads/blob/master/lib/browser/polyfill.js
+
+[browserify]: https://github.com/browserify/browserify
+
+[webpack]: https://github.com/webpack/webpack
+
+[rollup]: https://github.com/rollup/rollup

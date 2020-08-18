@@ -1,6 +1,6 @@
 {
   "name": "bree",
-  "description": "The best job scheduler for Node.js with support for cron, dates, ms, later, and human-friendly strings.  Works in Node v10+ and browsers (thanks to bthreads polyfill), uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Forward Email and Lad.",
+  "description": "The best job scheduler for Node.js and JavaScript with support for cron, dates, ms, later, and human-friendly strings.  Works in Node v10+ and browsers (thanks to bthreads polyfill), uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and the most lightweight tool for the job.  Made for Forward Email and Lad.",
   "version": "2.1.6",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
@@ -44,10 +44,13 @@
     "@babel/preset-env": "^7.11.0",
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
+    "@goto-bus-stop/envify": "^5.0.0",
     "@sinonjs/fake-timers": "^6.0.1",
     "ava": "latest",
     "babelify": "^10.0.0",
+    "browser-pack-flat": "^3.4.2",
     "browserify": "^16.5.2",
+    "bundle-collapser": "^1.4.0",
     "codecov": "latest",
     "cross-env": "latest",
     "delay": "^4.4.0",
@@ -62,7 +65,8 @@
     "nyc": "latest",
     "remark-cli": "latest",
     "remark-preset-github": "latest",
-    "tinyify": "^3.0.0",
+    "uglifyify": "^5.0.2",
+    "unassertify": "^2.1.1",
     "xo": "^0.33.0"
   },
   "engines": {
@@ -185,7 +189,7 @@
     "lint:js": "xo",
     "lint:lib": "eslint -c .lib.eslintrc lib",
     "lint:md": "remark . -qfo",
-    "minify": "cross-env NODE_ENV=production browserify src/index.js -o dist/bree.min.js -s Bree -g [ babelify --configFile ./.dist.babelrc ] -p tinyify",
+    "minify": "cross-env NODE_ENV=production browserify src/index.js -o dist/bree.min.js -s Bree -g [ babelify --configFile ./.dist.babelrc ] -g unassertify -g @goto-bus-stop/envify -g uglifyify -p browser-pack-flat/plugin",
     "nyc": "cross-env NODE_ENV=test nyc ava",
     "pretest": "yarn run build && yarn run lint",
     "test": "cross-env NODE_ENV=test ava",

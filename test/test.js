@@ -113,7 +113,7 @@ test('fails if job is not a pure object', (t) => {
         root,
         jobs: [['basic']]
       }),
-    { message: /Job #.* must be an Object/ }
+    { message: /Job #.* is missing a name/ }
   );
 });
 
@@ -124,7 +124,7 @@ test('fails if job name is empty', (t) => {
         root,
         jobs: [{ name: '' }]
       }),
-    { message: /Job #.* must have a non-empty name/ }
+    { message: /Job #.* is missing a name/ }
   );
 });
 
@@ -168,7 +168,7 @@ test('fails if root path given but no name and path is empty', (t) => {
         root,
         jobs: [{ path: '' }]
       }),
-    { message: /Job #.* named .* path missing/ }
+    { message: /Job #.* is missing a name/ }
   );
 });
 
@@ -203,7 +203,7 @@ test('fails if duplicate job name and given objects', (t) => {
         root,
         jobs: [{ name: 'basic' }, { name: 'basic' }]
       }),
-    { message: /Job #.* named .* has a duplicate job name of */ }
+    { message: /Job .* has a duplicate job name of .*/ }
   );
 });
 
@@ -441,16 +441,14 @@ test.serial('run > job terminates after set time', async (t) => {
   bree.run('infinite');
   t.true(typeof bree.closeWorkerAfterMs.infinite === 'object');
 
-  const listeners = new Promise((resolve, reject) => {
+  await delay(1);
+  await new Promise((resolve, reject) => {
     bree.workers.infinite.on('error', reject);
     bree.workers.infinite.on('exit', (code) => {
       t.true(code === 1);
       resolve();
     });
   });
-
-  await delay(100);
-  await listeners;
 });
 
 test.serial('run > job terminates before set time', async (t) => {
@@ -460,23 +458,20 @@ test.serial('run > job terminates before set time', async (t) => {
 
   const bree = new Bree({
     root,
-    jobs: [{ name: 'basic', closeWorkerAfterMs: 150 }],
+    jobs: [{ name: 'basic', closeWorkerAfterMs: 500 }],
     logger
   });
 
   bree.run('basic');
   t.true(typeof bree.closeWorkerAfterMs.basic === 'object');
-
-  const listeners = new Promise((resolve, reject) => {
+  await delay(1);
+  await new Promise((resolve, reject) => {
     bree.workers.basic.on('error', reject);
     bree.workers.basic.on('exit', (code) => {
       t.true(code === 0);
       resolve();
     });
   });
-
-  await delay(150);
-  await listeners;
 });
 
 test('run > job terminates on message "done"', async (t) => {
@@ -1662,4 +1657,22 @@ test('add > successfully adds job object', (t) => {
   function noop() {}
   bree.add({ name: 'basic', path: noop.toString() });
   t.pass();
+});
+
+test('add > missing job name', (t) => {
+  const bree = new Bree({ root: false });
+  t.throws(() => bree.add(), { message: /Job .* is missing a name/ });
+});
+
+test('run > stop > does not terminate if already terminated', async (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'loop', closeWorkerAfterMs: 100 }]
+  });
+
+  bree.run('loop');
+  await delay(1);
+  delete bree.workers.loop;
+  await delay(100);
+  await t.pass();
 });

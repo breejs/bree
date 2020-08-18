@@ -7,7 +7,7 @@ docute.init({
   nav: {
     default: [
       {
-        title: 'The best job scheduler for Node.js',
+        title: 'The best job scheduler for Node.js and JavaScript',
         path: '/'
       }
     ]

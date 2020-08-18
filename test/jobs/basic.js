@@ -1,1 +1,3 @@
-console.log('hello');
+setTimeout(() => {
+  console.log('hello');
+}, 100);

@@ -7,11 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <link rel="shortcut icon" href="/favicon.ico" type="image/x-icon">
   <link rel="icon" href="/favicon.ico" type="image/x-icon">
-  <title>The best job scheduler for Node.js</title>
+  <title>The best job scheduler for Node.js and JavaScript</title>
   <link rel="stylesheet" href="https://unpkg.com/docute@3/dist/docute.css" type="text/css">
 
   <meta property="og:title" content="The best job scheduler for Node.js with workers and cron support">
-  <meta property="og:description" content="Bree is the best job scheduler for JavaScript and Node.js. Built-in support for workers, cron expression syntax, human-friendly times, Dates, and more. Made by @niftylettuce.">
+  <meta property="og:description" content="Bree is the best job scheduler for Node.js and JavaScript. Built-in support for workers, cron expression syntax, human-friendly times, Dates, and more. Works in the browser. Made by @niftylettuce.">
   <meta property="og:site_name" content="Bree">
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://raw.githubusercontent.com/breejs/bree/master/media/bree.png">
@@ -21,7 +21,29 @@
   <div id="app"></div>
   <script src="https://unpkg.com/docute-emojify@0.1" type="text/javascript"></script>
   <script src="https://unpkg.com/docute@3/dist/docute.js" type="text/javascript"></script>
-  <script src="https://unpkg.com/bree"></script>
+  <!--
+  <script src="https://unpkg.com/bree">
+  <script>
+    (function() {
+      function hello() {
+        console.log('hello');
+        postMessage('done');
+      }
+
+      var bree = new Bree({
+        jobs: [
+          {
+            name: 'hello',
+            path: hello,
+            interval: '5s',
+          }
+        ]
+      });
+
+      bree.start();
+    })();
+  </script>
+  -->
   <script src="./config.js" type="text/javascript"></script>
 </body>
 </html>
