@@ -1,6 +1,6 @@
 const EventEmitter = require('events');
 const fs = require('fs');
-const { join } = require('path');
+const { resolve, join } = require('path');
 
 const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
@@ -29,7 +29,7 @@ class Bree extends EventEmitter {
       logger: console,
       // set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
-      root: threads.resolve('jobs'),
+      root: threads.browser ? threads.resolve('jobs') : resolve('jobs'),
       // default timeout for jobs
       // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
