@@ -854,10 +854,10 @@
     lodash "^4.17.19"
     to-fast-properties "^2.0.0"
 
-"@breejs/later@^4.0.0":
-  version "4.0.0"
-  resolved "https://registry.yarnpkg.com/@breejs/later/-/later-4.0.0.tgz#43321ca67e88f0673b949a51a318ea559c1e9575"
-  integrity sha512-erGyFqFXKGyVX2QD9pCfk/ahNlnpmr3dbToPImcD7MFTahnjGIqEQRnK7gYrYQALU4N50qea4zA1L/stNKDHJw==
+"@breejs/later@^4.0.2":
+  version "4.0.2"
+  resolved "https://registry.yarnpkg.com/@breejs/later/-/later-4.0.2.tgz#38c85cc98b717c7a196f87238090adaea01f8c9e"
+  integrity sha512-EN0SlbyYouBdtZis1htdsgGlwFePzkXPwdIeqaBaavxkJT1G2/bitc2LSixjv45z2njXslxlJI1mW2O/Gmrb+A==
 
 "@commitlint/cli@latest":
   version "9.1.2"
