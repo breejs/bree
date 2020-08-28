@@ -457,18 +457,25 @@ class Bree extends EventEmitter {
             : job.cronValidate
         );
         if (result.isValid()) {
-          const schedule = later.schedule(
-            later.parse.cron(
-              job.cron,
-              boolean(
-                typeof job.hasSeconds === 'undefined'
-                  ? this.config.hasSeconds
-                  : job.hasSeconds
-              )
+          job.interval = later.parse.cron(
+            job.cron,
+            boolean(
+              typeof job.hasSeconds === 'undefined'
+                ? this.config.hasSeconds
+                : job.hasSeconds
             )
           );
           // NOTE: it is always valid
-          job.interval = schedule;
+          // const schedule = later.schedule(
+          //   later.parse.cron(
+          //     job.cron,
+          //     boolean(
+          //       typeof job.hasSeconds === 'undefined'
+          //         ? this.config.hasSeconds
+          //         : job.hasSeconds
+          //     )
+          //   )
+          // );
           // if (schedule.isValid()) {
           //   job.interval = schedule;
           // } // else {
@@ -478,7 +485,6 @@ class Bree extends EventEmitter {
           //     )
           //   );
           // }
-          // above code will never be called
         } else {
           for (const message of result.getError()) {
             errors.push(
@@ -519,8 +525,7 @@ class Bree extends EventEmitter {
     // (as long as the default interval is > 0, or it was a schedule, or it was valid)
     if (
       ((Number.isFinite(this.config.interval) && this.config.interval > 0) ||
-        (typeof this.config.interval === 'object' &&
-          this.isSchedule(this.config.interval))) &&
+        this.isSchedule(this.config.interval)) &&
       typeof job.interval === 'undefined' &&
       typeof job.cron === 'undefined' &&
       typeof job.date === 'undefined'
