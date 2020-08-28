@@ -411,7 +411,7 @@ test('run > job does not exist', (t) => {
 
 test('run > job already running', (t) => {
   const logger = _.cloneDeep(console);
-  logger.error = (err, _) => {
+  logger.warn = (err, _) => {
     t.is(err.message, 'Job "basic" is already running');
   };
 
@@ -583,7 +583,7 @@ test('start > throws error if job does not exist', (t) => {
 
 test('start > fails if job already started', async (t) => {
   const logger = _.cloneDeep(console);
-  logger.error = (err) => {
+  logger.warn = (err) => {
     t.is(err.message, 'Job "short" is already started');
   };
 

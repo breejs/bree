@@ -590,7 +590,7 @@ class Bree extends EventEmitter {
       const job = this.config.jobs.find((j) => j.name === name);
       if (!job) throw new Error(`Job "${name}" does not exist`);
       if (this.workers[name])
-        return this.config.logger.error(
+        return this.config.logger.warn(
           new Error(`Job "${name}" is already running`),
           this.getWorkerMetadata(name)
         );
@@ -686,7 +686,7 @@ class Bree extends EventEmitter {
       const job = this.config.jobs.find((j) => j.name === name);
       if (!job) throw new Error(`Job ${name} does not exist`);
       if (this.timeouts[name] || this.intervals[name])
-        return this.config.logger.error(
+        return this.config.logger.warn(
           new Error(`Job "${name}" is already started`)
         );
 
