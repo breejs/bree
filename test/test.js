@@ -1044,10 +1044,36 @@ test.serial('stop > job stops when "cancel" message is sent', async (t) => {
 
   t.is(typeof bree.workers.message, 'object');
 
-  bree.stop();
-  await delay(500);
+  await bree.stop();
 
   t.is(typeof bree.workers.message, 'undefined');
+});
+
+test.serial('stop > job stops when process.exit(0) is called', async (t) => {
+  t.plan(4);
+
+  const logger = _.cloneDeep(console);
+  logger.info = (message) => {
+    if (message === 'Worker for job "message-process-exit" exited with code 0')
+      t.true(true);
+  };
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'message-process-exit' }],
+    logger
+  });
+
+  t.is(typeof bree['message-process-exit'], 'undefined');
+
+  bree.start('message-process-exit');
+  await delay(1);
+
+  t.is(typeof bree.workers['message-process-exit'], 'object');
+
+  await bree.stop();
+
+  t.is(typeof bree.workers['message-process-exit'], 'undefined');
 });
 
 test.serial(

@@ -35,6 +35,7 @@
     "is-string-and-not-blank": "^0.0.2",
     "is-valid-path": "^0.1.1",
     "ms": "^2.1.2",
+    "p-wait-for": "3.1.0",
     "safe-timers": "^1.1.0"
   },
   "devDependencies": {
