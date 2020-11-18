@@ -2,6 +2,7 @@ const EventEmitter = require('events');
 const fs = require('fs');
 const { resolve, join } = require('path');
 
+const pWaitFor = require('p-wait-for');
 const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
 const debug = require('debug')('bree');
@@ -778,7 +779,7 @@ class Bree extends EventEmitter {
     }
   }
 
-  stop(name) {
+  async stop(name) {
     if (name) {
       if (this.timeouts[name]) {
         if (
@@ -806,7 +807,6 @@ class Bree extends EventEmitter {
               this.getWorkerMetadata(name)
             );
             this.workers[name].terminate();
-            delete this.workers[name];
           }
         });
         this.workers[name].postMessage('cancel');
@@ -821,12 +821,14 @@ class Bree extends EventEmitter {
         delete this.closeWorkerAfterMs[name];
       }
 
-      return;
+      return pWaitFor(() => this.workers[name] === undefined);
     }
 
     for (const job of this.config.jobs) {
       this.stop(job.name);
     }
+
+    return pWaitFor(() => Object.keys(this.workers).length === 0);
   }
 
   add(jobs) {
