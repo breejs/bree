@@ -4,7 +4,9 @@
   "plugins": ["compat"],
   "rules": {
     "no-unsafe-finally": "off",
-    "no-func-assign": "off"
+    "no-func-assign": "off",
+    "no-unused-vars": "off",
+    "no-constant-condition": "off"
   },
   "settings": {
     "polyfills": []
