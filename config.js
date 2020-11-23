@@ -1,3 +1,4 @@
+// eslint-disable-next-line no-undef
 docute.init({
   debug: true,
   title: 'Bree',
@@ -12,7 +13,6 @@ docute.init({
       }
     ]
   },
-  plugins: [
-    docuteEmojify()
-  ]
+  // eslint-disable-next-line no-undef
+  plugins: [docuteEmojify()]
 });
