@@ -517,7 +517,8 @@ class Bree extends EventEmitter {
       this.config.timeout >= 0 &&
       typeof job.timeout === 'undefined' &&
       typeof job.cron === 'undefined' &&
-      typeof job.date === 'undefined'
+      typeof job.date === 'undefined' &&
+      typeof job.interval === 'undefined'
     )
       job.timeout = this.config.timeout;
 
@@ -588,6 +589,7 @@ class Bree extends EventEmitter {
   run(name) {
     debug('run', name);
     if (name) {
+      this.config.logger.info(new Date());
       const job = this.config.jobs.find((j) => j.name === name);
       if (!job) throw new Error(`Job "${name}" does not exist`);
       if (this.workers[name])
@@ -746,6 +748,7 @@ class Bree extends EventEmitter {
         debug('job timeout is finite', job);
         this.timeouts[name] = setTimeout(() => {
           this.run(name);
+
           if (this.isSchedule(job.interval)) {
             debug('job.interval is schedule', job);
             this.intervals[name] = later.setInterval(
