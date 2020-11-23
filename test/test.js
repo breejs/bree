@@ -218,7 +218,7 @@ test('fails if date is invalid', (t) => {
   );
 });
 
-test('creates job with correct timeout and uses default interval', (t) => {
+test('creates job with correct timeout and interval', (t) => {
   const bree = new Bree({
     root,
     jobs: [{ name: 'basic', timeout: '3s', interval: '1s' }]
