@@ -239,14 +239,14 @@ test('fails if timeout is invalid', (t) => {
   );
 });
 
-test('creates job with correct interval and uses default timeout', (t) => {
+test('creates job with correct interval and does not set a timeout', (t) => {
   const bree = new Bree({
     root,
     jobs: [{ name: 'basic', interval: '3s' }]
   });
 
   t.is(bree.config.jobs[0].interval, 3000);
-  t.is(bree.config.jobs[0].timeout, 0);
+  t.is(bree.config.jobs[0].timeout, undefined);
 });
 
 test('fails if interval is invalid', (t) => {
