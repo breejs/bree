@@ -668,7 +668,7 @@ These options are passed to the `options` argument when we internally invoke `ne
 
 Additionally, you can pass custom worker options on a per-job basis through a `worker` property Object on the job definition.
 
-See complete documentation here for options <https://nodejs.org/api/worker_threads.html#worker_thre> (but you usually don't have to modify these).
+See [complete documentation](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options) for options (but you usually don't have to modify these).
 
 
 ## Using functions for jobs
