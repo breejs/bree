@@ -6,16 +6,19 @@ const pWaitFor = require('p-wait-for');
 const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
 const debug = require('debug')('bree');
-const humanInterval = require('human-interval');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
-const ms = require('ms');
 const threads = require('bthreads');
 const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
 
-const { isSchedule, getName } = require('./job-utils');
+const {
+  isSchedule,
+  getName,
+  getHumanToMs,
+  parseValue
+} = require('./job-utils');
 
 // bthreads requires us to do this for web workers (see bthreads docs for insight)
 threads.Buffer = Buffer;
@@ -112,6 +115,8 @@ class Bree extends EventEmitter {
     this.remove = this.remove.bind(this);
 
     this.getName = getName;
+    this.getHumanToMs = getHumanToMs;
+    this.parseValue = parseValue;
 
     // validate root (sync check)
     if (isSANB(this.config.root)) {
@@ -553,31 +558,6 @@ class Bree extends EventEmitter {
       job.interval = this.config.interval;
 
     return job;
-  }
-
-  getHumanToMs(_value) {
-    const value = humanInterval(_value);
-    if (Number.isNaN(value)) return ms(_value);
-    return value;
-  }
-
-  parseValue(value) {
-    if (value === false) return value;
-
-    if (this.isSchedule(value)) return value;
-
-    if (isSANB(value)) {
-      const schedule = later.schedule(later.parse.text(value));
-      if (schedule.isValid()) return later.parse.text(value);
-      value = this.getHumanToMs(value);
-    }
-
-    if (!Number.isFinite(value) || value < 0)
-      throw new Error(
-        `Value ${value} must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://breejs.github.io/later/parsers.html#text> for examples)`
-      );
-
-    return value;
   }
 
   getWorkerMetadata(name, meta = {}) {
