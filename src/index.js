@@ -15,7 +15,7 @@ const threads = require('bthreads');
 const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
 
-const { isSchedule } = require('./job-utils');
+const { isSchedule, getName } = require('./job-utils');
 
 // bthreads requires us to do this for web workers (see bthreads docs for insight)
 threads.Buffer = Buffer;
@@ -111,6 +111,8 @@ class Bree extends EventEmitter {
     this.add = this.add.bind(this);
     this.remove = this.remove.bind(this);
 
+    this.getName = getName;
+
     // validate root (sync check)
     if (isSANB(this.config.root)) {
       /* istanbul ignore next */
@@ -184,12 +186,6 @@ class Bree extends EventEmitter {
     if (errors.length > 0) throw combineErrors(errors);
 
     debug('this.config.jobs', this.config.jobs);
-  }
-
-  getName(job) {
-    if (isSANB(job)) return job;
-    if (typeof job === 'object' && isSANB(job.name)) return job.name;
-    if (typeof job === 'function' && isSANB(job.name)) return job.name;
   }
 
   // eslint-disable-next-line complexity
