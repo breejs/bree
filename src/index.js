@@ -15,6 +15,8 @@ const threads = require('bthreads');
 const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
 
+const { isSchedule } = require('./job-utils');
+
 // bthreads requires us to do this for web workers (see bthreads docs for insight)
 threads.Buffer = Buffer;
 
@@ -101,6 +103,7 @@ class Bree extends EventEmitter {
     this.intervals = {};
 
     this.validateJob = this.validateJob.bind(this);
+    this.isSchedule = isSchedule;
     this.getWorkerMetadata = this.getWorkerMetadata.bind(this);
     this.run = this.run.bind(this);
     this.start = this.start.bind(this);
@@ -560,10 +563,6 @@ class Bree extends EventEmitter {
       );
 
     return value;
-  }
-
-  isSchedule(value) {
-    return typeof value === 'object' && Array.isArray(value.schedules);
   }
 
   getWorkerMetadata(name, meta = {}) {
