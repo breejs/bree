@@ -193,6 +193,7 @@ class Bree extends EventEmitter {
     debug('this.config.jobs', this.config.jobs);
   }
 
+  // eslint-disable-next-line complexity
   buildJob(job, config) {
     if (isSANB(job)) {
       const path = join(
@@ -221,6 +222,88 @@ class Bree extends EventEmitter {
         interval: config.interval
       };
     }
+
+    // process job.path
+    if (typeof job.path === 'function') {
+      const path = `(${job.path.toString()})()`;
+
+      job.path = path;
+      job.worker = {
+        eval: true,
+        ...job.worker
+      };
+    } else {
+      const path = isSANB(job.path)
+        ? job.path
+        : join(
+            config.root,
+            job.name.endsWith('.js') || job.name.endsWith('.mjs')
+              ? job.name
+              : `${job.name}.${config.defaultExtension}`
+          );
+
+      if (isValidPath(path)) {
+        job.path = path;
+      } else {
+        // assume that it's a transformed eval string
+        job.worker = {
+          eval: true,
+          ...job.worker
+        };
+      }
+    }
+
+    if (typeof job.timeout !== 'undefined') {
+      job.timeout = this.parseValue(job.timeout);
+    }
+
+    if (typeof job.interval !== 'undefined') {
+      job.interval = this.parseValue(job.interval);
+    }
+
+    // build cron
+    if (typeof job.cron !== 'undefined') {
+      if (this.isSchedule(job.cron)) {
+        job.interval = job.cron;
+        // delete job.cron;
+      } else {
+        job.interval = later.parse.cron(
+          job.cron,
+          boolean(
+            typeof job.hasSeconds === 'undefined'
+              ? config.hasSeconds
+              : job.hasSeconds
+          )
+        );
+      }
+    }
+
+    // if timeout was undefined, cron was undefined,
+    // and date was undefined then set the default
+    // (as long as the default timeout is >= 0)
+    if (
+      Number.isFinite(config.timeout) &&
+      config.timeout >= 0 &&
+      typeof job.timeout === 'undefined' &&
+      typeof job.cron === 'undefined' &&
+      typeof job.date === 'undefined' &&
+      typeof job.interval === 'undefined'
+    )
+      job.timeout = config.timeout;
+
+    // if interval was undefined, cron was undefined,
+    // and date was undefined then set the default
+    // (as long as the default interval is > 0, or it was a schedule, or it was valid)
+    if (
+      ((Number.isFinite(config.interval) && config.interval > 0) ||
+        isSchedule(config.interval)) &&
+      typeof job.interval === 'undefined' &&
+      typeof job.cron === 'undefined' &&
+      typeof job.date === 'undefined'
+    )
+      job.interval = config.interval;
+
+    return job;
   }
 
   // eslint-disable-next-line complexity
@@ -313,12 +396,6 @@ class Bree extends EventEmitter {
         errors.push(
           new Error(`Job #${i + 1} can't be a bound or built-in function`)
         );
-
-      job.path = path;
-      job.worker = {
-        eval: true,
-        ...job.worker
-      };
     } else if (!isSANB(job.path) && !this.config.root) {
       errors.push(
         new Error(
@@ -344,17 +421,9 @@ class Bree extends EventEmitter {
             if (!stats.isFile())
               throw new Error(`${prefix} path missing: ${path}`);
           }
-
-          if (!isSANB(job.path)) job.path = path;
         } catch (err) {
           errors.push(err);
         }
-      } else {
-        // assume that it's a transformed eval string
-        job.worker = {
-          eval: true,
-          ...job.worker
-        };
       }
     }
 
@@ -390,7 +459,7 @@ class Bree extends EventEmitter {
     // validate timeout
     if (typeof job.timeout !== 'undefined') {
       try {
-        job.timeout = this.parseValue(job.timeout);
+        this.parseValue(job.timeout);
       } catch (err) {
         errors.push(
           combineErrors([
@@ -404,7 +473,7 @@ class Bree extends EventEmitter {
     // validate interval
     if (typeof job.interval !== 'undefined') {
       try {
-        job.interval = this.parseValue(job.interval);
+        this.parseValue(job.interval);
       } catch (err) {
         errors.push(
           combineErrors([
@@ -464,10 +533,7 @@ class Bree extends EventEmitter {
 
     // validate cron
     if (typeof job.cron !== 'undefined') {
-      if (this.isSchedule(job.cron)) {
-        job.interval = job.cron;
-        // delete job.cron;
-      } else {
+      if (!this.isSchedule(job.cron)) {
         //
         // validate cron pattern
         // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
@@ -480,15 +546,8 @@ class Bree extends EventEmitter {
             ? this.config.cronValidate
             : job.cronValidate
         );
-        if (result.isValid()) {
-          job.interval = later.parse.cron(
-            job.cron,
-            boolean(
-              typeof job.hasSeconds === 'undefined'
-                ? this.config.hasSeconds
-                : job.hasSeconds
-            )
-          );
+
+        if (!result.isValid()) {
           // NOTE: it is always valid
           // const schedule = later.schedule(
           //   later.parse.cron(
@@ -509,7 +568,7 @@ class Bree extends EventEmitter {
           //     )
           //   );
           // }
-        } else {
+
           for (const message of result.getError()) {
             errors.push(
               new Error(`${prefix} had an invalid cron pattern: ${message}`)
@@ -532,32 +591,7 @@ class Bree extends EventEmitter {
 
     if (errors.length > 0) throw combineErrors(errors);
 
-    // if timeout was undefined, cron was undefined,
-    // and date was undefined then set the default
-    // (as long as the default timeout is >= 0)
-    if (
-      Number.isFinite(this.config.timeout) &&
-      this.config.timeout >= 0 &&
-      typeof job.timeout === 'undefined' &&
-      typeof job.cron === 'undefined' &&
-      typeof job.date === 'undefined' &&
-      typeof job.interval === 'undefined'
-    )
-      job.timeout = this.config.timeout;
-
-    // if interval was undefined, cron was undefined,
-    // and date was undefined then set the default
-    // (as long as the default interval is > 0, or it was a schedule, or it was valid)
-    if (
-      ((Number.isFinite(this.config.interval) && this.config.interval > 0) ||
-        this.isSchedule(this.config.interval)) &&
-      typeof job.interval === 'undefined' &&
-      typeof job.cron === 'undefined' &&
-      typeof job.date === 'undefined'
-    )
-      job.interval = this.config.interval;
-
-    return job;
+    return this.buildJob(job, this.config);
   }
 
   getWorkerMetadata(name, meta = {}) {
