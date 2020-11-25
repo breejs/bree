@@ -188,6 +188,36 @@ class Bree extends EventEmitter {
     debug('this.config.jobs', this.config.jobs);
   }
 
+  buildJob(job, config) {
+    if (isSANB(job)) {
+      const path = join(
+        config.root,
+        job.endsWith('.js') || job.endsWith('.mjs')
+          ? job
+          : `${job}.${config.defaultExtension}`
+      );
+
+      return {
+        name: job,
+        path,
+        timeout: config.timeout,
+        interval: config.interval
+      };
+    }
+
+    if (typeof job === 'function') {
+      const path = `(${job.toString()})()`;
+
+      return {
+        name: job.name,
+        path,
+        worker: { eval: true },
+        timeout: config.timeout,
+        interval: config.interval
+      };
+    }
+  }
+
   // eslint-disable-next-line complexity
   validateJob(job, i, isAdd = false) {
     const errors = [];
@@ -250,12 +280,7 @@ class Bree extends EventEmitter {
           throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
       }
 
-      return {
-        name: job,
-        path,
-        timeout: this.config.timeout,
-        interval: this.config.interval
-      };
+      return this.buildJob(job, this.config);
     }
 
     // job is a function
@@ -269,13 +294,7 @@ class Bree extends EventEmitter {
 
       if (errors.length > 0) throw combineErrors(errors);
 
-      return {
-        name: job.name,
-        path,
-        worker: { eval: true },
-        timeout: this.config.timeout,
-        interval: this.config.interval
-      };
+      return this.buildJob(job, this.config);
     }
 
     // use a prefix for errors
