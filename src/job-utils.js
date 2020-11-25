@@ -22,7 +22,7 @@ const getHumanToMs = (_value) => {
 const parseValue = (value) => {
   if (value === false) return value;
 
-  if (this.isSchedule(value)) return value;
+  if (isSchedule(value)) return value;
 
   if (isSANB(value)) {
     const schedule = later.schedule(later.parse.text(value));
