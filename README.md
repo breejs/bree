@@ -613,7 +613,7 @@ See [Job Interval and Timeout Values](#job-interval-and-timeout-values) above fo
 
 ## Writing jobs with Promises and async-await
 
-Until Node LTS has a stable release with top-level async-await support, here is the working alternative:
+If jobs are running with Node pre-[v14.8.0](https://nodejs.org/en/blog/release/v14.8.0/), which [enables top-level async-await](https://github.com/nodejs/node/commit/62bb2e757f) support, here is the working alternative:
 
 ```js
 const { parentPort } = require('worker_threads');
