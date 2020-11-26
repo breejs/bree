@@ -56,6 +56,49 @@ const validateFunctionJob = (job, i) => {
   if (errors.length > 0) throw combineErrors(errors);
 };
 
+const validateJobPath = (job, prefix, config) => {
+  const errors = [];
+
+  if (typeof job.path === 'function') {
+    const path = `(${job.path.toString()})()`;
+
+    // can't be a built-in or bound function
+    if (path.includes('[native code]'))
+      errors.push(new Error(`${prefix} can't be a bound or built-in function`));
+  } else if (!isSANB(job.path) && !config.root) {
+    errors.push(
+      new Error(
+        `${prefix} requires root directory option to auto-populate path`
+      )
+    );
+  } else {
+    // validate path
+    const path = isSANB(job.path)
+      ? job.path
+      : join(
+          config.root,
+          job.name.endsWith('.js') || job.name.endsWith('.mjs')
+            ? job.name
+            : `${job.name}.${config.defaultExtension}`
+        );
+    if (isValidPath(path)) {
+      try {
+        /* istanbul ignore next */
+        if (!threads.browser) {
+          const stats = fs.statSync(path);
+          // eslint-disable-next-line max-depth
+          if (!stats.isFile())
+            throw new Error(`${prefix} path missing: ${path}`);
+        }
+      } catch (err) {
+        errors.push(err);
+      }
+    }
+  }
+
+  return errors;
+};
+
 const cronValidateWithSeconds = (job, config) => {
   const preset =
     job.cronValidate && job.cronValidate.preset
@@ -160,44 +203,7 @@ const validate = (job, i, names = [], config = {}) => {
   // use a prefix for errors
   const prefix = `Job #${i + 1} named "${job.name}"`;
 
-  if (typeof job.path === 'function') {
-    const path = `(${job.path.toString()})()`;
-
-    // can't be a built-in or bound function
-    if (path.includes('[native code]'))
-      errors.push(
-        new Error(`Job #${i + 1} can't be a bound or built-in function`)
-      );
-  } else if (!isSANB(job.path) && !config.root) {
-    errors.push(
-      new Error(
-        `${prefix} requires root directory option to auto-populate path`
-      )
-    );
-  } else {
-    // validate path
-    const path = isSANB(job.path)
-      ? job.path
-      : join(
-          config.root,
-          job.name.endsWith('.js') || job.name.endsWith('.mjs')
-            ? job.name
-            : `${job.name}.${config.defaultExtension}`
-        );
-    if (isValidPath(path)) {
-      try {
-        /* istanbul ignore next */
-        if (!threads.browser) {
-          const stats = fs.statSync(path);
-          // eslint-disable-next-line max-depth
-          if (!stats.isFile())
-            throw new Error(`${prefix} path missing: ${path}`);
-        }
-      } catch (err) {
-        errors.push(err);
-      }
-    }
-  }
+  errors.push(...validateJobPath(job, prefix, config));
 
   // don't allow users to mix interval AND cron
   if (typeof job.interval !== 'undefined' && typeof job.cron !== 'undefined') {
