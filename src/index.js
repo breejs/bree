@@ -16,7 +16,8 @@ const {
   isSchedule,
   getName,
   getHumanToMs,
-  parseValue
+  parseValue,
+  getJobNames
 } = require('./job-utils');
 const buildJob = require('./job-builder');
 
@@ -181,7 +182,9 @@ class Bree extends EventEmitter {
 
     for (let i = 0; i < this.config.jobs.length; i++) {
       try {
-        this.config.jobs[i] = this.validateJob(this.config.jobs[i], i);
+        const names = getJobNames(this.config.jobs, i);
+
+        this.config.jobs[i] = this.validateJob(this.config.jobs[i], i, names);
       } catch (err) {
         errors.push(err);
       }
@@ -194,32 +197,19 @@ class Bree extends EventEmitter {
   }
 
   // eslint-disable-next-line complexity
-  validateJob(job, i, isAdd = false) {
+  validateJob(job, i, names = []) {
     const errors = [];
-    const names = [];
 
-    if (isAdd) {
-      const name = this.getName(job);
-      if (name) names.push(name);
-      else errors.push(new Error(`Job #${i + 1} is missing a name`));
-    }
+    const name = this.getName(job);
+    if (!name) errors.push(new Error(`Job #${i + 1} is missing a name`));
 
-    for (let j = 0; j < this.config.jobs.length; j++) {
-      const name = this.getName(this.config.jobs[j]);
-      if (!name) {
-        errors.push(new Error(`Job #${j + 1} is missing a name`));
-        continue;
-      }
-
-      // throw an error if duplicate job names
-      if (names.includes(name))
-        errors.push(
-          new Error(
-            `Job #${j + 1} has a duplicate job name of ${this.getName(job)}`
-          )
-        );
-
-      names.push(name);
+    // throw an error if duplicate job names
+    if (names.includes(name)) {
+      errors.push(
+        new Error(
+          `Job #${i + 1} has a duplicate job name of ${this.getName(job)}`
+        )
+      );
     }
 
     if (errors.length > 0) throw combineErrors(errors);
@@ -761,7 +751,12 @@ class Bree extends EventEmitter {
 
     for (const [i, job_] of jobs.entries()) {
       try {
-        const job = this.validateJob(job_, i, true);
+        const names = [
+          ...getJobNames(jobs, i),
+          ...getJobNames(this.config.jobs)
+        ];
+
+        const job = this.validateJob(job_, i, names);
         this.config.jobs.push(job);
       } catch (err) {
         errors.push(err);

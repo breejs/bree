@@ -38,7 +38,22 @@ const parseValue = (value) => {
   return value;
 };
 
+const getJobNames = (jobs, excludeIndex) => {
+  const names = [];
+
+  for (const [i, job] of jobs.entries()) {
+    if (i === excludeIndex) continue;
+
+    const name = this.getName(job);
+
+    if (name) names.push(name);
+  }
+
+  return names;
+};
+
 module.exports.isSchedule = isSchedule;
 module.exports.getName = getName;
 module.exports.getHumanToMs = getHumanToMs;
 module.exports.parseValue = parseValue;
+module.exports.getJobNames = getJobNames;
