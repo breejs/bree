@@ -230,8 +230,6 @@ const validate = (job, i, names = [], config = {}) => {
   const jobNameError = validateReservedJobName(job.name);
   if (jobNameError) errors.push(jobNameError);
 
-  if (errors.length > 0) throw combineErrors(errors);
-
   // validate date
   if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
     errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
