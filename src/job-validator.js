@@ -174,14 +174,14 @@ const validateCron = (job, prefix, config) => {
   return errors;
 };
 
-const validateJobName = (job, i, names) => {
+const validateJobName = (job, i, reservedNames) => {
   const errors = [];
   const name = getName(job);
 
   if (!name) errors.push(new Error(`Job #${i + 1} is missing a name`));
 
   // throw an error if duplicate job names
-  if (names.includes(name)) {
+  if (reservedNames.includes(name)) {
     errors.push(
       new Error(`Job #${i + 1} has a duplicate job name of ${getName(job)}`)
     );
