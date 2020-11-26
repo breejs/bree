@@ -8,6 +8,41 @@ const threads = require('bthreads');
 
 const { getName, isSchedule, parseValue } = require('./job-utils');
 
+const validateStringJob = (job, i, config) => {
+  const errors = [];
+
+  // don't allow a job to have the `index` file name
+  if (['index', 'index.js', 'index.mjs'].includes(job))
+    throw new Error(
+      'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+    );
+
+  if (!config.root) {
+    errors.push(
+      new Error(
+        `Job #${
+          i + 1
+        } "${job}" requires root directory option to auto-populate path`
+      )
+    );
+    throw combineErrors(errors);
+  }
+
+  const path = join(
+    config.root,
+    job.endsWith('.js') || job.endsWith('.mjs')
+      ? job
+      : `${job}.${config.defaultExtension}`
+  );
+
+  /* istanbul ignore next */
+  if (!threads.browser) {
+    const stats = fs.statSync(path);
+    if (!stats.isFile())
+      throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
+  }
+};
+
 const validateFunctionJob = (job, i) => {
   const errors = [];
 
@@ -39,38 +74,7 @@ const validate = (job, i, names = [], config = {}) => {
 
   // support a simple string which we will transform to have a path
   if (isSANB(job)) {
-    // don't allow a job to have the `index` file name
-    if (['index', 'index.js', 'index.mjs'].includes(job))
-      throw new Error(
-        'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-      );
-
-    if (!config.root) {
-      errors.push(
-        new Error(
-          `Job #${
-            i + 1
-          } "${job}" requires root directory option to auto-populate path`
-        )
-      );
-      throw combineErrors(errors);
-    }
-
-    const path = join(
-      config.root,
-      job.endsWith('.js') || job.endsWith('.mjs')
-        ? job
-        : `${job}.${config.defaultExtension}`
-    );
-
-    /* istanbul ignore next */
-    if (!threads.browser) {
-      const stats = fs.statSync(path);
-      if (!stats.isFile())
-        throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
-    }
-
-    return;
+    return validateStringJob(job, i, config);
   }
 
   // job is a function
