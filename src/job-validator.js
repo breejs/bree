@@ -8,14 +8,19 @@ const threads = require('bthreads');
 
 const { getName, isSchedule, parseValue } = require('./job-utils');
 
+const validateReservedJobName = (name) => {
+  // don't allow a job to have the `index` file name
+  if (['index', 'index.js', 'index.mjs'].includes(name))
+    return new Error(
+      'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+    );
+};
+
 const validateStringJob = (job, i, config) => {
   const errors = [];
 
-  // don't allow a job to have the `index` file name
-  if (['index', 'index.js', 'index.mjs'].includes(job))
-    throw new Error(
-      'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-    );
+  const jobNameError = validateReservedJobName(job);
+  if (jobNameError) throw jobNameError;
 
   if (!config.root) {
     errors.push(
@@ -222,16 +227,10 @@ const validate = (job, i, names = [], config = {}) => {
   if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined')
     errors.push(new Error(`${prefix} cannot have both timeout and date`));
 
-  // don't allow a job to have the `index` file name
-  if (['index', 'index.js', 'index.mjs'].includes(job.name)) {
-    errors.push(
-      new Error(
-        'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-      )
-    );
+  const jobNameError = validateReservedJobName(job.name);
+  if (jobNameError) errors.push(jobNameError);
 
-    throw combineErrors(errors);
-  }
+  if (errors.length > 0) throw combineErrors(errors);
 
   // validate date
   if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
