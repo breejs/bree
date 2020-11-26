@@ -174,11 +174,10 @@ const validateCron = (job, prefix, config) => {
   return errors;
 };
 
-// eslint-disable-next-line complexity
-const validate = (job, i, names = [], config = {}) => {
+const validateJobName = (job, i, names) => {
   const errors = [];
-
   const name = getName(job);
+
   if (!name) errors.push(new Error(`Job #${i + 1} is missing a name`));
 
   // throw an error if duplicate job names
@@ -187,6 +186,13 @@ const validate = (job, i, names = [], config = {}) => {
       new Error(`Job #${i + 1} has a duplicate job name of ${getName(job)}`)
     );
   }
+
+  return errors;
+};
+
+// eslint-disable-next-line complexity
+const validate = (job, i, names = [], config = {}) => {
+  const errors = validateJobName(job, i, names);
 
   if (errors.length > 0) throw combineErrors(errors);
 
