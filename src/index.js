@@ -214,7 +214,9 @@ class Bree extends EventEmitter {
       // throw an error if duplicate job names
       if (names.includes(name))
         errors.push(
-          new Error(`Job #${j + 1} has a duplicate job name of ${job}`)
+          new Error(
+            `Job #${j + 1} has a duplicate job name of ${this.getName(job)}`
+          )
         );
 
       names.push(name);
