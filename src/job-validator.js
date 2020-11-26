@@ -133,18 +133,18 @@ const validateCron = (job, prefix, config) => {
   const errors = [];
 
   if (!isSchedule(job.cron)) {
+    // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
+    const cronValidate = job.hasSeconds
+      ? cronValidateWithSeconds(job, config)
+      : config.cronValidate;
+
     //
     // validate cron pattern
     // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
     //
     //  <https://github.com/Airfooox/cron-validate/issues/67>
     //
-    const result = cron(
-      job.cron,
-      typeof job.cronValidate === 'undefined'
-        ? config.cronValidate
-        : job.cronValidate
-    );
+    const result = cron(job.cron, cronValidate);
 
     if (!result.isValid()) {
       // NOTE: it is always valid
@@ -284,12 +284,6 @@ const validate = (job, i, names = [], config = {}) => {
       )
     );
 
-  // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
-  if (job.hasSeconds) {
-    job.cronValidate = cronValidateWithSeconds(job, config);
-  }
-
-  // validate cron
   if (typeof job.cron !== 'undefined') {
     errors.push(...validateCron(job, prefix, config));
   }

@@ -1437,12 +1437,6 @@ test('hasSeconds and job.hasSeconds', (t) => {
       useSeconds: true
     }
   });
-  t.deepEqual(bree.config.jobs[0].cronValidate, {
-    preset: 'default',
-    override: {
-      useSeconds: true
-    }
-  });
 });
 
 test('cronValidate and job.cronValidate', (t) => {
