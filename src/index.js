@@ -207,7 +207,7 @@ class Bree extends EventEmitter {
     for (let j = 0; j < this.config.jobs.length; j++) {
       const name = this.getName(this.config.jobs[j]);
       if (!name) {
-        errors.push(new Error(`Job #${i + 1} is missing a name`));
+        errors.push(new Error(`Job #${j + 1} is missing a name`));
         continue;
       }
 
