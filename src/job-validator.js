@@ -56,6 +56,31 @@ const validateFunctionJob = (job, i) => {
   if (errors.length > 0) throw combineErrors(errors);
 };
 
+const cronValidateWithSeconds = (job, config) => {
+  const preset =
+    job.cronValidate && job.cronValidate.preset
+      ? job.cronValidate.preset
+      : config.cronValidate && config.cronValidate.preset
+      ? config.cronValidate.preset
+      : 'default';
+  const override = {
+    ...(config.cronValidate && config.cronValidate.override
+      ? config.cronValidate.override
+      : {}),
+    ...(job.cronValidate && job.cronValidate.override
+      ? job.cronValidate.override
+      : {}),
+    useSeconds: true
+  };
+
+  return {
+    ...config.cronValidate,
+    ...job.cronValidate,
+    preset,
+    override
+  };
+};
+
 // eslint-disable-next-line complexity
 const validate = (job, i, names = [], config = {}) => {
   const errors = [];
@@ -202,27 +227,7 @@ const validate = (job, i, names = [], config = {}) => {
 
   // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
   if (job.hasSeconds) {
-    const preset =
-      job.cronValidate && job.cronValidate.preset
-        ? job.cronValidate.preset
-        : config.cronValidate && config.cronValidate.preset
-        ? config.cronValidate.preset
-        : 'default';
-    const override = {
-      ...(config.cronValidate && config.cronValidate.override
-        ? config.cronValidate.override
-        : {}),
-      ...(job.cronValidate && job.cronValidate.override
-        ? job.cronValidate.override
-        : {}),
-      useSeconds: true
-    };
-    job.cronValidate = {
-      ...config.cronValidate,
-      ...job.cronValidate,
-      preset,
-      override
-    };
+    job.cronValidate = cronValidateWithSeconds(job, config);
   }
 
   // validate cron
