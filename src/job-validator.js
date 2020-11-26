@@ -195,7 +195,6 @@ const validateJobName = (job, i, reservedNames) => {
   return errors;
 };
 
-// eslint-disable-next-line complexity
 const validate = (job, i, names = [], config = {}) => {
   const errors = validateJobName(job, i, names);
 
@@ -234,33 +233,20 @@ const validate = (job, i, names = [], config = {}) => {
   if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
     errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
 
-  // validate timeout
-  if (typeof job.timeout !== 'undefined') {
-    try {
-      parseValue(job.timeout);
-    } catch (err) {
-      errors.push(
-        combineErrors([
-          new Error(`${prefix} had an invalid timeout of ${job.timeout}`),
-          err
-        ])
-      );
+  ['timeout', 'interval'].forEach((prop) => {
+    if (typeof job[prop] !== 'undefined') {
+      try {
+        parseValue(job[prop]);
+      } catch (err) {
+        errors.push(
+          combineErrors([
+            new Error(`${prefix} had an invalid ${prop} of ${job.timeout}`),
+            err
+          ])
+        );
+      }
     }
-  }
-
-  // validate interval
-  if (typeof job.interval !== 'undefined') {
-    try {
-      parseValue(job.interval);
-    } catch (err) {
-      errors.push(
-        combineErrors([
-          new Error(`${prefix} had an invalid interval of ${job.interval}`),
-          err
-        ])
-      );
-    }
-  }
+  });
 
   // validate hasSeconds
   if (
