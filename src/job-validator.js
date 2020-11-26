@@ -81,6 +81,56 @@ const cronValidateWithSeconds = (job, config) => {
   };
 };
 
+const validateCron = (job, prefix, config) => {
+  const errors = [];
+
+  if (!isSchedule(job.cron)) {
+    //
+    // validate cron pattern
+    // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
+    //
+    //  <https://github.com/Airfooox/cron-validate/issues/67>
+    //
+    const result = cron(
+      job.cron,
+      typeof job.cronValidate === 'undefined'
+        ? config.cronValidate
+        : job.cronValidate
+    );
+
+    if (!result.isValid()) {
+      // NOTE: it is always valid
+      // const schedule = later.schedule(
+      //   later.parse.cron(
+      //     job.cron,
+      //     boolean(
+      //       typeof job.hasSeconds === 'undefined'
+      //         ? config.hasSeconds
+      //         : job.hasSeconds
+      //     )
+      //   )
+      // );
+      // if (schedule.isValid()) {
+      //   job.interval = schedule;
+      // } // else {
+      //   errors.push(
+      //     new Error(
+      //       `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`
+      //     )
+      //   );
+      // }
+
+      for (const message of result.getError()) {
+        errors.push(
+          new Error(`${prefix} had an invalid cron pattern: ${message}`)
+        );
+      }
+    }
+  }
+
+  return errors;
+};
+
 // eslint-disable-next-line complexity
 const validate = (job, i, names = [], config = {}) => {
   const errors = [];
@@ -232,49 +282,7 @@ const validate = (job, i, names = [], config = {}) => {
 
   // validate cron
   if (typeof job.cron !== 'undefined') {
-    if (!isSchedule(job.cron)) {
-      //
-      // validate cron pattern
-      // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
-      //
-      //  <https://github.com/Airfooox/cron-validate/issues/67>
-      //
-      const result = cron(
-        job.cron,
-        typeof job.cronValidate === 'undefined'
-          ? config.cronValidate
-          : job.cronValidate
-      );
-
-      if (!result.isValid()) {
-        // NOTE: it is always valid
-        // const schedule = later.schedule(
-        //   later.parse.cron(
-        //     job.cron,
-        //     boolean(
-        //       typeof job.hasSeconds === 'undefined'
-        //         ? config.hasSeconds
-        //         : job.hasSeconds
-        //     )
-        //   )
-        // );
-        // if (schedule.isValid()) {
-        //   job.interval = schedule;
-        // } // else {
-        //   errors.push(
-        //     new Error(
-        //       `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`
-        //     )
-        //   );
-        // }
-
-        for (const message of result.getError()) {
-          errors.push(
-            new Error(`${prefix} had an invalid cron pattern: ${message}`)
-          );
-        }
-      }
-    }
+    errors.push(...validateCron(job, prefix, config));
   }
 
   // validate closeWorkerAfterMs
