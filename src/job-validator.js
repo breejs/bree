@@ -8,6 +8,19 @@ const threads = require('bthreads');
 
 const { getName, isSchedule, parseValue } = require('./job-utils');
 
+const validateFunctionJob = (job, i) => {
+  const errors = [];
+
+  const path = `(${job.toString()})()`;
+  // can't be a built-in or bound function
+  if (path.includes('[native code]'))
+    errors.push(
+      new Error(`Job #${i + 1} can't be a bound or built-in function`)
+    );
+
+  if (errors.length > 0) throw combineErrors(errors);
+};
+
 // eslint-disable-next-line complexity
 const validate = (job, i, names = [], config = {}) => {
   const errors = [];
@@ -62,16 +75,7 @@ const validate = (job, i, names = [], config = {}) => {
 
   // job is a function
   if (typeof job === 'function') {
-    const path = `(${job.toString()})()`;
-    // can't be a built-in or bound function
-    if (path.includes('[native code]'))
-      errors.push(
-        new Error(`Job #${i + 1} can't be a bound or built-in function`)
-      );
-
-    if (errors.length > 0) throw combineErrors(errors);
-
-    return;
+    return validateFunctionJob(job, i);
   }
 
   // use a prefix for errors
