@@ -44,7 +44,7 @@ const getJobNames = (jobs, excludeIndex) => {
   for (const [i, job] of jobs.entries()) {
     if (i === excludeIndex) continue;
 
-    const name = this.getName(job);
+    const name = getName(job);
 
     if (name) names.push(name);
   }
