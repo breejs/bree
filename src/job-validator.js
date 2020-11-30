@@ -195,7 +195,7 @@ const validateJobName = (job, i, reservedNames) => {
   return errors;
 };
 
-const validate = (job, i, names = [], config = {}) => {
+const validate = (job, i, names, config) => {
   const errors = validateJobName(job, i, names);
 
   if (errors.length > 0) throw combineErrors(errors);
