@@ -56,6 +56,10 @@ class Bree extends EventEmitter {
       // (can be overridden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
       worker: {},
+      // custom handler to execute when error events are emmited by the workers or when they exit
+      // with non-zero code
+      // pass in a callback function with following signature: `(error, workerMetadata) => { // custom handling here }`
+      errorHandler: null,
       //
       // if you set this to `true`, then a second arg is passed to log output
       // and it will be an Object with `{ worker: Object }` set, for example:
@@ -656,22 +660,48 @@ class Bree extends EventEmitter {
       //       (if anyone has any idea how to catch this in tests let us know)
       /* istanbul ignore next */
       this.workers[name].on('messageerror', (err) => {
-        this.config.logger.error(
-          `${prefix} had a message error`,
-          this.getWorkerMetadata(name, { err })
-        );
+        if (this.config.errorHandler) {
+          this.config.errorHandler(err, {
+            name,
+            ...this.getWorkerMetadata(name, { err })
+          });
+        } else {
+          this.config.logger.error(
+            `${prefix} had a message error`,
+            this.getWorkerMetadata(name, { err })
+          );
+        }
       });
       this.workers[name].on('error', (err) => {
-        this.config.logger.error(
-          `${prefix} had an error`,
-          this.getWorkerMetadata(name, { err })
-        );
+        if (this.config.errorHandler) {
+          this.config.errorHandler(err, {
+            name,
+            ...this.getWorkerMetadata(name, { err })
+          });
+        } else {
+          this.config.logger.error(
+            `${prefix} had an error`,
+            this.getWorkerMetadata(name, { err })
+          );
+        }
       });
       this.workers[name].on('exit', (code) => {
-        this.config.logger[code === 0 ? 'info' : 'error'](
-          `${prefix} exited with code ${code}`,
-          this.getWorkerMetadata(name)
-        );
+        const level = code === 0 ? 'info' : 'error';
+        if (level === 'error' && this.config.errorHandler) {
+          this.config.errorHandler(
+            new Error(`${prefix} exited with code ${code}`),
+            {
+              name,
+              ...this.getWorkerMetadata(name)
+            }
+          );
+        } else {
+          this.config.logger[level](
+            `${prefix} exited with code ${code}`,
+            this.getWorkerMetadata(name)
+          );
+        }
+
         delete this.workers[name];
         this.emit('worker deleted', name);
       });

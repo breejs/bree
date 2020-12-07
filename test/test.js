@@ -546,6 +546,38 @@ test('run > job sent an error', async (t) => {
   });
 });
 
+test('run > job sent an error with custom handler', async (t) => {
+  t.plan(5);
+  const logger = {
+    error: () => {},
+    info: () => {}
+  };
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'message' }],
+    logger,
+    errorHandler: (err, workerMeta) => {
+      t.true(workerMeta.name === 'message');
+
+      if (workerMeta.err) {
+        t.true(err.message === 'oops');
+        t.true(workerMeta.err.name === 'Error');
+      } else {
+        t.true(err.message === 'Worker for job "message" exited with code 1');
+      }
+    }
+  });
+
+  bree.run('message');
+
+  bree.workers.message.postMessage('error');
+
+  await new Promise((resolve) => {
+    bree.workers.message.on('exit', resolve);
+  });
+});
+
 test('run > jobs run all when no name designated', async (t) => {
   const logger = _.cloneDeep(console);
   logger.info = () => {};
