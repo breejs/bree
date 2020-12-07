@@ -563,16 +563,16 @@ class Bree extends EventEmitter {
     }
   }
 
-  remove(name) {
+  async remove(name) {
     const job = this.config.jobs.find((j) => j.name === name);
     if (!job) {
       throw new Error(`Job "${name}" does not exist`);
     }
 
-    this.config.jobs = this.config.jobs.filter((j) => j.name !== name);
+    // make sure it also closes any open workers
+    await this.stop(name);
 
-    // Make sure it also closes any open workers
-    this.stop(name);
+    this.config.jobs = this.config.jobs.filter((j) => j.name !== name);
   }
 }
 
