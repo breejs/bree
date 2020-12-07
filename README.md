@@ -34,6 +34,7 @@
 * [Job Options](#job-options)
 * [Job Interval and Timeout Values](#job-interval-and-timeout-values)
 * [Listening for events](#listening-for-events)
+* [Custom error handling](#custom-error-handling)
 * [Cancellation, Retries, Stalled Jobs, and Graceful Reloading](#cancellation-retries-stalled-jobs-and-graceful-reloading)
 * [Interval, Timeout, Date, and Cron Validation](#interval-timeout-date-and-cron-validation)
 * [Writing jobs with Promises and async-await](#writing-jobs-with-promises-and-async-await)
@@ -495,19 +496,20 @@ ul
 
 Here is the full list of options and their defaults.  See [index.js](index.js) for more insight if necessary.
 
-| Property               | Type    | Default Value          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                              |   |
-| ---------------------- | ------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | - |
-| `logger`               | Object  | `console`              | This is the default logger.  **We recommend using [Cabin][cabin]** instead of using `console` as your default logger.                                                                                                                                                                                                                                                                                                                                    |   |
-| `root`                 | String  | `path.resolve('jobs')` | Set this value to `false` to prevent requiring a root directory of jobs (e.g. if your jobs are not all in one directory).                                                                                                                                                                                                                                                                                                                                |   |
-| `timeout`              | Number  | `0`                    | Default timeout for jobs (e.g. a value of `0` means that jobs will start on boot by default unless a job has a property of `timeout` or `interval` defined.  Set this to `false` if you do not wish for a default value to be set for jobs. **This value does not apply to jobs with a property of `date`.**                                                                                                                                             |   |
-| `interval`             | Number  | `0`                    | Default interval for jobs (e.g. a value of `0` means that there is no interval, and a value greater than zero indicates a default interval will be set with this value).  **This value does not apply to jobs with a property of `cron`**.                                                                                                                                                                                                               |   |
-| `jobs`                 | Array   | `[]`                   | Defaults to an empty Array, but if the `root` directory has a `index.js` file, then it will be used.  This allows you to keep your jobs and job definition index in the same place.  See [Job Options](#job-options) below, and [Usage and Examples](#usage-and-examples) above for more insight.                                                                                                                                                        |   |
-| `hasSeconds`           | Boolean | `false`                | This value is passed to `later` for parsing jobs, and can be overridden on a per job basis.  See [later cron parsing](https://breejs.github.io/later/parsers.html#cron) documentation for more insight. Note that setting this to `true` will automatically set `cronValidate` defaults to have `{ preset: 'default', override: { useSeconds: true } }`                                                                                                  |   |
-| `cronValidate`         | Object  | `{}`                   | This value is passed to `cron-validate` for validation of cron expressions.  See the [cron-validate](https://github.com/Airfooox/cron-validate) documentation for more insight.                                                                                                                                                                                                                                                                          |   |
-| `closeWorkerAfterMs`   | Number  | `0`                    | If you set a value greater than `0` here, then it will terminate workers after this specified time (in milliseconds).  By default there is no termination done, and jobs can run for infinite periods of time.                                                                                                                                                                                                                                           |   |
-| `defaultExtension`     | String  | `js`                   | This value can either be `js` or `mjs`.  The default is `js`, and is the default extension added to jobs that are simply defined with a name and without a path.  For example, if you define a job `test`, then it will look for `/path/to/root/test.js` as the file used for workers.                                                                                                                                                                   |   |
-| `worker`               | Object  | `{}`                   | These are default options to pass when creating a `new Worker` instance.  See the [Worker class](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options) documentation for more insight.                                                                                                                                                                                                                                  |   |
-| `outputWorkerMetadata` | Boolean | `false`                | By default worker metadata is not passed to the second Object argument of `logger`.  However if you set this to `true`, then `logger` will be invoked internally with two arguments (e.g. `logger.info('...', { worker: ... })`).  This `worker` property contains `isMainThread` (Boolean), `resourceLimits` (Object), and `threadId` (String) properties; all of which correspond to [Workers][] metadata.  This can be overridden on a per job basis. |   |
+| Property               | Type     | Default Value          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                              |   |
+| ---------------------- | -------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | - |
+| `logger`               | Object   | `console`              | This is the default logger.  **We recommend using [Cabin][cabin]** instead of using `console` as your default logger.                                                                                                                                                                                                                                                                                                                                    |   |
+| `root`                 | String   | `path.resolve('jobs')` | Set this value to `false` to prevent requiring a root directory of jobs (e.g. if your jobs are not all in one directory).                                                                                                                                                                                                                                                                                                                                |   |
+| `timeout`              | Number   | `0`                    | Default timeout for jobs (e.g. a value of `0` means that jobs will start on boot by default unless a job has a property of `timeout` or `interval` defined.  Set this to `false` if you do not wish for a default value to be set for jobs. **This value does not apply to jobs with a property of `date`.**                                                                                                                                             |   |
+| `interval`             | Number   | `0`                    | Default interval for jobs (e.g. a value of `0` means that there is no interval, and a value greater than zero indicates a default interval will be set with this value).  **This value does not apply to jobs with a property of `cron`**.                                                                                                                                                                                                               |   |
+| `jobs`                 | Array    | `[]`                   | Defaults to an empty Array, but if the `root` directory has a `index.js` file, then it will be used.  This allows you to keep your jobs and job definition index in the same place.  See [Job Options](#job-options) below, and [Usage and Examples](#usage-and-examples) above for more insight.                                                                                                                                                        |   |
+| `hasSeconds`           | Boolean  | `false`                | This value is passed to `later` for parsing jobs, and can be overridden on a per job basis.  See [later cron parsing](https://breejs.github.io/later/parsers.html#cron) documentation for more insight. Note that setting this to `true` will automatically set `cronValidate` defaults to have `{ preset: 'default', override: { useSeconds: true } }`                                                                                                  |   |
+| `cronValidate`         | Object   | `{}`                   | This value is passed to `cron-validate` for validation of cron expressions.  See the [cron-validate](https://github.com/Airfooox/cron-validate) documentation for more insight.                                                                                                                                                                                                                                                                          |   |
+| `closeWorkerAfterMs`   | Number   | `0`                    | If you set a value greater than `0` here, then it will terminate workers after this specified time (in milliseconds).  By default there is no termination done, and jobs can run for infinite periods of time.                                                                                                                                                                                                                                           |   |
+| `defaultExtension`     | String   | `js`                   | This value can either be `js` or `mjs`.  The default is `js`, and is the default extension added to jobs that are simply defined with a name and without a path.  For example, if you define a job `test`, then it will look for `/path/to/root/test.js` as the file used for workers.                                                                                                                                                                   |   |
+| `worker`               | Object   | `{}`                   | These are default options to pass when creating a `new Worker` instance.  See the [Worker class](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options) documentation for more insight.                                                                                                                                                                                                                                  |   |
+| `outputWorkerMetadata` | Boolean  | `false`                | By default worker metadata is not passed to the second Object argument of `logger`.  However if you set this to `true`, then `logger` will be invoked internally with two arguments (e.g. `logger.info('...', { worker: ... })`).  This `worker` property contains `isMainThread` (Boolean), `resourceLimits` (Object), and `threadId` (String) properties; all of which correspond to [Workers][] metadata.  This can be overridden on a per job basis. |   |
+| `errorHandler`         | Function | `null`                 | Set this function to receive a callback when an error is encountered during worker execution (e.g. throws an exception) or when it exits with non-zero code (e.g. `process.exit(1)`). The callback receives two parameters `error` and `workerMetadata`. Important note, when this callback is present default error logging will not be executed.                                                                                                       |   |
 
 
 ## Job Options
@@ -556,6 +558,39 @@ bree.on('worker created', (name) => {
 bree.on('worker deleted', (name) => {
   console.log('worker deleted', name);
   console.log(typeof bree.workers[name] === 'undefined');
+});
+```
+
+
+## Custom error handling
+
+If you'd like to override default behavior for worker error handling, provide a callback function as `errorHandler` parameter when creating a Bree instance.
+
+An example use-case. If you want to call an external service to record an error (like Honeybadger, Sentry, etc.) along with logging the error internally. You can do so with:
+
+```js
+const logger = ('../path/to/logger');
+const errorService = ('../path/to/error-service');
+
+new Bree({
+  jobs: [
+    {
+      name: 'job that sometimes throws errors',
+      path: jobFunction
+    }
+  ],
+  errorHandler: (error, workerMetadata) => {
+    // workerMetadata will be populated with extended worker information only if
+    // Bree instance is initialized with parameter `workerMetadata: true`
+    if (workerMetadata.threadId) {
+      logger.info(`There was an error while running a worker ${workerMetadata.name} with thread ID: ${workerMetadata.threadId}`)
+    } else {
+      logger.info(`There was an error while running a worker ${workerMetadata.name}`)
+    }
+
+    logger.error(error);
+    errorService.captureException(error);
+  }
 });
 ```
 
