@@ -1,19 +1,24 @@
 const EventEmitter = require('events');
 const fs = require('fs');
-const { resolve, join } = require('path');
-
+const { resolve } = require('path');
 const pWaitFor = require('p-wait-for');
 const combineErrors = require('combine-errors');
-const cron = require('cron-validate');
 const debug = require('debug')('bree');
-const humanInterval = require('human-interval');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
-const ms = require('ms');
 const threads = require('bthreads');
-const { boolean } = require('boolean');
 const { setTimeout, setInterval } = require('safe-timers');
+
+const {
+  isSchedule,
+  getName,
+  getHumanToMs,
+  parseValue,
+  getJobNames
+} = require('./job-utils');
+const buildJob = require('./job-builder');
+const validateJob = require('./job-validator');
 
 // bthreads requires us to do this for web workers (see bthreads docs for insight)
 threads.Buffer = Buffer;
@@ -100,13 +105,18 @@ class Bree extends EventEmitter {
     this.timeouts = {};
     this.intervals = {};
 
-    this.validateJob = this.validateJob.bind(this);
+    this.isSchedule = isSchedule;
     this.getWorkerMetadata = this.getWorkerMetadata.bind(this);
     this.run = this.run.bind(this);
     this.start = this.start.bind(this);
     this.stop = this.stop.bind(this);
     this.add = this.add.bind(this);
     this.remove = this.remove.bind(this);
+
+    this.validateJob = validateJob;
+    this.getName = getName;
+    this.getHumanToMs = getHumanToMs;
+    this.parseValue = parseValue;
 
     // validate root (sync check)
     if (isSANB(this.config.root)) {
@@ -171,7 +181,11 @@ class Bree extends EventEmitter {
 
     for (let i = 0; i < this.config.jobs.length; i++) {
       try {
-        this.config.jobs[i] = this.validateJob(this.config.jobs[i], i);
+        const names = getJobNames(this.config.jobs, i);
+
+        validateJob(this.config.jobs[i], i, names, this.config);
+
+        this.config.jobs[i] = buildJob(this.config.jobs[i], this.config);
       } catch (err) {
         errors.push(err);
       }
@@ -181,389 +195,6 @@ class Bree extends EventEmitter {
     if (errors.length > 0) throw combineErrors(errors);
 
     debug('this.config.jobs', this.config.jobs);
-  }
-
-  getName(job) {
-    if (isSANB(job)) return job;
-    if (typeof job === 'object' && isSANB(job.name)) return job.name;
-    if (typeof job === 'function' && isSANB(job.name)) return job.name;
-  }
-
-  // eslint-disable-next-line complexity
-  validateJob(job, i, isAdd = false) {
-    const errors = [];
-    const names = [];
-
-    if (isAdd) {
-      const name = this.getName(job);
-      if (name) names.push(name);
-      else errors.push(new Error(`Job #${i + 1} is missing a name`));
-    }
-
-    for (let j = 0; j < this.config.jobs.length; j++) {
-      const name = this.getName(this.config.jobs[j]);
-      if (!name) {
-        errors.push(new Error(`Job #${i + 1} is missing a name`));
-        continue;
-      }
-
-      // throw an error if duplicate job names
-      if (names.includes(name))
-        errors.push(
-          new Error(`Job #${j + 1} has a duplicate job name of ${job}`)
-        );
-
-      names.push(name);
-    }
-
-    if (errors.length > 0) throw combineErrors(errors);
-
-    // support a simple string which we will transform to have a path
-    if (isSANB(job)) {
-      // don't allow a job to have the `index` file name
-      if (['index', 'index.js', 'index.mjs'].includes(job))
-        throw new Error(
-          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-        );
-
-      if (!this.config.root) {
-        errors.push(
-          new Error(
-            `Job #${
-              i + 1
-            } "${job}" requires root directory option to auto-populate path`
-          )
-        );
-        throw combineErrors(errors);
-      }
-
-      const path = join(
-        this.config.root,
-        job.endsWith('.js') || job.endsWith('.mjs')
-          ? job
-          : `${job}.${this.config.defaultExtension}`
-      );
-
-      /* istanbul ignore next */
-      if (!threads.browser) {
-        const stats = fs.statSync(path);
-        if (!stats.isFile())
-          throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
-      }
-
-      return {
-        name: job,
-        path,
-        timeout: this.config.timeout,
-        interval: this.config.interval
-      };
-    }
-
-    // job is a function
-    if (typeof job === 'function') {
-      const path = `(${job.toString()})()`;
-      // can't be a built-in or bound function
-      if (path.includes('[native code]'))
-        errors.push(
-          new Error(`Job #${i + 1} can't be a bound or built-in function`)
-        );
-
-      if (errors.length > 0) throw combineErrors(errors);
-
-      return {
-        name: job.name,
-        path,
-        worker: { eval: true },
-        timeout: this.config.timeout,
-        interval: this.config.interval
-      };
-    }
-
-    // use a prefix for errors
-    const prefix = `Job #${i + 1} named "${job.name}"`;
-
-    if (typeof job.path === 'function') {
-      const path = `(${job.path.toString()})()`;
-
-      // can't be a built-in or bound function
-      if (path.includes('[native code]'))
-        errors.push(
-          new Error(`Job #${i + 1} can't be a bound or built-in function`)
-        );
-
-      job.path = path;
-      job.worker = {
-        eval: true,
-        ...job.worker
-      };
-    } else if (!isSANB(job.path) && !this.config.root) {
-      errors.push(
-        new Error(
-          `${prefix} requires root directory option to auto-populate path`
-        )
-      );
-    } else {
-      // validate path
-      const path = isSANB(job.path)
-        ? job.path
-        : join(
-            this.config.root,
-            job.name.endsWith('.js') || job.name.endsWith('.mjs')
-              ? job.name
-              : `${job.name}.${this.config.defaultExtension}`
-          );
-      if (isValidPath(path)) {
-        try {
-          /* istanbul ignore next */
-          if (!threads.browser) {
-            const stats = fs.statSync(path);
-            // eslint-disable-next-line max-depth
-            if (!stats.isFile())
-              throw new Error(`${prefix} path missing: ${path}`);
-          }
-
-          if (!isSANB(job.path)) job.path = path;
-        } catch (err) {
-          errors.push(err);
-        }
-      } else {
-        // assume that it's a transformed eval string
-        job.worker = {
-          eval: true,
-          ...job.worker
-        };
-      }
-    }
-
-    // don't allow users to mix interval AND cron
-    if (
-      typeof job.interval !== 'undefined' &&
-      typeof job.cron !== 'undefined'
-    ) {
-      errors.push(
-        new Error(`${prefix} cannot have both interval and cron configuration`)
-      );
-    }
-
-    // don't allow users to mix timeout AND date
-    if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined')
-      errors.push(new Error(`${prefix} cannot have both timeout and date`));
-
-    // don't allow a job to have the `index` file name
-    if (['index', 'index.js', 'index.mjs'].includes(job.name)) {
-      errors.push(
-        new Error(
-          'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-        )
-      );
-
-      throw combineErrors(errors);
-    }
-
-    // validate date
-    if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
-      errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
-
-    // validate timeout
-    if (typeof job.timeout !== 'undefined') {
-      try {
-        job.timeout = this.parseValue(job.timeout);
-      } catch (err) {
-        errors.push(
-          combineErrors([
-            new Error(`${prefix} had an invalid timeout of ${job.timeout}`),
-            err
-          ])
-        );
-      }
-    }
-
-    // validate interval
-    if (typeof job.interval !== 'undefined') {
-      try {
-        job.interval = this.parseValue(job.interval);
-      } catch (err) {
-        errors.push(
-          combineErrors([
-            new Error(`${prefix} had an invalid interval of ${job.interval}`),
-            err
-          ])
-        );
-      }
-    }
-
-    // validate hasSeconds
-    if (
-      typeof job.hasSeconds !== 'undefined' &&
-      typeof job.hasSeconds !== 'boolean'
-    )
-      errors.push(
-        new Error(
-          `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
-        )
-      );
-
-    // validate cronValidate
-    if (
-      typeof job.cronValidate !== 'undefined' &&
-      typeof job.cronValidate !== 'object'
-    )
-      errors.push(
-        new Error(
-          `${prefix} had cronValidate value set, but it must be an Object`
-        )
-      );
-
-    // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
-    if (job.hasSeconds) {
-      const preset =
-        job.cronValidate && job.cronValidate.preset
-          ? job.cronValidate.preset
-          : this.config.cronValidate && this.config.cronValidate.preset
-          ? this.config.cronValidate.preset
-          : 'default';
-      const override = {
-        ...(this.config.cronValidate && this.config.cronValidate.override
-          ? this.config.cronValidate.override
-          : {}),
-        ...(job.cronValidate && job.cronValidate.override
-          ? job.cronValidate.override
-          : {}),
-        useSeconds: true
-      };
-      job.cronValidate = {
-        ...this.config.cronValidate,
-        ...job.cronValidate,
-        preset,
-        override
-      };
-    }
-
-    // validate cron
-    if (typeof job.cron !== 'undefined') {
-      if (this.isSchedule(job.cron)) {
-        job.interval = job.cron;
-        // delete job.cron;
-      } else {
-        //
-        // validate cron pattern
-        // (must support patterns such as `* * L * *` and `0 0/5 14 * * ?` (and aliases too)
-        //
-        //  <https://github.com/Airfooox/cron-validate/issues/67>
-        //
-        const result = cron(
-          job.cron,
-          typeof job.cronValidate === 'undefined'
-            ? this.config.cronValidate
-            : job.cronValidate
-        );
-        if (result.isValid()) {
-          job.interval = later.parse.cron(
-            job.cron,
-            boolean(
-              typeof job.hasSeconds === 'undefined'
-                ? this.config.hasSeconds
-                : job.hasSeconds
-            )
-          );
-          // NOTE: it is always valid
-          // const schedule = later.schedule(
-          //   later.parse.cron(
-          //     job.cron,
-          //     boolean(
-          //       typeof job.hasSeconds === 'undefined'
-          //         ? this.config.hasSeconds
-          //         : job.hasSeconds
-          //     )
-          //   )
-          // );
-          // if (schedule.isValid()) {
-          //   job.interval = schedule;
-          // } // else {
-          //   errors.push(
-          //     new Error(
-          //       `${prefix} had an invalid cron schedule (see <https://crontab.guru> if you need help)`
-          //     )
-          //   );
-          // }
-        } else {
-          for (const message of result.getError()) {
-            errors.push(
-              new Error(`${prefix} had an invalid cron pattern: ${message}`)
-            );
-          }
-        }
-      }
-    }
-
-    // validate closeWorkerAfterMs
-    if (
-      typeof job.closeWorkerAfterMs !== 'undefined' &&
-      (!Number.isFinite(job.closeWorkerAfterMs) || job.closeWorkerAfterMs <= 0)
-    )
-      errors.push(
-        new Error(
-          `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0)`
-        )
-      );
-
-    if (errors.length > 0) throw combineErrors(errors);
-
-    // if timeout was undefined, cron was undefined,
-    // and date was undefined then set the default
-    // (as long as the default timeout is >= 0)
-    if (
-      Number.isFinite(this.config.timeout) &&
-      this.config.timeout >= 0 &&
-      typeof job.timeout === 'undefined' &&
-      typeof job.cron === 'undefined' &&
-      typeof job.date === 'undefined' &&
-      typeof job.interval === 'undefined'
-    )
-      job.timeout = this.config.timeout;
-
-    // if interval was undefined, cron was undefined,
-    // and date was undefined then set the default
-    // (as long as the default interval is > 0, or it was a schedule, or it was valid)
-    if (
-      ((Number.isFinite(this.config.interval) && this.config.interval > 0) ||
-        this.isSchedule(this.config.interval)) &&
-      typeof job.interval === 'undefined' &&
-      typeof job.cron === 'undefined' &&
-      typeof job.date === 'undefined'
-    )
-      job.interval = this.config.interval;
-
-    return job;
-  }
-
-  getHumanToMs(_value) {
-    const value = humanInterval(_value);
-    if (Number.isNaN(value)) return ms(_value);
-    return value;
-  }
-
-  parseValue(value) {
-    if (value === false) return value;
-
-    if (this.isSchedule(value)) return value;
-
-    if (isSANB(value)) {
-      const schedule = later.schedule(later.parse.text(value));
-      if (schedule.isValid()) return later.parse.text(value);
-      value = this.getHumanToMs(value);
-    }
-
-    if (!Number.isFinite(value) || value < 0)
-      throw new Error(
-        `Value ${value} must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://breejs.github.io/later/parsers.html#text> for examples)`
-      );
-
-    return value;
-  }
-
-  isSchedule(value) {
-    return typeof value === 'object' && Array.isArray(value.schedules);
   }
 
   getWorkerMetadata(name, meta = {}) {
@@ -844,7 +475,14 @@ class Bree extends EventEmitter {
 
     for (const [i, job_] of jobs.entries()) {
       try {
-        const job = this.validateJob(job_, i, true);
+        const names = [
+          ...getJobNames(jobs, i),
+          ...getJobNames(this.config.jobs)
+        ];
+
+        validateJob(job_, i, names, this.config);
+        const job = buildJob(job_, this.config);
+
         this.config.jobs.push(job);
       } catch (err) {
         errors.push(err);
