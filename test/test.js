@@ -663,9 +663,11 @@ test.serial('start > sets timeout if date is in the future', async (t) => {
   t.is(typeof bree.timeouts.infinite, 'undefined');
 
   bree.start('infinite');
+  t.is(typeof bree.timeouts.infinite, 'object');
+
   await clock.nextAsync();
 
-  t.is(typeof bree.timeouts.infinite, 'object');
+  t.is(typeof bree.timeouts.infinite, 'undefined');
 
   bree.stop();
   clock.uninstall();

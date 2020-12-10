@@ -378,6 +378,9 @@ class Bree extends EventEmitter {
               () => this.run(name),
               job.interval
             );
+          } else {
+            debug('job.date was scheduled to run only once', job);
+            delete this.timeouts[name];
           }
         }, job.date.getTime() - Date.now());
         return;
