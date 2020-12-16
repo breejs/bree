@@ -30,6 +30,33 @@ test('getHumanToMs: supports human readable format', (t) => {
   t.is(jobUtils.getHumanToMs('minute'), 60000);
 });
 
+test('parseValue: does not parse false value', (t) => {
+  t.false(jobUtils.parseValue(false));
+});
+
+test('parseValue: returns unmodified schedule value', (t) => {
+  t.deepEqual(jobUtils.parseValue({ schedules: [1] }), { schedules: [1] });
+});
+
+test('parseValue: parses human readable values', (t) => {
+  t.deepEqual(jobUtils.parseValue('every day'), {
+    error: 6,
+    exceptions: [],
+    schedules: [{ D: [1] }]
+  });
+});
+
+test('parseValue: parses millisecond values', (t) => {
+  t.is(jobUtils.parseValue('100'), 100);
+});
+
+test('parseValue: throws for invalid value', (t) => {
+  t.throws(() => jobUtils.parseValue(-1), {
+    message:
+      'Value -1 must be a finite number >= 0 or a String parseable by `later.parse.text` (see <https://breejs.github.io/later/parsers.html#text> for examples)'
+  });
+});
+
 test('getJobNames: returns all jobNames', (t) => {
   const names = jobUtils.getJobNames(['hey', { name: 'hello' }]);
 
