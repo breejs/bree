@@ -37,7 +37,7 @@ const buildJob = (job, config) => {
     };
   }
 
-  // process job.path
+  // Process job.path
   if (typeof job.path === 'function') {
     const path = `(${job.path.toString()})()`;
 
@@ -59,7 +59,7 @@ const buildJob = (job, config) => {
     if (isValidPath(path)) {
       job.path = path;
     } else {
-      // assume that it's a transformed eval string
+      // Assume that it's a transformed eval string
       job.worker = {
         eval: true,
         ...job.worker
@@ -75,11 +75,11 @@ const buildJob = (job, config) => {
     job.interval = parseValue(job.interval);
   }
 
-  // build cron
+  // Build cron
   if (typeof job.cron !== 'undefined') {
     if (isSchedule(job.cron)) {
       job.interval = job.cron;
-      // delete job.cron;
+      // Delete job.cron;
     } else {
       job.interval = later.parse.cron(
         job.cron,
@@ -92,7 +92,7 @@ const buildJob = (job, config) => {
     }
   }
 
-  // if timeout was undefined, cron was undefined,
+  // If timeout was undefined, cron was undefined,
   // and date was undefined then set the default
   // (as long as the default timeout is >= 0)
   if (
@@ -102,10 +102,11 @@ const buildJob = (job, config) => {
     typeof job.cron === 'undefined' &&
     typeof job.date === 'undefined' &&
     typeof job.interval === 'undefined'
-  )
+  ) {
     job.timeout = config.timeout;
+  }
 
-  // if interval was undefined, cron was undefined,
+  // If interval was undefined, cron was undefined,
   // and date was undefined then set the default
   // (as long as the default interval is > 0, or it was a schedule, or it was valid)
   if (
@@ -114,8 +115,9 @@ const buildJob = (job, config) => {
     typeof job.interval === 'undefined' &&
     typeof job.cron === 'undefined' &&
     typeof job.date === 'undefined'
-  )
+  ) {
     job.interval = config.interval;
+  }
 
   return job;
 };

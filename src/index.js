@@ -270,7 +270,9 @@ class Bree extends EventEmitter {
       if (Number.isFinite(closeWorkerAfterMs) && closeWorkerAfterMs > 0) {
         debug('worker has close set', name, closeWorkerAfterMs);
         this.closeWorkerAfterMs[name] = setTimeout(() => {
+          /* istanbul ignore else */
           if (this.workers[name]) {
+            debug('worker has been terminated', name);
             this.workers[name].terminate();
           }
         }, closeWorkerAfterMs);

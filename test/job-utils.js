@@ -22,9 +22,12 @@ test('getName: extracts job name from an object', (t) => {
   t.is(jobUtils.getName({ name: 'job-name' }), 'job-name');
 });
 
-test('getName: extracts job name from a named function', (t) => {
-  function namedFunction() {}
-  t.is(jobUtils.getName(namedFunction), 'namedFunction');
+test('getName: extracts job name from a function', (t) => {
+  const fn = () => {
+    return true;
+  };
+
+  t.is(jobUtils.getName(fn), 'fn');
 });
 
 test('getHumanToMs: converts values into milliseconds', (t) => {

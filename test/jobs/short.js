@@ -1,1 +1,3 @@
-setInterval(() => {}, 10);
+setInterval(() => {
+  process.exit(2);
+}, 10);
