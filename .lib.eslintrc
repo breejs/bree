@@ -6,7 +6,8 @@
     "no-unsafe-finally": "off",
     "no-func-assign": "off",
     "no-unused-vars": "off",
-    "no-constant-condition": "off"
+    "no-constant-condition": "off",
+    "no-fallthrough": "off"
   },
   "settings": {
     "polyfills": []
