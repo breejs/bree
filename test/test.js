@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const path = require('path');
 
 const test = require('ava');
@@ -12,7 +11,7 @@ const humanInterval = require('human-interval');
 const root = path.join(__dirname, 'jobs');
 
 test('creates a basic job and runs it', async (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = () => {};
 
   const bree = new Bree({
@@ -410,7 +409,7 @@ test('run > job does not exist', (t) => {
 });
 
 test('run > job already running', (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.warn = (err, _) => {
     t.is(err.message, 'Job "basic" is already running');
   };
@@ -428,7 +427,7 @@ test('run > job already running', (t) => {
 });
 
 test.serial('run > job terminates after set time', async (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = () => {};
   logger.error = () => {};
 
@@ -452,7 +451,7 @@ test.serial('run > job terminates after set time', async (t) => {
 });
 
 test.serial('run > job terminates before set time', async (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = () => {};
   logger.error = () => {};
 
@@ -475,7 +474,7 @@ test.serial('run > job terminates before set time', async (t) => {
 });
 
 test('run > job terminates on message "done"', async (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = () => {};
 
   const bree = new Bree({
@@ -501,7 +500,7 @@ test('run > job terminates on message "done"', async (t) => {
 });
 
 test('run > job sent a message', async (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = (message) => {
     if (message === 'Worker for job "message" sent a message') t.pass();
   };
@@ -579,7 +578,7 @@ test('run > job sent an error with custom handler', async (t) => {
 });
 
 test('run > jobs run all when no name designated', async (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = () => {};
 
   const bree = new Bree({
@@ -614,10 +613,12 @@ test('start > throws error if job does not exist', (t) => {
 });
 
 test('start > fails if job already started', async (t) => {
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.warn = (err) => {
     t.is(err.message, 'Job "short" is already started');
   };
+
+  logger.info = () => {};
 
   const bree = new Bree({
     root,
@@ -1059,11 +1060,13 @@ test.serial('start > does not set interval if interval is 0', (t) => {
 test.serial('stop > job stops when "cancel" message is sent', async (t) => {
   t.plan(4);
 
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = (message) => {
     if (message === 'Gracefully cancelled worker for job "message"')
       t.true(true);
   };
+
+  logger.error = () => {};
 
   const bree = new Bree({
     root,
@@ -1086,7 +1089,7 @@ test.serial('stop > job stops when "cancel" message is sent', async (t) => {
 test.serial('stop > job stops when process.exit(0) is called', async (t) => {
   t.plan(4);
 
-  const logger = _.cloneDeep(console);
+  const logger = {};
   logger.info = (message) => {
     if (message === 'Worker for job "message-process-exit" exited with code 0')
       t.true(true);
@@ -1714,7 +1717,14 @@ test('add > successfully adds job object', (t) => {
 });
 
 test('add > missing job name', (t) => {
-  const bree = new Bree({ root: false });
+  const logger = {};
+  logger.error = () => {};
+  logger.info = () => {};
+
+  const bree = new Bree({
+    root: false,
+    logger
+  });
   t.throws(() => bree.add(), { message: /Job .* is missing a name/ });
 });
 
