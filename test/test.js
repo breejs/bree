@@ -289,6 +289,41 @@ test('fails if cron pattern is invalid', (t) => {
   );
 });
 
+test.serial('job created with cron string is using local timezone', (t) => {
+  t.plan(1);
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', cron: '0 18 * * *' }]
+  });
+
+  const clock = FakeTimers.install({ now: Date.now() });
+  bree.start('basic');
+  bree.on('worker created', () => {
+    const now = new Date(clock.now);
+    t.is(now.getHours(), 18);
+  });
+  clock.next();
+  clock.uninstall();
+});
+
+test.serial('job created with human interval is using local timezone', (t) => {
+  t.plan(2);
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', interval: 'at 13:26' }]
+  });
+
+  const clock = FakeTimers.install({ now: Date.now() });
+  bree.start('basic');
+  bree.on('worker created', () => {
+    const now = new Date(clock.now);
+    t.is(now.getHours(), 13);
+    t.is(now.getMinutes(), 26);
+  });
+  clock.next();
+  clock.uninstall();
+});
+
 test('fails if closeWorkersAfterMs is <= 0 or infinite', (t) => {
   t.throws(
     () =>

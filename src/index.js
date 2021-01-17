@@ -20,6 +20,8 @@ const {
 const buildJob = require('./job-builder');
 const validateJob = require('./job-validator');
 
+later.date.localTime();
+
 // bthreads requires us to do this for web workers (see bthreads docs for insight)
 threads.Buffer = Buffer;
 
