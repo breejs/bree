@@ -1,9 +1,7 @@
-dist: focal
 language: node_js
 node_js:
   - 10
   - 12
-  - 14
 script:
   - npm run test-coverage
 after_success:
