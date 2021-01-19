@@ -468,18 +468,18 @@ test.serial('run > job terminates after set time', async (t) => {
 
   const bree = new Bree({
     root,
-    jobs: [{ name: 'infinite200', closeWorkerAfterMs: 50 }],
+    jobs: [{ name: 'infinite', closeWorkerAfterMs: 50 }],
     logger
   });
 
-  bree.run('infinite200');
-  t.true(typeof bree.closeWorkerAfterMs.infinite200 === 'object');
+  bree.run('infinite');
+  t.true(typeof bree.closeWorkerAfterMs.infinite === 'object');
 
   await delay(1);
   await new Promise((resolve, reject) => {
-    bree.workers.infinite200.on('error', reject);
-    bree.workers.infinite200.on('exit', (code) => {
-      t.true(code === 1);
+    bree.workers.infinite.on('error', reject);
+    bree.workers.infinite.on('exit', (code) => {
+      t.is(code, 1);
       resolve();
     });
   });
@@ -502,7 +502,7 @@ test.serial('run > job terminates before set time', async (t) => {
   await new Promise((resolve, reject) => {
     bree.workers.basic.on('error', reject);
     bree.workers.basic.on('exit', (code) => {
-      t.true(code === 0);
+      t.is(code, 0);
       resolve();
     });
   });
