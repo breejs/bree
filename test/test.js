@@ -64,7 +64,9 @@ test('fails if jobs is not an array', (t) => {
         root: path.join(__dirname, 'noIndexJobs'),
         jobs: null,
         // hide MODULE_NOT_FOUND error
-        logger: { error: () => {} }
+        logger: {
+          error: () => {}
+        }
       }),
     { message: 'Jobs must be an Array' }
   );
@@ -290,7 +292,7 @@ test('fails if cron pattern is invalid', (t) => {
 });
 
 test.serial('job created with cron string is using local timezone', (t) => {
-  t.plan(1);
+  t.plan(2);
   const bree = new Bree({
     root,
     jobs: [{ name: 'basic', cron: '0 18 * * *' }]
@@ -300,11 +302,42 @@ test.serial('job created with cron string is using local timezone', (t) => {
   bree.start('basic');
   bree.on('worker created', () => {
     const now = new Date(clock.now);
+    const offsetOfLocalDates = new Date().getTimezoneOffset();
+
+    t.is(now.getTimezoneOffset(), offsetOfLocalDates);
     t.is(now.getHours(), 18);
   });
   clock.next();
   clock.uninstall();
 });
+
+test.serial(
+  'add > job created with cron string is using local timezone',
+  (t) => {
+    t.plan(2);
+    const bree = new Bree({
+      root: false
+    });
+
+    bree.add({
+      name: 'basic',
+      cron: '0 18 * * *',
+      path: path.join(__dirname, 'jobs/basic.js')
+    });
+
+    const clock = FakeTimers.install({ now: Date.now() });
+    bree.start('basic');
+    bree.on('worker created', () => {
+      const now = new Date(clock.now);
+      const offsetOfLocalDates = new Date().getTimezoneOffset();
+
+      t.is(now.getTimezoneOffset(), offsetOfLocalDates);
+      t.is(now.getHours(), 18);
+    });
+    clock.next();
+    clock.uninstall();
+  }
+);
 
 test.serial('job created with human interval is using local timezone', (t) => {
   t.plan(2);
@@ -1746,7 +1779,9 @@ test('remove > fails if job does not exist', (t) => {
 
 test('add > successfully adds job object', (t) => {
   const bree = new Bree({ root: false });
+
   function noop() {}
+
   bree.add({ name: 'basic', path: noop.toString() });
   t.pass();
 });
