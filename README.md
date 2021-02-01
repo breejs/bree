@@ -536,7 +536,7 @@ See [Interval, Timeout, Date, and Cron Validate](#interval-timeout-date-and-cron
 These values can include Number, Object, and String variable types:
 
 * Number values indicates the number of milliseconds for the timeout or interval
-* Object values must be a [later][] schedule object value (e.g. `later.schedule(later.parse.cron('15 10 * * ? *')))`)
+* Object values must be a [later][] schedule object value (e.g. `later.parse.cron('15 10 * * ? *'))`)
 * String values can be either a [later][], [human-interval][], or [ms][] String values (e.g. [later][] supports Strings such as `every 5 mins`, [human-interval][] supports Strings such as `3 days and 4 hours`, and [ms][] supports Strings such as `4h` for four hours)
 
 
@@ -690,7 +690,7 @@ If you wish to specify a maximum time (in milliseconds) that a worker can run, t
 
 ## Complex timeouts and intervals
 
-Since we use [later][], you can pass an instance of `later.schedule` as the `timeout` or `interval` property values (e.g. if you need to construct something manually).
+Since we use [later][], you can pass an instance of `later.parse.recur`, `later.parse.cron`, or `later.parse.text` as the `timeout` or `interval` property values (e.g. if you need to construct something manually).
 
 You can also use [dayjs][] to construct dates (e.g. from now or a certain date) to millisecond differences using `dayjs().diff(new Date(), 'milliseconds')`.  You would then pass that returned Number value as `timeout` or `interval` as needed.
 
