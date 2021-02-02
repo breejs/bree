@@ -366,7 +366,7 @@ class Bree extends EventEmitter {
         throw new Error(`Job ${name} does not exist`);
       }
 
-      if (this.timeouts[name] || this.intervals[name]) {
+      if (this.timeouts[name] || this.intervals[name] || this.workers[name]) {
         return this.config.logger.warn(
           new Error(`Job "${name}" is already started`)
         );
