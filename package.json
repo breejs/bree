@@ -203,6 +203,19 @@
     ],
     "ignore": [
       "config.js"
+    ],
+    "rules": {
+      "capitalized-comments": "off"
+    },
+    "overrides": [
+      {
+        "files": [
+          "test/jobs/*.js"
+        ],
+        "rules": {
+          "unicorn/no-process-exit": "off"
+        }
+      }
     ]
   }
 }

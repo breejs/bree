@@ -9,18 +9,21 @@ const threads = require('bthreads');
 const { getName, isSchedule, parseValue } = require('./job-utils');
 
 const validateReservedJobName = (name) => {
-  // don't allow a job to have the `index` file name
-  if (['index', 'index.js', 'index.mjs'].includes(name))
+  // Don't allow a job to have the `index` file name
+  if (['index', 'index.js', 'index.mjs'].includes(name)) {
     return new Error(
       'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
     );
+  }
 };
 
 const validateStringJob = (job, i, config) => {
   const errors = [];
 
   const jobNameError = validateReservedJobName(job);
-  if (jobNameError) throw jobNameError;
+  if (jobNameError) {
+    throw jobNameError;
+  }
 
   if (!config.root) {
     errors.push(
@@ -43,8 +46,9 @@ const validateStringJob = (job, i, config) => {
   /* istanbul ignore next */
   if (!threads.browser) {
     const stats = fs.statSync(path);
-    if (!stats.isFile())
+    if (!stats.isFile()) {
       throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
+    }
   }
 };
 
@@ -52,13 +56,16 @@ const validateFunctionJob = (job, i) => {
   const errors = [];
 
   const path = `(${job.toString()})()`;
-  // can't be a built-in or bound function
-  if (path.includes('[native code]'))
+  // Can't be a built-in or bound function
+  if (path.includes('[native code]')) {
     errors.push(
       new Error(`Job #${i + 1} can't be a bound or built-in function`)
     );
+  }
 
-  if (errors.length > 0) throw combineErrors(errors);
+  if (errors.length > 0) {
+    throw combineErrors(errors);
+  }
 };
 
 const validateJobPath = (job, prefix, config) => {
@@ -67,9 +74,10 @@ const validateJobPath = (job, prefix, config) => {
   if (typeof job.path === 'function') {
     const path = `(${job.path.toString()})()`;
 
-    // can't be a built-in or bound function
-    if (path.includes('[native code]'))
+    // Can't be a built-in or bound function
+    if (path.includes('[native code]')) {
       errors.push(new Error(`${prefix} can't be a bound or built-in function`));
+    }
   } else if (!isSANB(job.path) && !config.root) {
     errors.push(
       new Error(
@@ -77,7 +85,7 @@ const validateJobPath = (job, prefix, config) => {
       )
     );
   } else {
-    // validate path
+    // Validate path
     const path = isSANB(job.path)
       ? job.path
       : join(
@@ -92,10 +100,12 @@ const validateJobPath = (job, prefix, config) => {
         if (!threads.browser) {
           const stats = fs.statSync(path);
           // eslint-disable-next-line max-depth
-          if (!stats.isFile())
+          if (!stats.isFile()) {
             throw new Error(`${prefix} path missing: ${path}`);
+          }
         }
       } catch (err) {
+        /* istanbul ignore next */
         errors.push(err);
       }
     }
@@ -133,7 +143,7 @@ const validateCron = (job, prefix, config) => {
   const errors = [];
 
   if (!isSchedule(job.cron)) {
-    // if `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
+    // If `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
     const cronValidate = job.hasSeconds
       ? cronValidateWithSeconds(job, config)
       : config.cronValidate;
@@ -183,9 +193,11 @@ const validateJobName = (job, i, reservedNames) => {
   const errors = [];
   const name = getName(job);
 
-  if (!name) errors.push(new Error(`Job #${i + 1} is missing a name`));
+  if (!name) {
+    errors.push(new Error(`Job #${i + 1} is missing a name`));
+  }
 
-  // throw an error if duplicate job names
+  // Throw an error if duplicate job names
   if (reservedNames.includes(name)) {
     errors.push(
       new Error(`Job #${i + 1} has a duplicate job name of ${getName(job)}`)
@@ -198,40 +210,46 @@ const validateJobName = (job, i, reservedNames) => {
 const validate = (job, i, names, config) => {
   const errors = validateJobName(job, i, names);
 
-  if (errors.length > 0) throw combineErrors(errors);
+  if (errors.length > 0) {
+    throw combineErrors(errors);
+  }
 
-  // support a simple string which we will transform to have a path
+  // Support a simple string which we will transform to have a path
   if (isSANB(job)) {
     return validateStringJob(job, i, config);
   }
 
-  // job is a function
+  // Job is a function
   if (typeof job === 'function') {
     return validateFunctionJob(job, i);
   }
 
-  // use a prefix for errors
+  // Use a prefix for errors
   const prefix = `Job #${i + 1} named "${job.name}"`;
 
   errors.push(...validateJobPath(job, prefix, config));
 
-  // don't allow users to mix interval AND cron
+  // Don't allow users to mix interval AND cron
   if (typeof job.interval !== 'undefined' && typeof job.cron !== 'undefined') {
     errors.push(
       new Error(`${prefix} cannot have both interval and cron configuration`)
     );
   }
 
-  // don't allow users to mix timeout AND date
-  if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined')
+  // Don't allow users to mix timeout AND date
+  if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined') {
     errors.push(new Error(`${prefix} cannot have both timeout and date`));
+  }
 
   const jobNameError = validateReservedJobName(job.name);
-  if (jobNameError) errors.push(jobNameError);
+  if (jobNameError) {
+    errors.push(jobNameError);
+  }
 
-  // validate date
-  if (typeof job.date !== 'undefined' && !(job.date instanceof Date))
+  // Validate date
+  if (typeof job.date !== 'undefined' && !(job.date instanceof Date)) {
     errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
+  }
 
   ['timeout', 'interval'].forEach((prop) => {
     if (typeof job[prop] !== 'undefined') {
@@ -248,44 +266,49 @@ const validate = (job, i, names, config) => {
     }
   });
 
-  // validate hasSeconds
+  // Validate hasSeconds
   if (
     typeof job.hasSeconds !== 'undefined' &&
     typeof job.hasSeconds !== 'boolean'
-  )
+  ) {
     errors.push(
       new Error(
         `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
       )
     );
+  }
 
-  // validate cronValidate
+  // Validate cronValidate
   if (
     typeof job.cronValidate !== 'undefined' &&
     typeof job.cronValidate !== 'object'
-  )
+  ) {
     errors.push(
       new Error(
         `${prefix} had cronValidate value set, but it must be an Object`
       )
     );
+  }
 
   if (typeof job.cron !== 'undefined') {
     errors.push(...validateCron(job, prefix, config));
   }
 
-  // validate closeWorkerAfterMs
+  // Validate closeWorkerAfterMs
   if (
     typeof job.closeWorkerAfterMs !== 'undefined' &&
     (!Number.isFinite(job.closeWorkerAfterMs) || job.closeWorkerAfterMs <= 0)
-  )
+  ) {
     errors.push(
       new Error(
         `${prefix} had an invalid closeWorkersAfterMs value of ${job.closeWorkersAfterMs} (it must be a finite number > 0)`
       )
     );
+  }
 
-  if (errors.length > 0) throw combineErrors(errors);
+  if (errors.length > 0) {
+    throw combineErrors(errors);
+  }
 };
 
 module.exports = validate;
