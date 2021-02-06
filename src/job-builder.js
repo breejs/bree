@@ -5,6 +5,8 @@ const { boolean } = require('boolean');
 const later = require('@breejs/later');
 const { isSchedule, parseValue } = require('./job-utils');
 
+later.date.localTime();
+
 // eslint-disable-next-line complexity
 const buildJob = (job, config) => {
   if (isSANB(job)) {

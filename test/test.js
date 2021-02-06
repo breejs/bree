@@ -64,7 +64,9 @@ test('fails if jobs is not an array', (t) => {
         root: path.join(__dirname, 'noIndexJobs'),
         jobs: null,
         // hide MODULE_NOT_FOUND error
-        logger: { error: () => {} }
+        logger: {
+          error: () => {}
+        }
       }),
     { message: 'Jobs must be an Array' }
   );
@@ -289,6 +291,72 @@ test('fails if cron pattern is invalid', (t) => {
   );
 });
 
+test.serial('job created with cron string is using local timezone', (t) => {
+  t.plan(2);
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', cron: '0 18 * * *' }]
+  });
+
+  const clock = FakeTimers.install({ now: Date.now() });
+  bree.start('basic');
+  bree.on('worker created', () => {
+    const now = new Date(clock.now);
+    const offsetOfLocalDates = new Date().getTimezoneOffset();
+
+    t.is(now.getTimezoneOffset(), offsetOfLocalDates);
+    t.is(now.getHours(), 18);
+  });
+  clock.next();
+  clock.uninstall();
+});
+
+test.serial(
+  'add > job created with cron string is using local timezone',
+  (t) => {
+    t.plan(2);
+    const bree = new Bree({
+      root: false
+    });
+
+    bree.add({
+      name: 'basic',
+      cron: '0 18 * * *',
+      path: path.join(__dirname, 'jobs/basic.js')
+    });
+
+    const clock = FakeTimers.install({ now: Date.now() });
+    bree.start('basic');
+    bree.on('worker created', () => {
+      const now = new Date(clock.now);
+      const offsetOfLocalDates = new Date().getTimezoneOffset();
+
+      t.is(now.getTimezoneOffset(), offsetOfLocalDates);
+      t.is(now.getHours(), 18);
+    });
+    clock.next();
+    clock.uninstall();
+  }
+);
+
+test.serial('job created with human interval is using local timezone', (t) => {
+  t.plan(2);
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', interval: 'at 13:26' }]
+  });
+
+  const clock = FakeTimers.install({ now: Date.now() });
+  bree.start('basic');
+  bree.on('worker created', () => {
+    const now = new Date(clock.now);
+    t.is(now.getHours(), 13);
+    t.is(now.getMinutes(), 26);
+  });
+  clock.next();
+  clock.uninstall();
+});
+
 test('fails if closeWorkersAfterMs is <= 0 or infinite', (t) => {
   t.throws(
     () =>
@@ -444,7 +512,7 @@ test.serial('run > job terminates after set time', async (t) => {
   await new Promise((resolve, reject) => {
     bree.workers.infinite.on('error', reject);
     bree.workers.infinite.on('exit', (code) => {
-      t.true(code === 1);
+      t.is(code, 1);
       resolve();
     });
   });
@@ -467,7 +535,7 @@ test.serial('run > job terminates before set time', async (t) => {
   await new Promise((resolve, reject) => {
     bree.workers.basic.on('error', reject);
     bree.workers.basic.on('exit', (code) => {
-      t.true(code === 0);
+      t.is(code, 0);
       resolve();
     });
   });
@@ -1711,7 +1779,9 @@ test('remove > fails if job does not exist', (t) => {
 
 test('add > successfully adds job object', (t) => {
   const bree = new Bree({ root: false });
+
   function noop() {}
+
   bree.add({ name: 'basic', path: noop.toString() });
   t.pass();
 });
