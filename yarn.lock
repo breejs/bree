@@ -3542,6 +3542,11 @@ event-emitter@~0.3.5:
     d "1"
     es5-ext "~0.10.14"
 
+events.once@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/events.once/-/events.once-2.0.2.tgz#9e84ac14ef238c070ebc0f44556c24225fa9c7a4"
+  integrity sha512-yt0HxZ3PPiOVsyo9b74bQ07mSKyNeoVHzyakCBFJzSC8WhMUYomvq/naaJNks+wWJ1jv8JYTxO5vaw8wLnmZxw==
+
 events@^3.0.0:
   version "3.2.0"
   resolved "https://registry.yarnpkg.com/events/-/events-3.2.0.tgz#93b87c18f8efcd4202a461aec4dfc0556b639379"

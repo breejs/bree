@@ -1,4 +1,5 @@
 const path = require('path');
+const { once } = require('events');
 
 const test = require('ava');
 
@@ -53,13 +54,8 @@ test.serial('job terminates after closeWorkerAfterMs', async (t) => {
   await delay(1);
   t.true(typeof bree.closeWorkerAfterMs.long === 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.long.on('error', reject);
-    bree.workers.long.on('exit', (code) => {
-      t.is(code, 1);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.long, 'exit');
+  t.is(code, 1);
 });
 
 test('job terminates before closeWorkerAfterMs', async (t) => {
@@ -77,13 +73,8 @@ test('job terminates before closeWorkerAfterMs', async (t) => {
   await delay(1);
   t.true(typeof bree.closeWorkerAfterMs.short === 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.short.on('error', reject);
-    bree.workers.short.on('exit', (code) => {
-      t.is(code, 2);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.short, 'exit');
+  t.is(code, 2);
 });
 
 test('job terminates on message "done"', async (t) => {
@@ -101,14 +92,8 @@ test('job terminates on message "done"', async (t) => {
   await delay(1);
 
   t.is(typeof bree.workers.done, 'object');
-  await new Promise((resolve, reject) => {
-    bree.workers.done.on('error', reject);
-    bree.workers.done.on('message', (message) => {
-      if (message === 'get ready') {
-        resolve();
-      }
-    });
-  });
+  const [message] = await once(bree.workers.done, 'message');
+  t.is(message, 'get ready');
 
   await delay(100);
   t.is(typeof bree.workers.done, 'undefined');
@@ -132,10 +117,7 @@ test('job sent a message', async (t) => {
 
   bree.workers.message.postMessage('test');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.message.on('error', reject);
-    bree.workers.message.on('exit', resolve);
-  });
+  await once(bree.workers.message, 'exit');
 });
 
 test('job sent an error', async (t) => {
@@ -158,10 +140,8 @@ test('job sent an error', async (t) => {
 
   bree.workers.message.postMessage('error');
 
-  await new Promise((resolve) => {
-    bree.workers.message.on('error', resolve);
-    bree.workers.message.on('exit', resolve);
-  });
+  await once(bree.workers.message, 'error');
+  await once(bree.workers.message, 'exit');
 });
 
 test('job sent an error with custom handler', async (t) => {
@@ -191,9 +171,8 @@ test('job sent an error with custom handler', async (t) => {
 
   bree.workers.message.postMessage('error');
 
-  await new Promise((resolve) => {
-    bree.workers.message.on('exit', resolve);
-  });
+  await once(bree.workers.message, 'error');
+  await once(bree.workers.message, 'exit');
 });
 
 test('jobs run all when no name designated', async (t) => {
@@ -211,13 +190,8 @@ test('jobs run all when no name designated', async (t) => {
 
   t.true(typeof bree.workers.basic === 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.basic.on('error', reject);
-    bree.workers.basic.on('exit', (code) => {
-      t.is(code, 0);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.basic, 'exit');
+  t.is(code, 0);
 
   t.true(typeof bree.workers.basic === 'undefined');
 });
@@ -238,13 +212,8 @@ test('job runs with no worker options in config', async (t) => {
 
   t.is(typeof bree.workers.basic, 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.basic.on('error', reject);
-    bree.workers.basic.on('exit', (code) => {
-      t.is(code, 0);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.basic, 'exit');
+  t.is(code, 0);
 
   t.is(typeof bree.workers.basic, 'undefined');
 });
@@ -277,13 +246,8 @@ test('job runs and passes workerData from config', async (t) => {
   await delay(1);
   t.is(typeof bree.workers['worker-data'], 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers['worker-data'].on('error', reject);
-    bree.workers['worker-data'].on('exit', (code) => {
-      t.is(code, 0);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers['worker-data'], 'exit');
+  t.is(code, 0);
 
   t.is(typeof bree.workers['worker-data'], 'undefined');
 });

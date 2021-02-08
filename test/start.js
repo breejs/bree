@@ -1,4 +1,5 @@
 const path = require('path');
+const { once } = require('events');
 
 const test = require('ava');
 
@@ -100,31 +101,18 @@ test('sets interval if date is in the future and interval is schedule', async (t
 
   bree.start('short');
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      t.log('first worker created');
-      await delay(1);
-      t.is(typeof bree.intervals.short, 'object');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.log('first worker created');
+  await delay(1);
+  t.is(typeof bree.intervals.short, 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.short.once('error', reject);
-    bree.workers.short.once('exit', (code) => {
-      t.log('timeout runs');
-      t.is(code, 2);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.short, 'exit');
+  t.log('timeout runs');
+  t.is(code, 2);
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      t.log('second worker created');
-      t.pass();
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.log('second worker created');
+  t.pass();
 
   await bree.stop();
 });
@@ -147,28 +135,15 @@ test('sets interval if date is in the future and interval is number', async (t) 
 
   bree.start('short');
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      await delay(1);
-      t.is(typeof bree.intervals.short, 'object');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  await delay(1);
+  t.is(typeof bree.intervals.short, 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.short.once('error', reject);
-    bree.workers.short.once('exit', (code) => {
-      t.is(code, 2);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.short, 'exit');
+  t.is(code, 2);
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      t.pass();
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.pass();
 
   await bree.stop();
 });
@@ -193,29 +168,16 @@ test('sets timeout if interval is schedule and timeout is schedule', async (t) =
   bree.start('short');
   t.is(typeof bree.timeouts.short, 'object');
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      await delay(1);
-      t.is(typeof bree.intervals.short, 'object');
-      t.is(typeof bree.timeouts.short, 'undefined');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  await delay(1);
+  t.is(typeof bree.intervals.short, 'object');
+  t.is(typeof bree.timeouts.short, 'undefined');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.short.once('error', reject);
-    bree.workers.short.once('exit', (code) => {
-      t.is(code, 2);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.short, 'exit');
+  t.is(code, 2);
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      t.pass();
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.pass();
 
   await bree.stop();
 });
@@ -240,29 +202,16 @@ test('sets timeout if interval is number and timeout is schedule', async (t) => 
   bree.start('short');
   t.is(typeof bree.timeouts.short, 'object');
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      await delay('1');
-      t.is(typeof bree.intervals.short, 'object');
-      t.is(typeof bree.timeouts.short, 'undefined');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  await delay('1');
+  t.is(typeof bree.intervals.short, 'object');
+  t.is(typeof bree.timeouts.short, 'undefined');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.short.once('error', reject);
-    bree.workers.short.once('exit', (code) => {
-      t.is(code, 2);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.short, 'exit');
+  t.is(code, 2);
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      t.pass();
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.pass();
 
   await bree.stop();
 });
@@ -284,23 +233,17 @@ test('sets timeout if interval is 0 and timeout is schedule', async (t) => {
   t.is(typeof bree.timeouts.short, 'undefined');
 
   bree.start('short');
+
   t.is(typeof bree.timeouts.short, 'object');
 
-  await new Promise((resolve) => {
-    bree.on('worker created', async () => {
-      await delay(1);
-      t.is(typeof bree.timeouts.short, 'undefined');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.short.on('error', reject);
-    bree.workers.short.on('exit', (code) => {
-      t.is(code, 2);
-      resolve();
-    });
-  });
+  await delay(1);
+
+  t.is(typeof bree.timeouts.short, 'undefined');
+
+  const [code] = await once(bree.workers.short, 'exit');
+  t.is(code, 2);
 
   await bree.stop();
 });
@@ -325,29 +268,16 @@ test('sets timeout if interval is schedule and timeout is number', async (t) => 
   bree.start('infinite');
   t.is(typeof bree.timeouts.infinite, 'object');
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      await delay(1);
-      t.is(typeof bree.intervals.infinite, 'object');
-      t.is(typeof bree.timeouts.infinite, 'undefined');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  await delay(1);
+  t.is(typeof bree.intervals.infinite, 'object');
+  t.is(typeof bree.timeouts.infinite, 'undefined');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.infinite.once('error', reject);
-    bree.workers.infinite.once('exit', (code) => {
-      t.true(code === 0);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.infinite, 'exit');
+  t.true(code === 0);
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      t.pass();
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.pass();
 
   await bree.stop();
 });
@@ -372,29 +302,16 @@ test('sets timeout if interval is number and timeout is number', async (t) => {
   bree.start('infinite');
   t.is(typeof bree.timeouts.infinite, 'object');
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      await delay(1);
-      t.is(typeof bree.intervals.infinite, 'object');
-      t.is(typeof bree.timeouts.infinite, 'undefined');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  await delay(1);
+  t.is(typeof bree.intervals.infinite, 'object');
+  t.is(typeof bree.timeouts.infinite, 'undefined');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.infinite.once('error', reject);
-    bree.workers.infinite.once('exit', (code) => {
-      t.true(code === 0);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.infinite, 'exit');
+  t.true(code === 0);
 
-  await new Promise((resolve) => {
-    bree.once('worker created', async () => {
-      t.pass();
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.pass();
 
   await bree.stop();
 });
@@ -413,20 +330,11 @@ test('sets interval if interval is schedule', async (t) => {
 
   bree.start('infinite');
 
-  await new Promise((resolve) => {
-    bree.on('worker created', () => {
-      t.is(typeof bree.intervals.infinite, 'object');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.is(typeof bree.intervals.infinite, 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.infinite.on('error', reject);
-    bree.workers.infinite.on('exit', (code) => {
-      t.true(code === 0);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.infinite, 'exit');
+  t.true(code === 0);
 
   await bree.stop();
 });
@@ -444,20 +352,11 @@ test('sets interval if interval is number', async (t) => {
   t.is(typeof bree.intervals.infinite, 'undefined');
 
   bree.start('infinite');
-  await new Promise((resolve) => {
-    bree.on('worker created', () => {
-      t.is(typeof bree.intervals.infinite, 'object');
-      resolve();
-    });
-  });
+  await once(bree, 'worker created');
+  t.is(typeof bree.intervals.infinite, 'object');
 
-  await new Promise((resolve, reject) => {
-    bree.workers.infinite.on('error', reject);
-    bree.workers.infinite.on('exit', (code) => {
-      t.true(code === 0);
-      resolve();
-    });
-  });
+  const [code] = await once(bree.workers.infinite, 'exit');
+  t.true(code === 0);
 
   await bree.stop();
 });
