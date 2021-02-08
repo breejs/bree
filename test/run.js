@@ -46,7 +46,7 @@ test.serial('job terminates after closeWorkerAfterMs', async (t) => {
 
   const bree = new Bree({
     root,
-    jobs: [{ name: 'long', closeWorkerAfterMs: 500 }],
+    jobs: [{ name: 'long', closeWorkerAfterMs: 2000 }],
     logger
   });
 
