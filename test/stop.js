@@ -110,7 +110,6 @@ test('clears closeWorkerAfterMs', async (t) => {
   t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
 });
 
-// TODO: this could probably be improved
 test('deletes closeWorkerAfterMs', async (t) => {
   const bree = new Bree({
     root,
@@ -130,6 +129,20 @@ test('deletes closeWorkerAfterMs', async (t) => {
   await bree.stop('basic');
 
   t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+});
+
+test('clears timeouts', async (t) => {
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'basic', timeout: 1000 }]
+  });
+
+  t.is(typeof bree.timeouts.basic, 'undefined');
+
+  bree.start('basic');
+  await bree.stop('basic');
+
+  t.is(typeof bree.timeouts.basic, 'undefined');
 });
 
 test('deletes timeouts', async (t) => {
