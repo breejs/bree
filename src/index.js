@@ -262,24 +262,24 @@ class Bree extends EventEmitter {
       this.emit('worker created', name);
       debug('worker started', name);
 
-      // If we specified a value for `closeWorkerAfterMs`
-      // then we need to terminate it after that execution time
-      const closeWorkerAfterMs = Number.isFinite(job.closeWorkerAfterMs)
-        ? job.closeWorkerAfterMs
-        : this.config.closeWorkerAfterMs;
-      if (Number.isFinite(closeWorkerAfterMs) && closeWorkerAfterMs > 0) {
-        debug('worker has close set', name, closeWorkerAfterMs);
-        this.closeWorkerAfterMs[name] = setTimeout(() => {
-          /* istanbul ignore else */
-          if (this.workers[name]) {
-            debug('worker has been terminated', name);
-            this.workers[name].terminate();
-          }
-        }, closeWorkerAfterMs);
-      }
-
       const prefix = `Worker for job "${name}"`;
       this.workers[name].on('online', () => {
+        // If we specified a value for `closeWorkerAfterMs`
+        // then we need to terminate it after that execution time
+        const closeWorkerAfterMs = Number.isFinite(job.closeWorkerAfterMs)
+          ? job.closeWorkerAfterMs
+          : this.config.closeWorkerAfterMs;
+        if (Number.isFinite(closeWorkerAfterMs) && closeWorkerAfterMs > 0) {
+          debug('worker has close set', name, closeWorkerAfterMs);
+          this.closeWorkerAfterMs[name] = setTimeout(() => {
+            /* istanbul ignore else */
+            if (this.workers[name]) {
+              debug('worker has been terminated', name);
+              this.workers[name].terminate();
+            }
+          }, closeWorkerAfterMs);
+        }
+
         this.config.logger.info(
           `${prefix} online`,
           this.getWorkerMetadata(name)

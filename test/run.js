@@ -51,7 +51,7 @@ test.serial('job terminates after closeWorkerAfterMs', async (t) => {
   });
 
   bree.run('long');
-  await delay(1);
+  await once(bree.workers.long, 'online');
   t.true(typeof bree.closeWorkerAfterMs.long === 'object');
 
   const [code] = await once(bree.workers.long, 'exit');
@@ -70,7 +70,7 @@ test('job terminates before closeWorkerAfterMs', async (t) => {
   });
 
   bree.run('short');
-  await delay(1);
+  await once(bree.workers.short, 'online');
   t.true(typeof bree.closeWorkerAfterMs.short === 'object');
 
   const [code] = await once(bree.workers.short, 'exit');

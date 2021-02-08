@@ -1,4 +1,5 @@
 const path = require('path');
+const { once } = require('events');
 
 const test = require('ava');
 
@@ -99,9 +100,9 @@ test('clears closeWorkerAfterMs', async (t) => {
 
   t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
 
-  bree.start('basic');
-  await delay(1);
+  bree.run('basic');
 
+  await once(bree.workers.basic, 'online');
   t.is(typeof bree.closeWorkerAfterMs.basic, 'object');
 
   await bree.stop('basic');
@@ -109,6 +110,7 @@ test('clears closeWorkerAfterMs', async (t) => {
   t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
 });
 
+// TODO: this could probably be improved
 test('deletes closeWorkerAfterMs', async (t) => {
   const bree = new Bree({
     root,
@@ -117,7 +119,13 @@ test('deletes closeWorkerAfterMs', async (t) => {
 
   t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
 
-  bree.start('basic');
+  bree.run('basic');
+
+  await once(bree.workers.basic, 'online');
+  t.is(typeof bree.closeWorkerAfterMs.basic, 'object');
+
+  await once(bree.workers.basic, 'exit');
+
   bree.closeWorkerAfterMs.basic = 'test';
   await bree.stop('basic');
 
