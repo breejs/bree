@@ -233,7 +233,6 @@ class Bree extends EventEmitter {
   run(name) {
     debug('run', name);
     if (name) {
-      this.config.logger.info(new Date());
       const job = this.config.jobs.find((j) => j.name === name);
       if (!job) {
         throw new Error(`Job "${name}" does not exist`);
