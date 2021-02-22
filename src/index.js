@@ -60,7 +60,7 @@ class Bree extends EventEmitter {
       // (can be overridden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
       worker: {},
-      // Custom handler to execute when error events are emmited by the workers or when they exit
+      // Custom handler to execute when error events are emitted by the workers or when they exit
       // with non-zero code
       // pass in a callback function with following signature: `(error, workerMetadata) => { // custom handling here }`
       errorHandler: null,
