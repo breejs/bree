@@ -175,6 +175,60 @@ test('job sent an error with custom handler', async (t) => {
   await once(bree.workers.message, 'exit');
 });
 
+test('job sent a message with custom worker message handler', async (t) => {
+  t.plan(3);
+
+  const logger = {
+    error: () => {},
+    info: () => {}
+  };
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'message' }],
+    logger,
+    workerMessageHandler: (metadata) => {
+      t.is(Object.keys(metadata).length, 2);
+      t.is(metadata.message, 'hey Bob!');
+      t.is(metadata.name, 'message');
+    }
+  });
+
+  bree.run('message');
+
+  bree.workers.message.postMessage('hey Bob!');
+
+  await once(bree.workers.message, 'exit');
+});
+
+test('job sent a message with custom worker message handler and metadata', async (t) => {
+  t.plan(4);
+
+  const logger = {
+    error: () => {},
+    info: () => {}
+  };
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'message' }],
+    logger,
+    outputWorkerMetadata: true,
+    workerMessageHandler: (metadata) => {
+      t.is(Object.keys(metadata).length, 3);
+      t.is(metadata.message, 'hi Alice!');
+      t.is(metadata.name, 'message');
+      t.is(Object.keys(metadata.worker).length, 3);
+    }
+  });
+
+  bree.run('message');
+
+  bree.workers.message.postMessage('hi Alice!');
+
+  await once(bree.workers.message, 'exit');
+});
+
 test('jobs run all when no name designated', async (t) => {
   const logger = {};
   logger.info = () => {};

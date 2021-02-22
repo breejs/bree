@@ -64,6 +64,9 @@ class Bree extends EventEmitter {
       // with non-zero code
       // pass in a callback function with following signature: `(error, workerMetadata) => { // custom handling here }`
       errorHandler: null,
+      // Custom handler executed when a `message` event is received from a worker.
+      // A special 'done' even is also broadcasted while leaving worker shutdown logic in place.
+      workerMessageHandler: null,
       //
       // if you set this to `true`, then a second arg is passed to log output
       // and it will be an Object with `{ worker: Object }` set, for example:
@@ -285,22 +288,25 @@ class Bree extends EventEmitter {
         );
       });
       this.workers[name].on('message', (message) => {
+        const metadata = this.getWorkerMetadata(name, { message });
+
+        if (this.config.workerMessageHandler) {
+          this.config.workerMessageHandler({
+            name,
+            ...metadata
+          });
+        } else if (message === 'done') {
+          this.config.logger.info(`${prefix} signaled completion`, metadata);
+        } else {
+          this.config.logger.info(`${prefix} sent a message`, metadata);
+        }
+
         if (message === 'done') {
-          this.config.logger.info(
-            `${prefix} signaled completion`,
-            this.getWorkerMetadata(name)
-          );
           this.workers[name].removeAllListeners('message');
           this.workers[name].removeAllListeners('exit');
           this.workers[name].terminate();
           delete this.workers[name];
-          return;
         }
-
-        this.config.logger.info(
-          `${prefix} sent a message`,
-          this.getWorkerMetadata(name, { message })
-        );
       });
       // NOTE: you cannot catch messageerror since it is a Node internal
       //       (if anyone has any idea how to catch this in tests let us know)
