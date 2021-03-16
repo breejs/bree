@@ -751,7 +751,7 @@ We recommend using the following packages in your workers for handling concurren
 
 ## Real-world usage
 
-More detailed examples can be found in [Forward Email][forward-email] and [Lad][].
+More detailed examples can be found in [Forward Email][forward-email], [Lad][], and [Ghost][ghost].
 
 
 ## Alternatives that are not production-ready
@@ -842,3 +842,5 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [webpack]: https://github.com/webpack/webpack
 
 [rollup]: https://github.com/rollup/rollup
+
+[ghost]: https://ghost.org/
