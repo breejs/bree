@@ -34,7 +34,7 @@
 * [Job Options](#job-options)
 * [Job Interval and Timeout Values](#job-interval-and-timeout-values)
 * [Listening for events](#listening-for-events)
-* [Custom error handling](#custom-error-handling)
+* [Custom error/message handling](#custom-errormessage-handling)
 * [Cancellation, Retries, Stalled Jobs, and Graceful Reloading](#cancellation-retries-stalled-jobs-and-graceful-reloading)
 * [Interval, Timeout, Date, and Cron Validation](#interval-timeout-date-and-cron-validation)
 * [Writing jobs with Promises and async-await](#writing-jobs-with-promises-and-async-await)
@@ -563,9 +563,11 @@ bree.on('worker deleted', (name) => {
 ```
 
 
-## Custom error handling
+## Custom error/message handling
 
-If you'd like to override default behavior for worker error handling, provide a callback function as `errorHandler` parameter when creating a Bree instance.
+If you'd like to override default behavior for worker error/message handling, provide a callback function as `errorHandler` or `workerMessageHandler` parameter when creating a Bree instance.
+
+> **NOTE:** Any `console.log` calls, from within the worker,  will not be sent to `stdout`/`stderr` until the main thread is available. Furthermore, any `console.log` calls, from within the worker, will not be sent if the process is terminated before the message is printed. You should use `parentPort.postMessage()` alongside `errorHandler` or `workerMessageHandler` to print to `stdout`/`stderr` during worker execution. This is a known [bug](https://github.com/nodejs/node/issues/30491) for workers.
 
 An example use-case. If you want to call an external service to record an error (like Honeybadger, Sentry, etc.) along with logging the error internally. You can do so with:
 
