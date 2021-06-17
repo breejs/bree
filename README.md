@@ -43,6 +43,7 @@
 * [Complex timeouts and intervals](#complex-timeouts-and-intervals)
 * [Custom Worker Options](#custom-worker-options)
 * [Using functions for jobs](#using-functions-for-jobs)
+* [Typescript Usage](#typescript-usage)
 * [Concurrency](#concurrency)
 * [Real-world usage](#real-world-usage)
 * [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)
@@ -710,7 +711,6 @@ Additionally, you can pass custom worker options on a per-job basis through a `w
 
 See [complete documentation](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options) for options (but you usually don't have to modify these).
 
-
 ## Using functions for jobs
 
 It is highly recommended to use files instead of functions. However, sometimes it is necessary to use functions.
@@ -740,6 +740,48 @@ You should be able to pass data via `worker.workerData` (see [Custom Worker Opti
 
 Note that you cannot pass a built-in nor bound function.
 
+## Typescript Usage
+
+As is mentioned in this issue: https://github.com/breejs/bree/issues/24 and thanks to @ChrisEdgington.  You can use typescript workers as:
+
+Create a function that will process the path:
+
+```js
+function typescript_worker() {
+    const path = require('path')
+    require('ts-node').register()
+    const workerData = require('worker_threads').workerData
+    require(path.resolve(__dirname, workerData.__filename))
+}
+```
+
+Then use the the function as path (see [Using functions for jobs](#using-functions-for-jobs)), and pass the path to your ts job file:
+
+```js
+{ 
+    name: 'Typescript Worker', 
+    path: typescript_worker, 
+    interval: 'every 10 seconds', 
+    worker: { workerData: { __filename: './src/job_specific_filename_worker.ts' } } 
+}
+```
+
+Additionally for supporting using ts on development and js on production you can make something like or wathever similar:
+
+```js
+  ...(CRON_MODE === 'ts'
+      ? {
+            path: typescript_worker,
+            worker: {
+                workerData: {
+                    __filename: path.join(paths.jobs, `${jobPath}.ts`)
+                }
+            }
+        }
+      : {
+            path: path.join(paths.jobs, `${jobPath}.js`)
+        })
+```
 
 ## Concurrency
 
