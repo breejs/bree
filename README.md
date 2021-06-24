@@ -742,7 +742,7 @@ Note that you cannot pass a built-in nor bound function.
 
 ## Typescript Usage
 
-As is mentioned in this issue: https://github.com/breejs/bree/issues/24 and thanks to @ChrisEdgington.  You can use typescript workers as:
+As is mentioned in this issue: [#24](https://github.com/breejs/bree/issues/24) and thanks to @ChrisEdgington.  You can use typescript workers as:
 
 Create a function that will process the path:
 
@@ -755,7 +755,7 @@ function typescript_worker() {
 }
 ```
 
-Then use the the function as path (see [Using functions for jobs](#using-functions-for-jobs)), and pass the path to your ts job file:
+Then use the function as path (see [Using functions for jobs](#using-functions-for-jobs)), and pass the path to your ts job file:
 
 ```js
 { 
