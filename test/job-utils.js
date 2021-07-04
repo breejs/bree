@@ -61,7 +61,14 @@ test('parseValue: parses millisecond values', (t) => {
 test('parseValue: throws for invalid value', (t) => {
   t.throws(() => jobUtils.parseValue(-1), {
     message:
-      'Value -1 must be a finite number >= 0 or a String parseable by `later.parse.text` (see <https://breejs.github.io/later/parsers.html#text> for examples)'
+      'Value "-1" must be a finite number >= 0 or a String parseable by `later.parse.text` (see <https://breejs.github.io/later/parsers.html#text> for examples)'
+  });
+});
+
+test('parseValue: throws if string value is neither a later nor human-interval format', (t) => {
+  const invalidStringValue = 'on the fifth day of the month';
+  t.throws(() => jobUtils.parseValue(invalidStringValue), {
+    message: `Value "${invalidStringValue}" is not a String parseable by \`later.parse.text\` (see <https://breejs.github.io/later/parsers.html#text> for examples)`
   });
 });
 
