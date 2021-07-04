@@ -43,6 +43,8 @@ const getHumanToMs = (_value) => {
  * @returns {number | boolean | Object}
  */
 const parseValue = (value) => {
+  const originalValue = value;
+
   if (value === false) return value;
 
   if (isSchedule(value)) return value;
@@ -51,11 +53,21 @@ const parseValue = (value) => {
     const schedule = later.schedule(later.parse.text(value));
     if (schedule.isValid()) return later.parse.text(value);
     value = getHumanToMs(value);
+    if (value === 0) {
+      // There is a bug in the human-interval library that causes some invalid
+      // strings to be parsed as valid, returning 0 as output (instead of NaN).
+      // Since the user is using a String to define the interval, it is most
+      // likely that he/she is not trying to set it to 0ms.
+      // Hence, this must be an error.
+      throw new Error(
+        `Value "${originalValue}" is not a String parseable by \`later.parse.text\` (see <https://breejs.github.io/later/parsers.html#text> for examples)`
+      );
+    }
   }
 
   if (!Number.isFinite(value) || value < 0)
     throw new Error(
-      `Value ${value} must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://breejs.github.io/later/parsers.html#text> for examples)`
+      `Value "${originalValue}" must be a finite number >= 0 or a String parseable by \`later.parse.text\` (see <https://breejs.github.io/later/parsers.html#text> for examples)`
     );
 
   return value;
