@@ -46,6 +46,8 @@
 * [Typescript Usage](#typescript-usage)
 * [Concurrency](#concurrency)
 * [Plugins](#plugins)
+  * [Available Plugins](#available-plugins)
+  * [Creating plugins for Bree](#creating-plugins-for-bree)
 * [Real-world usage](#real-world-usage)
 * [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)
 * [Contributors](#contributors)
@@ -835,6 +837,7 @@ Plugins should be a function that recieves an `options` object and the `Bree` cl
     return Bree;
   };
 ```
+
 
 ## Real-world usage
 
