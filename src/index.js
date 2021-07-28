@@ -595,4 +595,15 @@ Bree.threads = {
   cores: threads.cores
 };
 
+// plugins inspired by Dayjs
+Bree.extend = (plugin, options) => {
+  if (!plugin.$i) {
+    // install plugin only once
+    plugin(options, Bree);
+    plugin.$i = true;
+  }
+
+  return Bree;
+};
+
 module.exports = Bree;
