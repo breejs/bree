@@ -45,6 +45,7 @@
 * [Using functions for jobs](#using-functions-for-jobs)
 * [Typescript Usage](#typescript-usage)
 * [Concurrency](#concurrency)
+* [Plugins](#plugins)
 * [Real-world usage](#real-world-usage)
 * [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)
 * [Contributors](#contributors)
@@ -725,6 +726,7 @@ Additionally, you can pass custom worker options on a per-job basis through a `w
 
 See [complete documentation](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options) for options (but you usually don't have to modify these).
 
+
 ## Using functions for jobs
 
 It is highly recommended to use files instead of functions. However, sometimes it is necessary to use functions.
@@ -754,6 +756,7 @@ You should be able to pass data via `worker.workerData` (see [Custom Worker Opti
 
 Note that you cannot pass a built-in nor bound function.
 
+
 ## Typescript Usage
 
 As is mentioned in this issue: [#24](https://github.com/breejs/bree/issues/24) and thanks to @ChrisEdgington.  You can use typescript workers as:
@@ -772,11 +775,11 @@ function typescript_worker() {
 Then use the function as path (see [Using functions for jobs](#using-functions-for-jobs)), and pass the path to your ts job file:
 
 ```js
-{ 
-    name: 'Typescript Worker', 
-    path: typescript_worker, 
-    interval: 'every 10 seconds', 
-    worker: { workerData: { __filename: './src/job_specific_filename_worker.ts' } } 
+{
+    name: 'Typescript Worker',
+    path: typescript_worker,
+    interval: 'every 10 seconds',
+    worker: { workerData: { __filename: './src/job_specific_filename_worker.ts' } }
 }
 ```
 
@@ -797,6 +800,7 @@ Additionally for supporting using ts on development and js on production you can
         })
 ```
 
+
 ## Concurrency
 
 We recommend using the following packages in your workers for handling concurrency:
@@ -806,6 +810,31 @@ We recommend using the following packages in your workers for handling concurren
 * <https://github.com/sindresorhus/p-queue>
 * <https://github.com/sindresorhus/p-map>
 
+
+## Plugins
+
+Plugins can be added to Bree using a similiar method to [Day.js](https://day.js.org/)
+
+To add a plugin use the following method:
+
+```js
+  Bree.extend(plugin, options);
+```
+
+### Available Plugins
+
+Coming Soon...
+
+### Creating plugins for Bree
+
+Plugins should be a function that recieves an `options` object and the `Bree` class:
+
+```js
+  const plugin = (options, Bree) => {
+    /* plugin logic */
+    return Bree;
+  };
+```
 
 ## Real-world usage
 
