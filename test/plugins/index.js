@@ -1,9 +1,9 @@
 const test = require('ava');
 const path = require('path');
 
-const Bree = require('../src');
+const Bree = require('../../src');
 
-const root = path.join(__dirname, 'jobs');
+const root = path.join(__dirname, '..', 'jobs');
 const baseConfig = {
   root,
   timeout: 0,
