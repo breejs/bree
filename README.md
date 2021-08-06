@@ -785,7 +785,7 @@ Then use the function as path (see [Using functions for jobs](#using-functions-f
 }
 ```
 
-Additionally for supporting using ts on development and js on production you can make something like or wathever similar:
+Additionally for supporting using ts on development and js on production you can make something like or whatever similar:
 
 ```js
   ...(CRON_MODE === 'ts'
@@ -815,12 +815,12 @@ We recommend using the following packages in your workers for handling concurren
 
 ## Plugins
 
-Plugins can be added to Bree using a similiar method to [Day.js](https://day.js.org/)
+Plugins can be added to Bree using a similar method to [Day.js](https://day.js.org/)
 
 To add a plugin use the following method:
 
 ```js
-  Bree.extend(plugin, options);
+Bree.extend(plugin, options);
 ```
 
 ### Available Plugins
