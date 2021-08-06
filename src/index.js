@@ -125,6 +125,14 @@ class Bree extends EventEmitter {
     this.getHumanToMs = getHumanToMs;
     this.parseValue = parseValue;
 
+    // so plugins can extend constructor
+    this.init = this.init.bind(this);
+    this.init();
+
+    debug('this.config.jobs', this.config.jobs);
+  }
+
+  init() {
     // Validate root (sync check)
     if (isSANB(this.config.root)) {
       /* istanbul ignore next */
@@ -204,8 +212,6 @@ class Bree extends EventEmitter {
     if (errors.length > 0) {
       throw combineErrors(errors);
     }
-
-    debug('this.config.jobs', this.config.jobs);
   }
 
   getWorkerMetadata(name, meta = {}) {
