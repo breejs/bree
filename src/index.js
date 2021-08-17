@@ -549,6 +549,7 @@ class Bree extends EventEmitter {
     }
 
     const errors = [];
+    const addedJobs = [];
 
     for (const [i, job_] of jobs.entries()) {
       try {
@@ -560,7 +561,7 @@ class Bree extends EventEmitter {
         validateJob(job_, i, names, this.config);
         const job = buildJob(job_, this.config);
 
-        this.config.jobs.push(job);
+        addedJobs.push(job);
       } catch (err) {
         errors.push(err);
       }
@@ -572,6 +573,9 @@ class Bree extends EventEmitter {
     if (errors.length > 0) {
       throw combineErrors(errors);
     }
+
+    this.config.jobs.push(...addedJobs);
+    return addedJobs;
   }
 
   async remove(name) {

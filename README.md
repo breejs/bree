@@ -302,7 +302,7 @@ bree.run();
 bree.run('beep');
 
 // add a job array after initialization:
-bree.add(['boop']);
+cosnt added = bree.add(['boop']); // will return array of added jobs
 // this must then be started using one of the above methods
 
 // add a job after initialization:
