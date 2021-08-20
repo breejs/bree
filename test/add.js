@@ -15,7 +15,9 @@ test('successfully add jobs as array', (t) => {
 
   t.is(typeof bree.config.jobs[1], 'undefined');
 
-  bree.add(['basic']);
+  const added = bree.add(['basic']);
+
+  t.is(added[0].name, 'basic');
 
   t.is(typeof bree.config.jobs[1], 'object');
 });
@@ -28,7 +30,9 @@ test('successfully add job not array', (t) => {
 
   t.is(typeof bree.config.jobs[1], 'undefined');
 
-  bree.add('basic');
+  const added = bree.add('basic');
+
+  t.is(added[0].name, 'basic');
 
   t.is(typeof bree.config.jobs[1], 'object');
 });
@@ -42,6 +46,8 @@ test('fails if job already exists', (t) => {
   t.throws(() => bree.add(['basic']), {
     message: /Job .* has a duplicate job name of */
   });
+
+  t.falsy(bree.config.jobs[1]);
 });
 
 test('successfully adds job object', (t) => {

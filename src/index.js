@@ -125,6 +125,14 @@ class Bree extends EventEmitter {
     this.getHumanToMs = getHumanToMs;
     this.parseValue = parseValue;
 
+    // so plugins can extend constructor
+    this.init = this.init.bind(this);
+    this.init();
+
+    debug('this.config.jobs', this.config.jobs);
+  }
+
+  init() {
     // Validate root (sync check)
     if (isSANB(this.config.root)) {
       /* istanbul ignore next */
@@ -204,8 +212,6 @@ class Bree extends EventEmitter {
     if (errors.length > 0) {
       throw combineErrors(errors);
     }
-
-    debug('this.config.jobs', this.config.jobs);
   }
 
   getWorkerMetadata(name, meta = {}) {
@@ -543,6 +549,7 @@ class Bree extends EventEmitter {
     }
 
     const errors = [];
+    const addedJobs = [];
 
     for (const [i, job_] of jobs.entries()) {
       try {
@@ -554,7 +561,7 @@ class Bree extends EventEmitter {
         validateJob(job_, i, names, this.config);
         const job = buildJob(job_, this.config);
 
-        this.config.jobs.push(job);
+        addedJobs.push(job);
       } catch (err) {
         errors.push(err);
       }
@@ -566,6 +573,9 @@ class Bree extends EventEmitter {
     if (errors.length > 0) {
       throw combineErrors(errors);
     }
+
+    this.config.jobs.push(...addedJobs);
+    return addedJobs;
   }
 
   async remove(name) {
@@ -593,6 +603,17 @@ Bree.threads = {
   resolve: threads.resolve,
   exit: threads.exit,
   cores: threads.cores
+};
+
+// plugins inspired by Dayjs
+Bree.extend = (plugin, options) => {
+  if (!plugin.$i) {
+    // install plugin only once
+    plugin(options, Bree);
+    plugin.$i = true;
+  }
+
+  return Bree;
 };
 
 module.exports = Bree;

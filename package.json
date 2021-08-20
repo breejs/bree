@@ -210,6 +210,7 @@
     ],
     "rules": {
       "capitalized-comments": "off",
+      "unicorn/catch-error-name": "off",
       "node/no-unsupported-features/node-builtins": [
         "error",
         {
