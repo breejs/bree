@@ -6,7 +6,7 @@ const combineErrors = require('combine-errors');
 const debug = require('debug')('bree');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
-const later = require('@breejs/later');
+const later = require('./later-tz-patch');
 const threads = require('bthreads');
 const { setTimeout, setInterval } = require('safe-timers');
 
@@ -44,6 +44,10 @@ class Bree extends EventEmitter {
       // Default interval for jobs
       // (set this to `0` for no interval, and > 0 for a default interval to be set)
       interval: 0,
+      // Default timezone for jobs
+      // Must be a IANA string (ie. 'America/New_York', 'EST', 'UTC', etc).
+      // To use the system specified timezone, set this to 'local' or 'system'.
+      timezone: 'local',
       // This is an Array of your job definitions (see README for examples)
       jobs: [],
       // <https://breejs.github.io/later/parsers.html#cron>
@@ -83,6 +87,16 @@ class Bree extends EventEmitter {
       outputWorkerMetadata: false,
       ...config
     };
+
+    // Validate timezone string
+    // `.toLocaleString()` will throw a `RangeError` if `timeZone` string
+    // is bogus or not supported by the environment.
+    if (
+      isSANB(this.config.timezone) &&
+      !['local', 'system'].includes(this.config.timezone)
+    ) {
+      new Date().toLocaleString('ia', { timeZone: this.config.timezone });
+    }
 
     //
     // if `hasSeconds` is `true` then ensure that
@@ -401,7 +415,8 @@ class Bree extends EventEmitter {
             debug('job.interval is schedule', job);
             this.intervals[name] = later.setInterval(
               () => this.run(name),
-              job.interval
+              job.interval,
+              job.timezone
             );
           } else if (Number.isFinite(job.interval) && job.interval > 0) {
             debug('job.interval is finite', job);
@@ -421,24 +436,29 @@ class Bree extends EventEmitter {
       // This is only complex because both timeout and interval can be a schedule
       if (this.isSchedule(job.timeout)) {
         debug('job timeout is schedule', job);
-        this.timeouts[name] = later.setTimeout(() => {
-          this.run(name);
-          if (this.isSchedule(job.interval)) {
-            debug('job.interval is schedule', job);
-            this.intervals[name] = later.setInterval(
-              () => this.run(name),
-              job.interval
-            );
-          } else if (Number.isFinite(job.interval) && job.interval > 0) {
-            debug('job.interval is finite', job);
-            this.intervals[name] = setInterval(
-              () => this.run(name),
-              job.interval
-            );
-          }
+        this.timeouts[name] = later.setTimeout(
+          () => {
+            this.run(name);
+            if (this.isSchedule(job.interval)) {
+              debug('job.interval is schedule', job);
+              this.intervals[name] = later.setInterval(
+                () => this.run(name),
+                job.interval,
+                job.timezone
+              );
+            } else if (Number.isFinite(job.interval) && job.interval > 0) {
+              debug('job.interval is finite', job);
+              this.intervals[name] = setInterval(
+                () => this.run(name),
+                job.interval
+              );
+            }
 
-          delete this.timeouts[name];
-        }, job.timeout);
+            delete this.timeouts[name];
+          },
+          job.timeout,
+          job.timezone
+        );
         return;
       }
 
@@ -451,7 +471,8 @@ class Bree extends EventEmitter {
             debug('job.interval is schedule', job);
             this.intervals[name] = later.setInterval(
               () => this.run(name),
-              job.interval
+              job.interval,
+              job.timezone
             );
           } else if (Number.isFinite(job.interval) && job.interval > 0) {
             debug('job.interval is finite', job.interval);
@@ -467,7 +488,8 @@ class Bree extends EventEmitter {
         debug('job.interval is schedule', job);
         this.intervals[name] = later.setInterval(
           () => this.run(name),
-          job.interval
+          job.interval,
+          job.timezone
         );
       } else if (Number.isFinite(job.interval) && job.interval > 0) {
         debug('job.interval is finite', job);

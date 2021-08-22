@@ -306,6 +306,16 @@ const validate = (job, i, names, config) => {
     );
   }
 
+  if (isSANB(job.timezone) && !['local', 'system'].includes(job.timezone)) {
+    try {
+      // `.toLocaleString()` will throw a `RangeError` if `timeZone` string
+      // is bogus or not supported by the environment.
+      new Date().toLocaleString('ia', { timeZone: job.timezone });
+    } catch (err) {
+      errors.push(err);
+    }
+  }
+
   if (errors.length > 0) {
     throw combineErrors(errors);
   }

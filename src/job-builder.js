@@ -17,24 +17,34 @@ const buildJob = (job, config) => {
         : `${job}.${config.defaultExtension}`
     );
 
-    return {
+    const jobObject = {
       name: job,
       path,
       timeout: config.timeout,
       interval: config.interval
     };
+    if (isSANB(config.timezone)) {
+      jobObject.timezone = config.timezone;
+    }
+
+    return jobObject;
   }
 
   if (typeof job === 'function') {
     const path = `(${job.toString()})()`;
 
-    return {
+    const jobObject = {
       name: job.name,
       path,
       worker: { eval: true },
       timeout: config.timeout,
       interval: config.interval
     };
+    if (isSANB(config.timezone)) {
+      jobObject.timezone = config.timezone;
+    }
+
+    return jobObject;
   }
 
   // Process job.path
@@ -117,6 +127,10 @@ const buildJob = (job, config) => {
     typeof job.date === 'undefined'
   ) {
     job.interval = config.interval;
+  }
+
+  if (isSANB(config.timezone)) {
+    job.timezone = config.timezone;
   }
 
   return job;
