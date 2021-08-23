@@ -311,8 +311,12 @@ const validate = (job, i, names, config) => {
       // `.toLocaleString()` will throw a `RangeError` if `timeZone` string
       // is bogus or not supported by the environment.
       new Date().toLocaleString('ia', { timeZone: job.timezone });
-    } catch (err) {
-      errors.push(err);
+    } catch {
+      errors.push(
+        new Error(
+          `${prefix} had an invalid or unsupported timezone specified: ${job.timezone}`
+        )
+      );
     }
   }
 
