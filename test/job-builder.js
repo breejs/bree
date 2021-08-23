@@ -160,3 +160,58 @@ test(
   { interval: 10 },
   { name: 'basic', path: `${root}/basic.js`, timeout: 0, interval: 10 }
 );
+
+test(
+  'job as file inherits timezone from config',
+  job,
+  'basic',
+  { timezone: 'local' },
+  {
+    timezone: 'local',
+    name: 'basic',
+    path: `${root}/basic.js`,
+    timeout: 0,
+    interval: 0
+  }
+);
+
+test(
+  'job as function inherits timezone from config',
+  job,
+  basic,
+  { timezone: 'local' },
+  {
+    timezone: 'local',
+    name: 'basic',
+    path: `(${basic.toString()})()`,
+    timeout: 0,
+    interval: 0,
+    worker: { eval: true }
+  }
+);
+
+test(
+  'job as object inherits timezone from config',
+  job,
+  { name: 'basic' },
+  { timezone: 'local' },
+  {
+    timezone: 'local',
+    name: 'basic',
+    path: `${root}/basic.js`,
+    timeout: 0
+  }
+);
+
+test(
+  'job as object retains its own timezone',
+  job,
+  { name: 'basic', timezone: 'America/New_York' },
+  { timezone: 'local' },
+  {
+    timezone: 'local',
+    name: 'basic',
+    path: `${root}/basic.js`,
+    timeout: 0
+  }
+);
