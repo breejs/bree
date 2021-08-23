@@ -481,3 +481,46 @@ test('throws if closeWorkerAfterMs is invalid', (t) => {
     }
   );
 });
+
+test('succeeds if job.timezone is valid', (t) => {
+  t.notThrows(() =>
+    jobValidator(
+      { name: 'basic', timezone: 'America/New_York' },
+      0,
+      ['exists'],
+      {
+        root,
+        defaultExtension: 'js'
+      }
+    )
+  );
+});
+
+test('accepts "local" and "system" as valid job.timezone options', (t) => {
+  t.notThrows(() =>
+    jobValidator({ name: 'basic', timezone: 'local' }, 0, ['exists'], {
+      root,
+      defaultExtension: 'js'
+    })
+  );
+  t.notThrows(() =>
+    jobValidator({ name: 'basic', timezone: 'system' }, 0, ['exists'], {
+      root,
+      defaultExtension: 'js'
+    })
+  );
+});
+
+test('throws if job.timezone is invalid or unsupported', (t) => {
+  t.throws(
+    () =>
+      jobValidator({ name: 'basic', timezone: 'bogus' }, 0, ['exists'], {
+        root,
+        defaultExtension: 'js'
+      }),
+    {
+      message:
+        'Job #1 named "basic" had an invalid or unsupported timezone specified: bogus'
+    }
+  );
+});
