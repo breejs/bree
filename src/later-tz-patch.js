@@ -16,15 +16,38 @@ later.setTimeout = (fn, sched, timezone) => {
         return s.next(2, now);
       }
 
-      const offsetHours = (date
+      // Get specified timezone's UTC offset
+      const offsetTime = date
         .toLocaleString('ia', { timeZone: timezone, timeZoneName: 'short' })
-        .match(/[+-]\d+$/) || ['0'])[0];
-      const offsetMillis = Number(offsetHours) * 60 * 6e4;
-      const adjustedNow = new Date(now + offsetMillis);
+        .match(/([+-])(\d+):?(\d*)$/) || ['0'];
+      // convert time to milliseconds and negate
+      // for convenience ie. +5:30 => -19800000
+      const offsetMillis = -Number(
+        offsetTime[1] +
+          (Number(offsetTime[2]) * 36e5 + Number(offsetTime[3]) * 6e4)
+      );
 
-      return s.next(2, adjustedNow).map((time) => {
-        const schedMillis = new Date(time).getTime();
-        const adjustedMillis = schedMillis + offsetMillis;
+      // The number of minutes returned by getTimezoneOffset() is positive if the local
+      // time zone is behind UTC, and negative if the local time zone is ahead of UTC.
+      // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset#negative_values_and_positive_values
+      const localOffsetMillis = date.getTimezoneOffset() * 6e4;
+
+      // Specified timezone has the same offset as local timezone.
+      // ie. datetime = 2021-08-22T11:30:00.000-04:00 => America/Nassau
+      //     zone     = America/New_York => 2021-08-22T11:30:00.000-04:00
+      if (offsetMillis === localOffsetMillis) {
+        return s.next(2, now);
+      }
+
+      // Offsets differ, adjust current time to match what
+      // it should've been for the specified timezone.
+      const adjustedNow = new Date(now + localOffsetMillis - offsetMillis);
+      return (s.next(2, adjustedNow) || []).map((time) => {
+        // adjust scheduled times to match their intended timezone
+        // ie. scheduled = 2021-08-22T11:30:00.000-04:00 => America/New_York
+        //     intended  = 2021-08-22T11:30:00.000-05:00 => America/Mexico_City
+        const schedMillis = time.getTime();
+        const adjustedMillis = schedMillis + offsetMillis - localOffsetMillis;
         return new Date(adjustedMillis);
       });
     })();
