@@ -386,7 +386,9 @@ test('does not set interval if interval is 0', async (t) => {
   await bree.stop();
 });
 
-test('uses job.timezone to schedule a job', (t) => {
+test.serial('uses job.timezone to schedule a job', (t) => {
+  t.plan(3);
+
   const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
 
   const clock = FakeTimers.install({
@@ -418,8 +420,7 @@ test('uses job.timezone to schedule a job', (t) => {
     ]
   });
 
-  const setTimeout_og = global.setTimeout;
-  global.setTimeout = (fn, ms) => {
+  clock.setTimeout = (fn, ms) => {
     t.is(ms, 36e5);
   };
 
@@ -427,12 +428,12 @@ test('uses job.timezone to schedule a job', (t) => {
   bree.start('tz_interval');
   bree.start('tz_timeout');
 
-  // reset
-  global.setTimeout = setTimeout_og;
   clock.uninstall();
 });
 
-test('uses default timezone to schedule a job', (t) => {
+test.serial('uses default timezone to schedule a job', (t) => {
+  t.plan(6);
+
   const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
 
   const clock = FakeTimers.install({
@@ -464,8 +465,7 @@ test('uses default timezone to schedule a job', (t) => {
 
   bree.config.jobs.forEach((job) => t.is(job.timezone, 'America/Mexico_City'));
 
-  const setTimeout_og = global.setTimeout;
-  global.setTimeout = (fn, ms) => {
+  clock.setTimeout = (fn, ms) => {
     t.is(ms, 18e5);
   };
 
@@ -473,7 +473,5 @@ test('uses default timezone to schedule a job', (t) => {
   bree.start('tz_interval');
   bree.start('tz_timeout');
 
-  // reset
-  global.setTimeout = setTimeout_og;
   clock.uninstall();
 });

@@ -35,104 +35,107 @@ test('.setTimeout() throws RangeError when given an invalid or unsupported timez
   );
 });
 
-test('.setTimeout() adjusts scheduled time if the local timezone is ahead of the one specified', (t) => {
-  const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
-  const timezone = 'America/Mexico_City'; // time now = 2021-08-22T09:30:00.000-05:00
-  const msHalfHour = 36e5 / 2;
+test.serial(
+  '.setTimeout() adjusts scheduled time if the local timezone is ahead of the one specified',
+  (t) => {
+    t.plan(1);
 
-  // Run half hour later.
-  // Intended datetime: 2021-08-22T10:00:00.000-05:00
-  // But instead, we don't specify timezone here
-  const intendedDatetime = '2021-08-22T10:00:00.000';
-  // And so, `new Date()` will use it's local timezone:
-  // Assumed datetime: 2021-08-22T10:00:00.000-05:00
-  const assumedTimezone = '-04:00';
-  const s = later.parse
-    .recur()
-    .on(new Date(intendedDatetime + assumedTimezone))
-    .fullDate();
+    const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
+    const timezone = 'America/Mexico_City'; // time now = 2021-08-22T09:30:00.000-05:00
+    const msHalfHour = 36e5 / 2;
 
-  const clock = FakeTimers.install({
-    now: datetimeNow.getTime()
-  });
+    // Run half hour later.
+    // Intended datetime: 2021-08-22T10:00:00.000-05:00
+    // But instead, we don't specify timezone here
+    const intendedDatetime = '2021-08-22T10:00:00.000';
+    // And so, `new Date()` will use it's local timezone:
+    // Assumed datetime: 2021-08-22T10:00:00.000-05:00
+    const assumedTimezone = '-04:00';
+    const s = later.parse
+      .recur()
+      .on(new Date(intendedDatetime + assumedTimezone))
+      .fullDate();
 
-  // hijack `setTimeout()` to test `timeout` param
-  const setTimeout_og = global.setTimeout;
-  global.setTimeout = (fn, ms) => {
-    // Time now: 2021-08-22T09:30:00.000-05:00
-    // Intended run time: 2021-08-22T10:00:00.000-05:00
-    t.is(ms, msHalfHour);
-  };
+    const clock = FakeTimers.install({
+      now: datetimeNow.getTime()
+    });
 
-  later.setTimeout(noop, s, timezone);
+    clock.setTimeout = (fn, ms) => {
+      // Time now: 2021-08-22T09:30:00.000-05:00
+      // Intended run time: 2021-08-22T10:00:00.000-05:00
+      t.is(ms, msHalfHour);
+    };
 
-  // reset
-  global.setTimeout = setTimeout_og;
-  clock.uninstall();
-});
+    later.setTimeout(noop, s, timezone);
 
-test('.setTimeout() adjusts scheduled time if the local timezone is behind of the one specified', (t) => {
-  const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
-  const timezone = 'Europe/Athens'; // time now = 2021-08-22T17:30:00.000+03:00
-  const msHalfHour = 36e5 / 2;
+    clock.uninstall();
+  }
+);
 
-  // Run half hour later.
-  // Intended datetime: 2021-08-22T18:00:00.000-05:00
-  // But instead, we don't specify timezone here
-  const intendedDatetime = '2021-08-22T18:00:00.000';
-  // And so, `new Date()` will use it's local timezone:
-  // Assumed datetime: 2021-08-22T18:00:00.000-05:00
-  const assumedTimezone = '-04:00';
-  const s = later.parse
-    .recur()
-    .on(new Date(intendedDatetime + assumedTimezone))
-    .fullDate();
+test.serial(
+  '.setTimeout() adjusts scheduled time if the local timezone is behind of the one specified',
+  (t) => {
+    t.plan(1);
 
-  const clock = FakeTimers.install({
-    now: datetimeNow.getTime()
-  });
+    const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
+    const timezone = 'Europe/Athens'; // time now = 2021-08-22T17:30:00.000+03:00
+    const msHalfHour = 36e5 / 2;
 
-  // hijack `setTimeout()` to test `timeout` param
-  const setTimeout_og = global.setTimeout;
-  global.setTimeout = (fn, ms) => {
-    // Time now: 2021-08-22T09:30:00.000-05:00
-    // Intended run time: 2021-08-22T10:00:00.000-05:00
-    t.is(ms, msHalfHour);
-  };
+    // Run half hour later.
+    // Intended datetime: 2021-08-22T18:00:00.000-05:00
+    // But instead, we don't specify timezone here
+    const intendedDatetime = '2021-08-22T18:00:00.000';
+    // And so, `new Date()` will use it's local timezone:
+    // Assumed datetime: 2021-08-22T18:00:00.000-05:00
+    const assumedTimezone = '-04:00';
+    const s = later.parse
+      .recur()
+      .on(new Date(intendedDatetime + assumedTimezone))
+      .fullDate();
 
-  later.setTimeout(noop, s, timezone);
+    const clock = FakeTimers.install({
+      now: datetimeNow.getTime()
+    });
 
-  // reset
-  global.setTimeout = setTimeout_og;
-  clock.uninstall();
-});
+    clock.setTimeout = (fn, ms) => {
+      // Time now: 2021-08-22T09:30:00.000-05:00
+      // Intended run time: 2021-08-22T10:00:00.000-05:00
+      t.is(ms, msHalfHour);
+    };
 
-test('.setTimeout() does not adjust time if specified and local timezones are the same', (t) => {
-  const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
-  const timezone = 'America/New_York';
-  const msOneHour = 36e5;
+    later.setTimeout(noop, s, timezone);
 
-  // Intended run time is one hour later: 2021-08-22 at 11:30, New York time
-  const intendedRunTime = '2021-08-22T11:30:00.000-04:00';
+    clock.uninstall();
+  }
+);
 
-  const s = later.parse.recur().on(new Date(intendedRunTime)).fullDate();
+test.serial(
+  '.setTimeout() does not adjust time if specified and local timezones are the same',
+  (t) => {
+    t.plan(1);
 
-  const clock = FakeTimers.install({
-    now: datetimeNow.getTime()
-  });
+    const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
+    const timezone = 'America/New_York';
+    const msOneHour = 36e5;
 
-  // hijack `setTimeout()` to test `timeout` param
-  const setTimeout_og = global.setTimeout;
-  global.setTimeout = (fn, ms) => {
-    // intended time
-    // America/Mexico_City => 2021-08-22T11:30:00.000-05:00
-    // America/New_York => 2021-08-22T12:30:00.000-04:00
-    t.is(ms, msOneHour);
-  };
+    // Intended run time is one hour later: 2021-08-22 at 11:30, New York time
+    const intendedRunTime = '2021-08-22T11:30:00.000-04:00';
 
-  later.setTimeout(noop, s, timezone);
+    const s = later.parse.recur().on(new Date(intendedRunTime)).fullDate();
 
-  // reset
-  global.setTimeout = setTimeout_og;
-  clock.uninstall();
-});
+    const clock = FakeTimers.install({
+      now: datetimeNow.getTime()
+    });
+
+    clock.setTimeout = (fn, ms) => {
+      // intended time
+      // America/Mexico_City => 2021-08-22T11:30:00.000-05:00
+      // America/New_York => 2021-08-22T12:30:00.000-04:00
+      t.is(ms, msOneHour);
+    };
+
+    later.setTimeout(noop, s, timezone);
+
+    clock.uninstall();
+  }
+);
