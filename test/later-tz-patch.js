@@ -42,14 +42,14 @@ test.serial(
 
     const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
     const timezone = 'America/Mexico_City'; // time now = 2021-08-22T09:30:00.000-05:00
-    const msHalfHour = 36e5 / 2;
+    const msHalfHour = 18e5;
 
     // Run half hour later.
     // Intended datetime: 2021-08-22T10:00:00.000-05:00
     // But instead, we don't specify timezone here
     const intendedDatetime = '2021-08-22T10:00:00.000';
     // And so, `new Date()` will use it's local timezone:
-    // Assumed datetime: 2021-08-22T10:00:00.000-05:00
+    // Assumed datetime: 2021-08-22T10:00:00.000-04:00
     const assumedTimezone = '-04:00';
     const s = later.parse
       .recur()
@@ -59,10 +59,9 @@ test.serial(
     const clock = FakeTimers.install({
       now: datetimeNow.getTime()
     });
+    clock.Date.prototype.getTimezoneOffset = () => 240;
 
     clock.setTimeout = (fn, ms) => {
-      // Time now: 2021-08-22T09:30:00.000-05:00
-      // Intended run time: 2021-08-22T10:00:00.000-05:00
       t.is(ms, msHalfHour);
     };
 
@@ -79,14 +78,14 @@ test.serial(
 
     const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
     const timezone = 'Europe/Athens'; // time now = 2021-08-22T17:30:00.000+03:00
-    const msHalfHour = 36e5 / 2;
+    const msHalfHour = 18e5;
 
     // Run half hour later.
-    // Intended datetime: 2021-08-22T18:00:00.000-05:00
+    // Intended datetime: 2021-08-22T18:00:00.000+03:00
     // But instead, we don't specify timezone here
     const intendedDatetime = '2021-08-22T18:00:00.000';
     // And so, `new Date()` will use it's local timezone:
-    // Assumed datetime: 2021-08-22T18:00:00.000-05:00
+    // Assumed datetime: 2021-08-22T18:00:00.000-04:00
     const assumedTimezone = '-04:00';
     const s = later.parse
       .recur()
@@ -96,10 +95,9 @@ test.serial(
     const clock = FakeTimers.install({
       now: datetimeNow.getTime()
     });
+    clock.Date.prototype.getTimezoneOffset = () => 240;
 
     clock.setTimeout = (fn, ms) => {
-      // Time now: 2021-08-22T09:30:00.000-05:00
-      // Intended run time: 2021-08-22T10:00:00.000-05:00
       t.is(ms, msHalfHour);
     };
 
@@ -126,11 +124,9 @@ test.serial(
     const clock = FakeTimers.install({
       now: datetimeNow.getTime()
     });
+    clock.Date.prototype.getTimezoneOffset = () => 240;
 
     clock.setTimeout = (fn, ms) => {
-      // intended time
-      // America/Mexico_City => 2021-08-22T11:30:00.000-05:00
-      // America/New_York => 2021-08-22T12:30:00.000-04:00
       t.is(ms, msOneHour);
     };
 
