@@ -127,7 +127,6 @@ test('.setTimeout() does not adjust time if specified and local timezones are th
     // intended time
     // America/Mexico_City => 2021-08-22T11:30:00.000-05:00
     // America/New_York => 2021-08-22T12:30:00.000-04:00
-    //
     t.is(ms, msOneHour);
   };
 

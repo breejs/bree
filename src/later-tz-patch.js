@@ -16,6 +16,11 @@ later.setTimeout = (fn, sched, timezone) => {
         return s.next(2, now);
       }
 
+      // The number of minutes returned by getTimezoneOffset() is positive if the local
+      // time zone is behind UTC, and negative if the local time zone is ahead of UTC.
+      // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset#negative_values_and_positive_values
+      const localOffsetMillis = date.getTimezoneOffset() * 6e4;
+
       // Get specified timezone's UTC offset
       const offsetTime = date
         .toLocaleString('ia', { timeZone: timezone, timeZoneName: 'short' })
@@ -26,11 +31,6 @@ later.setTimeout = (fn, sched, timezone) => {
         offsetTime[1] +
           (Number(offsetTime[2]) * 36e5 + Number(offsetTime[3]) * 6e4)
       );
-
-      // The number of minutes returned by getTimezoneOffset() is positive if the local
-      // time zone is behind UTC, and negative if the local time zone is ahead of UTC.
-      // Ref: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/getTimezoneOffset#negative_values_and_positive_values
-      const localOffsetMillis = date.getTimezoneOffset() * 6e4;
 
       // Specified timezone has the same offset as local timezone.
       // ie. datetime = 2021-08-22T11:30:00.000-04:00 => America/Nassau
