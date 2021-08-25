@@ -1,3 +1,4 @@
+const FakeTimers = require('@sinonjs/fake-timers');
 const path = require('path');
 const { once } = require('events');
 
@@ -8,6 +9,10 @@ const later = require('@breejs/later');
 const delay = require('delay');
 
 const root = path.join(__dirname, 'jobs');
+
+const noop = () => {
+  /* noop */
+};
 
 test('throws error if job does not exist', (t) => {
   const bree = new Bree({
@@ -379,4 +384,96 @@ test('does not set interval if interval is 0', async (t) => {
   t.is(typeof bree.intervals.infinite, 'undefined');
 
   await bree.stop();
+});
+
+test('uses job.timezone to schedule a job', (t) => {
+  const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
+
+  const clock = FakeTimers.install({
+    now: datetimeNow.getTime()
+  });
+
+  const bree = new Bree({
+    root,
+    jobs: [
+      // todo: job.date
+      {
+        name: 'tz_cron',
+        path: noop,
+        timezone: 'America/Mexico_City',
+        cron: '30 10 * * *'
+      },
+      {
+        name: 'tz_interval',
+        path: noop,
+        timezone: 'Europe/Athens',
+        interval: later.parse.cron('30 18 * * *')
+      },
+      {
+        name: 'tz_timeout',
+        path: noop,
+        timezone: 'Australia/Canberra',
+        timeout: later.parse.cron('30 1 * * *')
+      }
+    ]
+  });
+
+  const setTimeout_og = global.setTimeout;
+  global.setTimeout = (fn, ms) => {
+    t.is(ms, 36e5);
+  };
+
+  bree.start('tz_cron');
+  bree.start('tz_interval');
+  bree.start('tz_timeout');
+
+  // reset
+  global.setTimeout = setTimeout_og;
+  clock.uninstall();
+});
+
+test('uses default timezone to schedule a job', (t) => {
+  const datetimeNow = new Date('2021-08-22T10:30:00.000-04:00'); // zone = America/New_York
+
+  const clock = FakeTimers.install({
+    now: datetimeNow.getTime()
+  });
+
+  const bree = new Bree({
+    timezone: 'America/Mexico_City',
+    root,
+    jobs: [
+      // todo: job.date
+      {
+        name: 'tz_cron',
+        path: noop,
+        cron: '0 10 * * *'
+      },
+      {
+        name: 'tz_interval',
+        path: noop,
+        interval: later.parse.cron('0 10 * * *')
+      },
+      {
+        name: 'tz_timeout',
+        path: noop,
+        timeout: later.parse.cron('0 10 * * *')
+      }
+    ]
+  });
+
+  bree.config.jobs.forEach((job) => t.is(job.timezone, 'America/Mexico_City'));
+
+  const setTimeout_og = global.setTimeout;
+  global.setTimeout = (fn, ms) => {
+    t.is(ms, 18e5);
+  };
+
+  bree.start('tz_cron');
+  bree.start('tz_interval');
+  bree.start('tz_timeout');
+
+  // reset
+  global.setTimeout = setTimeout_og;
+  clock.uninstall();
 });
