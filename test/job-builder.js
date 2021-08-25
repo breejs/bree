@@ -209,7 +209,7 @@ test(
   { name: 'basic', timezone: 'America/New_York' },
   { timezone: 'local' },
   {
-    timezone: 'local',
+    timezone: 'America/New_York',
     name: 'basic',
     path: `${root}/basic.js`,
     timeout: 0

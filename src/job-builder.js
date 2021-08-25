@@ -2,7 +2,7 @@ const { join } = require('path');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const { boolean } = require('boolean');
-const later = require('@breejs/later');
+const later = require('./later-tz-patch');
 const { isSchedule, parseValue } = require('./job-utils');
 
 later.date.localTime();
@@ -129,7 +129,7 @@ const buildJob = (job, config) => {
     job.interval = config.interval;
   }
 
-  if (isSANB(config.timezone)) {
+  if (isSANB(config.timezone) && !job.timezone) {
     job.timezone = config.timezone;
   }
 
