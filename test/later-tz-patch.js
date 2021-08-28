@@ -29,8 +29,7 @@ test('.setTimeout() throws RangeError when given an invalid or unsupported timez
       later.setTimeout(() => t.pass(), s, 'bogus_zone');
     },
     {
-      name: 'RangeError',
-      message: 'Invalid time zone specified: bogus_zone'
+      name: 'RangeError'
     }
   );
 });
