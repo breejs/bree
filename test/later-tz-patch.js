@@ -134,3 +134,95 @@ test.serial(
     clock.uninstall();
   }
 );
+
+test.serial(
+  '.setTimeout() should not execute a far out schedule immediately',
+  (t) => {
+    t.plan(3);
+
+    const s = later.parse.recur().on(2017).year();
+    const clock = FakeTimers.install({ now: Date.now() });
+    clock.setTimeout = () => t.true(false);
+
+    const timeout = later.setTimeout(noop, s);
+
+    t.not(timeout.isDone, undefined);
+    t.not(timeout.clear, undefined);
+    t.is(timeout.isDone(), true);
+
+    clock.uninstall();
+  }
+);
+
+test.serial('.setTimeout() minimum time to fire is one second', (t) => {
+  t.plan(4);
+
+  const now = new Date('2021-08-22T10:30:00.000-04:00').getTime();
+  const s = later.parse
+    .recur()
+    .on(new Date(now + 250))
+    .fullDate();
+
+  const clock = FakeTimers.install({ now });
+  clock.setTimeout = (fn, ms) => t.is(ms, 1000);
+
+  const timeout = later.setTimeout(noop, s);
+
+  t.not(timeout.isDone, undefined);
+  t.not(timeout.clear, undefined);
+  t.is(timeout.isDone(), true);
+
+  clock.uninstall();
+});
+
+test.serial('.setTimeout() should reschedule if more than ~24days', (t) => {
+  t.plan(5);
+
+  const now = new Date('2021-08-22T10:30:00.000-04:00').getTime();
+  const s = later.parse
+    .recur()
+    .on(new Date(now + 36e5 * 24 * 30))
+    .fullDate();
+
+  const clock = FakeTimers.install({ now });
+  clock.setTimeout = (fn, ms) => {
+    t.is(ms, 2147483647);
+    t.is(fn.name, 'scheduleTimeout');
+  };
+
+  const timeout = later.setTimeout(noop, s);
+
+  t.not(timeout.isDone, undefined);
+  t.not(timeout.clear, undefined);
+  t.is(timeout.isDone(), true);
+
+  clock.uninstall();
+});
+
+test('.setTimeout() should not throw if no callback is specified', (t) => {
+  t.plan(1);
+
+  const s = later.parse.recur().on(2017).year();
+  t.notThrows(() => later.setTimeout(undefined, s));
+});
+
+test('.setInterval() should not throw if no callback is specified', (t) => {
+  t.plan(1);
+
+  t.notThrows(() => later.setInterval(undefined));
+});
+
+test.serial('.setInterval() should not execute an older schedule', (t) => {
+  t.plan(3);
+
+  const s = later.parse.recur().on(2017).year();
+  const clock = FakeTimers.install({ now: Date.now() });
+  clock.setTimeout = () => t.true(false);
+  const interval = later.setInterval(noop, s);
+
+  t.not(interval.isDone, undefined);
+  t.not(interval.clear, undefined);
+  t.is(interval.isDone(), true);
+
+  clock.uninstall();
+});
