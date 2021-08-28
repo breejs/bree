@@ -9,10 +9,12 @@ function getOffset(date, zone) {
     }) //=> ie. "8/22/2021, 24:30:00 EDT"
     .match(/(\d+)\/(\d+)\/(\d+),? (\d+):(\d+):(\d+)/)
     .map((n) => (n.length === 1 ? '0' + n : n));
+
   const zdate = new Date(
-    `${yr}-${m}-${d}T${hr.replace('24', '00')}:${min}:${s}`
+    `${yr}-${m}-${d}T${hr.replace('24', '00')}:${min}:${s}Z`
   );
-  return date.getTime() - zdate.getTime() + date.getTimezoneOffset() * 6e4;
+
+  return date.getTime() - zdate.getTime();
 } // getOffset()
 
 later.setTimeout = (fn, sched, timezone) => {
