@@ -77,6 +77,26 @@ test('job terminates before closeWorkerAfterMs', async (t) => {
   t.is(code, 2);
 });
 
+test('job terminates should clear closeWorkerAfterMs', async (t) => {
+  const logger = {};
+  logger.info = () => {};
+  logger.error = () => {};
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'short', closeWorkerAfterMs: 2000 }],
+    logger
+  });
+
+  bree.run('short');
+  await once(bree.workers.short, 'online');
+  t.true(typeof bree.closeWorkerAfterMs.short === 'object');
+
+  const [code] = await once(bree.workers.short, 'exit');
+  t.is(code, 2);
+  t.true(typeof bree.closeWorkerAfterMs.short !== 'object');
+});
+
 test('job terminates on message "done"', async (t) => {
   const logger = {};
   logger.info = () => {};
@@ -97,6 +117,30 @@ test('job terminates on message "done"', async (t) => {
 
   await delay(100);
   t.is(typeof bree.workers.done, 'undefined');
+});
+
+test('job terminates on message "done" should clear closeWorkerAfterMs', async (t) => {
+  const logger = {};
+  logger.info = () => {};
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'done', closeWorkerAfterMs: 2000 }],
+    logger
+  });
+
+  bree.run('done');
+
+  await delay(1);
+
+  t.is(typeof bree.workers.done, 'object');
+  const [message] = await once(bree.workers.done, 'message');
+  t.is(message, 'get ready');
+  t.true(typeof bree.closeWorkerAfterMs.done === 'object');
+
+  await delay(100);
+  t.is(typeof bree.workers.done, 'undefined');
+  t.true(typeof bree.closeWorkerAfterMs.done !== 'object');
 });
 
 test('job sent a message', async (t) => {
