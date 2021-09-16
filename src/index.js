@@ -119,6 +119,7 @@ class Bree extends EventEmitter {
     this.stop = this.stop.bind(this);
     this.add = this.add.bind(this);
     this.remove = this.remove.bind(this);
+    this.removeSafeTimer = this.removeSafeTimer.bind(this);
 
     this.validateJob = validateJob;
     this.getName = getName;
@@ -312,6 +313,9 @@ class Bree extends EventEmitter {
           this.workers[name].removeAllListeners('exit');
           this.workers[name].terminate();
           delete this.workers[name];
+
+          // remove closeWorkerAfterMs if exist
+          this.removeSafeTimer('closeWorkerAfterMs', name);
         }
       });
       // NOTE: you cannot catch messageerror since it is a Node internal
@@ -361,6 +365,10 @@ class Bree extends EventEmitter {
         }
 
         delete this.workers[name];
+
+        // remove closeWorkerAfterMs if exist
+        this.removeSafeTimer('closeWorkerAfterMs', name);
+
         this.emit('worker deleted', name);
       });
       return;
@@ -484,27 +492,8 @@ class Bree extends EventEmitter {
 
   async stop(name) {
     if (name) {
-      if (this.timeouts[name]) {
-        if (
-          typeof this.timeouts[name] === 'object' &&
-          typeof this.timeouts[name].clear === 'function'
-        ) {
-          this.timeouts[name].clear();
-        }
-
-        delete this.timeouts[name];
-      }
-
-      if (this.intervals[name]) {
-        if (
-          typeof this.intervals[name] === 'object' &&
-          typeof this.intervals[name].clear === 'function'
-        ) {
-          this.intervals[name].clear();
-        }
-
-        delete this.intervals[name];
-      }
+      this.removeSafeTimer('timeouts', name);
+      this.removeSafeTimer('intervals', name);
 
       if (this.workers[name]) {
         this.workers[name].once('message', (message) => {
@@ -519,16 +508,7 @@ class Bree extends EventEmitter {
         this.workers[name].postMessage('cancel');
       }
 
-      if (this.closeWorkerAfterMs[name]) {
-        if (
-          typeof this.closeWorkerAfterMs[name] === 'object' &&
-          typeof this.closeWorkerAfterMs[name].clear === 'function'
-        ) {
-          this.closeWorkerAfterMs[name].clear();
-        }
-
-        delete this.closeWorkerAfterMs[name];
-      }
+      this.removeSafeTimer('closeWorkerAfterMs', name);
 
       return pWaitFor(() => this.workers[name] === undefined);
     }
@@ -588,6 +568,24 @@ class Bree extends EventEmitter {
     await this.stop(name);
 
     this.config.jobs = this.config.jobs.filter((j) => j.name !== name);
+  }
+
+  /**
+   * A friendly helper to clear safe-timers timeout and interval
+   * @param {string} type
+   * @param {string} name
+   */
+  removeSafeTimer(type, name) {
+    if (this[type][name]) {
+      if (
+        typeof this[type][name] === 'object' &&
+        typeof this[type][name].clear === 'function'
+      ) {
+        this[type][name].clear();
+      }
+
+      delete this[type][name];
+    }
   }
 }
 
