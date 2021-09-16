@@ -328,7 +328,7 @@ class Bree extends EventEmitter {
           delete this.workers[name];
 
           // remove closeWorkerAfterMs if exist
-          removeSafeTimer(this, 'closeWorkerAfterMs', name);
+          this.removeSafeTimer('closeWorkerAfterMs', name);
         }
       });
       // NOTE: you cannot catch messageerror since it is a Node internal
@@ -380,7 +380,7 @@ class Bree extends EventEmitter {
         delete this.workers[name];
 
         // remove closeWorkerAfterMs if exist
-        removeSafeTimer(this, 'closeWorkerAfterMs', name);
+        this.removeSafeTimer('closeWorkerAfterMs', name);
 
         this.emit('worker deleted', name);
       });
@@ -513,8 +513,8 @@ class Bree extends EventEmitter {
 
   async stop(name) {
     if (name) {
-      removeSafeTimer(this, 'timeouts', name);
-      removeSafeTimer(this, 'intervals', name);
+      this.removeSafeTimer('timeouts', name);
+      this.removeSafeTimer('intervals', name);
 
       if (this.workers[name]) {
         this.workers[name].once('message', (message) => {
@@ -529,7 +529,7 @@ class Bree extends EventEmitter {
         this.workers[name].postMessage('cancel');
       }
 
-      removeSafeTimer(this, 'closeWorkerAfterMs', name);
+      this.removeSafeTimer('closeWorkerAfterMs', name);
 
       return pWaitFor(() => this.workers[name] === undefined);
     }
@@ -590,24 +590,23 @@ class Bree extends EventEmitter {
 
     this.config.jobs = this.config.jobs.filter((j) => j.name !== name);
   }
-}
 
-/**
- * A friendly helper to clear safe-timers timeout and interval
- * @param {Bree} bree
- * @param {string} type
- * @param {string} name
- */
-function removeSafeTimer(bree, type, name) {
-  if (bree[type][name]) {
-    if (
-      typeof bree[type][name] === 'object' &&
-      typeof bree[type][name].clear === 'function'
-    ) {
-      bree[type][name].clear();
+  /**
+   * A friendly helper to clear safe-timers timeout and interval
+   * @param {string} type
+   * @param {string} name
+   */
+  removeSafeTimer(type, name) {
+    if (this[type][name]) {
+      if (
+        typeof this[type][name] === 'object' &&
+        typeof this[type][name].clear === 'function'
+      ) {
+        this[type][name].clear();
+      }
+
+      delete this[type][name];
     }
-
-    delete bree[type][name];
   }
 }
 
