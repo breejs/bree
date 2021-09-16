@@ -133,6 +133,7 @@ class Bree extends EventEmitter {
     this.stop = this.stop.bind(this);
     this.add = this.add.bind(this);
     this.remove = this.remove.bind(this);
+    this.removeSafeTimer = this.removeSafeTimer.bind(this);
 
     this.validateJob = validateJob;
     this.getName = getName;
