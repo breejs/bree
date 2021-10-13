@@ -106,7 +106,7 @@ We have also documented all [Instance Options](#instance-options) and [Job Optio
 
 ### Node
 
-Since we use [bthreads][], Node v10+ is supported. For versions prior to Node v11.7.0, a ponyfill is provided for [workers][] that uses `child_process`.  For versions greater than or equal to Node v11.7.0, it uses [workers][] directly.  You can also pass `--experimental-worker` flag for older versions to use `worker_threads` (instead of the `child_process` polyfill).  See the official Node.js documentation for more information.
+Since we use [bthreads][], Node v10+ is supported. For versions prior to Node v11.7.0, a polyfill is provided for [workers][] that uses `child_process`.  For versions greater than or equal to Node v11.7.0, it uses [workers][] directly.  You can also pass `--experimental-worker` flag for older versions to use `worker_threads` (instead of the `child_process` polyfill).  See the official Node.js documentation for more information.
 
 > **NOTE:** If you are using Node versions prior to Node v11.7.0, then in your worker files – you will need to use [bthreads][] instead of [workers][].  For example, you will `const thread = require('bthreads');` at the top of your file, instead of requiring `worker_threads`.  This will also require you to install `bthreads` in your project with `npm install bthreads` or `yarn add bthreads`.
 
