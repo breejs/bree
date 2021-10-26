@@ -28,7 +28,7 @@
   ],
   "dependencies": {
     "@babel/runtime": "^7.12.5",
-    "@breejs/later": "^4.0.2",
+    "@breejs/later": "^4.1.0",
     "boolean": "^3.0.2",
     "bthreads": "^0.5.1",
     "combine-errors": "^3.0.3",

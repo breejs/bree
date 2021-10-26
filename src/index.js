@@ -6,7 +6,7 @@ const combineErrors = require('combine-errors');
 const debug = require('debug')('bree');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
-const later = require('./later-tz-patch');
+const later = require('@breejs/later');
 const threads = require('bthreads');
 const { setTimeout, setInterval } = require('safe-timers');
 

@@ -2,7 +2,7 @@ const { join } = require('path');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const { boolean } = require('boolean');
-const later = require('./later-tz-patch');
+const later = require('@breejs/later');
 const { isSchedule, parseValue } = require('./job-utils');
 
 later.date.localTime();
