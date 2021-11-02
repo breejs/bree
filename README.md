@@ -182,7 +182,10 @@ const bree = new Bree({
     // runs `./jobs/worker-4.js` at 10:15am every weekday
     {
       name: 'worker-4',
-      cron: '15 10 ? * *'
+      cron: '15 10 ? * *',
+      cronValidate: {
+        useBlankDay: true
+      }
     },
 
     // runs `./jobs/worker-5.js` on after 10 minutes have elapsed
@@ -228,7 +231,10 @@ const bree = new Bree({
     // runs `./jobs/worker-11.js` at midnight on the last day of month
     {
       name: 'worker-11',
-      cron: '0 0 L * *'
+      cron: '0 0 L * *',
+      cronValidate: {
+        useLastDayOfMonth: true
+      }
     },
 
     // runs `./jobs/worker-12.js` at a specific Date (e.g. in 3 days)

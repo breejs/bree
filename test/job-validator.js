@@ -97,7 +97,7 @@ test("prefers job's cronValidate configuration", (t) => {
   t.deepEqual(returned, expected);
 });
 
-test("prefers confg's cronValidate if none in job configuration", (t) => {
+test("prefers config's cronValidate if none in job configuration", (t) => {
   const job = {};
 
   const config = {
@@ -311,6 +311,20 @@ test('does not throw for valid cron without seconds', (t) => {
     jobValidator({ name: 'basic', cron: '* * * * *' }, 0, ['exists'], {
       root,
       defaultExtension: 'js'
+    })
+  );
+});
+
+test('does not throw for valid cron with "L" in week', (t) => {
+  t.notThrows(() =>
+    jobValidator({ name: 'basic', cron: '* * * L *' }, 0, ['exists'], {
+      root,
+      defaultExtension: 'js',
+      cronValidate: {
+        override: {
+          useLastDayOfWeek: true
+        }
+      }
     })
   );
 });
