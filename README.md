@@ -768,47 +768,7 @@ Note that you cannot pass a built-in nor bound function.
 
 ## Typescript Usage
 
-As is mentioned in this issue: [#24](https://github.com/breejs/bree/issues/24) and thanks to @ChrisEdgington.  You can use typescript workers as:
-
-Create a function that will process the path:
-
-```js
-function typescript_worker() {
-    const path = require('path')
-    require('ts-node').register()
-    const workerData = require('worker_threads').workerData
-    require(path.resolve(__dirname, workerData.__filename))
-}
-```
-
-Then use the function as path (see [Using functions for jobs](#using-functions-for-jobs)), and pass the path to your ts job file:
-
-```js
-{
-    name: 'Typescript Worker',
-    path: typescript_worker,
-    interval: 'every 10 seconds',
-    worker: { workerData: { __filename: './src/job_specific_filename_worker.ts' } }
-}
-```
-
-Additionally for supporting using ts on development and js on production you can make something like or whatever similar:
-
-```js
-  ...(CRON_MODE === 'ts'
-      ? {
-            path: typescript_worker,
-            worker: {
-                workerData: {
-                    __filename: path.join(paths.jobs, `${jobPath}.ts`)
-                }
-            }
-        }
-      : {
-            path: path.join(paths.jobs, `${jobPath}.js`)
-        })
-```
-
+Please see the [@breejs/ts-worker](https://github.com/breejs/ts-worker) plugin.
 
 ## Concurrency
 
@@ -832,7 +792,8 @@ Bree.extend(plugin, options);
 
 ### Available Plugins
 
-Coming Soon...
+* [API](https://github.com/breejs/api)
+* [TypeScript Worker](https://github.com/breejs/ts-worker)
 
 ### Creating plugins for Bree
 
@@ -841,7 +802,6 @@ Plugins should be a function that recieves an `options` object and the `Bree` cl
 ```js
   const plugin = (options, Bree) => {
     /* plugin logic */
-    return Bree;
   };
 ```
 
