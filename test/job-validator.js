@@ -5,40 +5,28 @@ const later = require('@breejs/later');
 const jobValidator = require('../src/job-validator');
 const root = path.join(__dirname, 'jobs');
 
+const baseConfig = {
+  root,
+  defaultExtension: 'js',
+  acceptedExtensions: ['.js', '.mjs']
+};
+
 test('does not throw for valid object job', (t) => {
-  t.notThrows(() =>
-    jobValidator({ name: 'basic' }, 0, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
-  );
+  t.notThrows(() => jobValidator({ name: 'basic' }, 0, ['exists'], baseConfig));
 });
 
 test('does not throw for valid object job with extension on name', (t) => {
   t.notThrows(() =>
-    jobValidator({ name: 'basic.js' }, 0, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
+    jobValidator({ name: 'basic.js' }, 0, ['exists'], baseConfig)
   );
 });
 
 test('does not throw for valid string job', (t) => {
-  t.notThrows(() =>
-    jobValidator('basic', 1, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
-  );
+  t.notThrows(() => jobValidator('basic', 1, ['exists'], baseConfig));
 });
 
 test('does not throw for valid string job with extension', (t) => {
-  t.notThrows(() =>
-    jobValidator('basic.js', 1, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
-  );
+  t.notThrows(() => jobValidator('basic.js', 1, ['exists'], baseConfig));
 });
 
 test('throws for non-unique job name', (t) => {
@@ -171,31 +159,17 @@ test("prefers job's override cronValidate if none in job configuration", (t) => 
 });
 
 test('throws for reserved job.name', (t) => {
-  t.throws(
-    () =>
-      jobValidator({ name: 'index' }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
-    {
-      message:
-        'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-    }
-  );
+  t.throws(() => jobValidator({ name: 'index' }, 0, ['exists'], baseConfig), {
+    message:
+      'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+  });
 });
 
 test('throws for reserved job name', (t) => {
-  t.throws(
-    () =>
-      jobValidator('index', 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
-    {
-      message:
-        'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
-    }
-  );
+  t.throws(() => jobValidator('index', 0, ['exists'], baseConfig), {
+    message:
+      'You cannot use the reserved job name of "index", "index.js", nor "index.mjs"'
+  });
 });
 
 test('throws for string job if no root directory', (t) => {
@@ -226,20 +200,17 @@ test('throws for object job if no root directory', (t) => {
 
 test('does not throw for valid job path', (t) => {
   t.notThrows(() =>
-    jobValidator({ name: 'basic', path: root + '/basic.js' }, 0, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
+    jobValidator(
+      { name: 'basic', path: root + '/basic.js' },
+      0,
+      ['exists'],
+      baseConfig
+    )
   );
 });
 
 test('does not throw for path without extension', (t) => {
-  t.notThrows(() =>
-    jobValidator({ name: 'basic' }, 0, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
-  );
+  t.notThrows(() => jobValidator({ name: 'basic' }, 0, ['exists'], baseConfig));
 });
 
 test('does not throw for valid function', (t) => {
@@ -247,12 +218,7 @@ test('does not throw for valid function', (t) => {
     return true;
   };
 
-  t.notThrows(() =>
-    jobValidator(fn, 1, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
-  );
+  t.notThrows(() => jobValidator(fn, 1, ['exists'], baseConfig));
 });
 
 test('throws for bound function', (t) => {
@@ -262,16 +228,9 @@ test('throws for bound function', (t) => {
 
   const boundFn = fn.bind(this);
 
-  t.throws(
-    () =>
-      jobValidator(boundFn, 1, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
-    {
-      message: "Job #2 can't be a bound or built-in function"
-    }
-  );
+  t.throws(() => jobValidator(boundFn, 1, ['exists'], baseConfig), {
+    message: "Job #2 can't be a bound or built-in function"
+  });
 });
 
 test('does not throw for valid function in job.path', (t) => {
@@ -280,10 +239,7 @@ test('does not throw for valid function in job.path', (t) => {
   };
 
   t.notThrows(() =>
-    jobValidator({ path: fn, name: 'fn' }, 1, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
+    jobValidator({ path: fn, name: 'fn' }, 1, ['exists'], baseConfig)
   );
 });
 
@@ -296,10 +252,7 @@ test('throws for bound function in job.path', (t) => {
 
   t.throws(
     () =>
-      jobValidator({ path: boundFn, name: 'fn' }, 1, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator({ path: boundFn, name: 'fn' }, 1, ['exists'], baseConfig),
     {
       message: 'Job #2 named "fn" can\'t be a bound or built-in function'
     }
@@ -308,21 +261,24 @@ test('throws for bound function in job.path', (t) => {
 
 test('does not throw for valid cron without seconds', (t) => {
   t.notThrows(() =>
-    jobValidator({ name: 'basic', cron: '* * * * *' }, 0, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
+    jobValidator(
+      { name: 'basic', cron: '* * * * *' },
+      0,
+      ['exists'],
+      baseConfig
+    )
   );
 });
 
-test('does not throw for valid cron with "L" in week', (t) => {
+test('does not throw for valid cron with "L" in day', (t) => {
   t.notThrows(() =>
-    jobValidator({ name: 'basic', cron: '* * * L *' }, 0, ['exists'], {
+    jobValidator({ name: 'basic', cron: '* * L * *' }, 0, ['exists'], {
       root,
       defaultExtension: 'js',
+      acceptedExtensions: ['.js', '.mjs'],
       cronValidate: {
         override: {
-          useLastDayOfWeek: true
+          useLastDayOfMonth: true
         }
       }
     })
@@ -335,10 +291,7 @@ test('does not throw for valid cron with seconds', (t) => {
       { name: 'basic', cron: '* * * * * *', hasSeconds: true },
       0,
       ['exists'],
-      {
-        root,
-        defaultExtension: 'js'
-      }
+      baseConfig
     )
   );
 });
@@ -349,10 +302,7 @@ test('does not throw for valid cron that is a schedule', (t) => {
       { name: 'basic', cron: later.parse.cron('* * * * *') },
       0,
       ['exists'],
-      {
-        root,
-        defaultExtension: 'js'
-      }
+      baseConfig
     )
   );
 });
@@ -360,10 +310,12 @@ test('does not throw for valid cron that is a schedule', (t) => {
 test('throws for invalid cron expression', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', cron: '* * * * * *' }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator(
+        { name: 'basic', cron: '* * * * * *' },
+        0,
+        ['exists'],
+        baseConfig
+      ),
     {
       message:
         'Job #1 named "basic" had an invalid cron pattern: Expected 5 values, but got 6. (Input cron: \'* * * * * *\')'
@@ -372,16 +324,9 @@ test('throws for invalid cron expression', (t) => {
 });
 
 test('throws if no no name exists', (t) => {
-  t.throws(
-    () =>
-      jobValidator({}, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
-    {
-      message: 'Job #1 is missing a name'
-    }
-  );
+  t.throws(() => jobValidator({}, 0, ['exists'], baseConfig), {
+    message: 'Job #1 is missing a name'
+  });
 });
 
 test('throws if both interval and cron are used', (t) => {
@@ -391,7 +336,7 @@ test('throws if both interval and cron are used', (t) => {
         { name: 'basic', cron: '* * * * *', interval: 60 },
         0,
         ['exists'],
-        { root, defaultExtension: 'js' }
+        baseConfig
       ),
     {
       message:
@@ -407,7 +352,7 @@ test('throws if both timeout and date are used', (t) => {
         { name: 'basic', timeout: 60, date: new Date('12/30/2020') },
         0,
         ['exists'],
-        { root, defaultExtension: 'js' }
+        baseConfig
       ),
     {
       message: 'Job #1 named "basic" cannot have both timeout and date'
@@ -418,10 +363,12 @@ test('throws if both timeout and date are used', (t) => {
 test('throws if date is not a Date object', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', date: '12/23/2020' }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator(
+        { name: 'basic', date: '12/23/2020' },
+        0,
+        ['exists'],
+        baseConfig
+      ),
     {
       message: 'Job #1 named "basic" had an invalid Date of 12/23/2020'
     }
@@ -431,10 +378,7 @@ test('throws if date is not a Date object', (t) => {
 test('throws if timeout is invalid', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', timeout: -1 }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator({ name: 'basic', timeout: -1 }, 0, ['exists'], baseConfig),
     {
       message: /Job #1 named "basic" had an invalid timeout of -1; */
     }
@@ -444,10 +388,7 @@ test('throws if timeout is invalid', (t) => {
 test('throws if interval is invalid', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', interval: -1 }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator({ name: 'basic', interval: -1 }, 0, ['exists'], baseConfig),
     {
       message: /Job #1 named "basic" had an invalid interval of undefined; */
     }
@@ -457,10 +398,12 @@ test('throws if interval is invalid', (t) => {
 test('throws if hasSeconds is not a boolean', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', hasSeconds: 'test' }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator(
+        { name: 'basic', hasSeconds: 'test' },
+        0,
+        ['exists'],
+        baseConfig
+      ),
     {
       message:
         'Job #1 named "basic" had hasSeconds value of test (it must be a Boolean)'
@@ -471,10 +414,12 @@ test('throws if hasSeconds is not a boolean', (t) => {
 test('throws if cronValidate is not an Object', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', cronValidate: 'test' }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator(
+        { name: 'basic', cronValidate: 'test' },
+        0,
+        ['exists'],
+        baseConfig
+      ),
     {
       message:
         'Job #1 named "basic" had cronValidate value set, but it must be an Object'
@@ -485,10 +430,12 @@ test('throws if cronValidate is not an Object', (t) => {
 test('throws if closeWorkerAfterMs is invalid', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', closeWorkerAfterMs: -1 }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator(
+        { name: 'basic', closeWorkerAfterMs: -1 },
+        0,
+        ['exists'],
+        baseConfig
+      ),
     {
       message:
         'Job #1 named "basic" had an invalid closeWorkersAfterMs value of undefined (it must be a finite number > 0)'
@@ -502,36 +449,39 @@ test('succeeds if job.timezone is valid', (t) => {
       { name: 'basic', timezone: 'America/New_York' },
       0,
       ['exists'],
-      {
-        root,
-        defaultExtension: 'js'
-      }
+      baseConfig
     )
   );
 });
 
 test('accepts "local" and "system" as valid job.timezone options', (t) => {
   t.notThrows(() =>
-    jobValidator({ name: 'basic', timezone: 'local' }, 0, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
+    jobValidator(
+      { name: 'basic', timezone: 'local' },
+      0,
+      ['exists'],
+      baseConfig
+    )
   );
   t.notThrows(() =>
-    jobValidator({ name: 'basic', timezone: 'system' }, 0, ['exists'], {
-      root,
-      defaultExtension: 'js'
-    })
+    jobValidator(
+      { name: 'basic', timezone: 'system' },
+      0,
+      ['exists'],
+      baseConfig
+    )
   );
 });
 
 test('throws if job.timezone is invalid or unsupported', (t) => {
   t.throws(
     () =>
-      jobValidator({ name: 'basic', timezone: 'bogus' }, 0, ['exists'], {
-        root,
-        defaultExtension: 'js'
-      }),
+      jobValidator(
+        { name: 'basic', timezone: 'bogus' },
+        0,
+        ['exists'],
+        baseConfig
+      ),
     {
       message:
         'Job #1 named "basic" had an invalid or unsupported timezone specified: bogus'

@@ -12,7 +12,7 @@ const buildJob = (job, config) => {
   if (isSANB(job)) {
     const path = join(
       config.root,
-      job.endsWith('.js') || job.endsWith('.mjs')
+      config.acceptedExtensions.some((ext) => job.endsWith(ext))
         ? job
         : `${job}.${config.defaultExtension}`
     );
@@ -61,7 +61,7 @@ const buildJob = (job, config) => {
       ? job.path
       : join(
           config.root,
-          job.name.endsWith('.js') || job.name.endsWith('.mjs')
+          config.acceptedExtensions.some((ext) => job.name.endsWith(ext))
             ? job.name
             : `${job.name}.${config.defaultExtension}`
         );

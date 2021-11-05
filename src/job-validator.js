@@ -38,7 +38,7 @@ const validateStringJob = (job, i, config) => {
 
   const path = join(
     config.root,
-    job.endsWith('.js') || job.endsWith('.mjs')
+    config.acceptedExtensions.some((ext) => job.endsWith(ext))
       ? job
       : `${job}.${config.defaultExtension}`
   );
@@ -90,7 +90,7 @@ const validateJobPath = (job, prefix, config) => {
       ? job.path
       : join(
           config.root,
-          job.name.endsWith('.js') || job.name.endsWith('.mjs')
+          config.acceptedExtensions.some((ext) => job.name.endsWith(ext))
             ? job.name
             : `${job.name}.${config.defaultExtension}`
         );
@@ -207,6 +207,7 @@ const validateJobName = (job, i, reservedNames) => {
   return errors;
 };
 
+// eslint-disable-next-line complexity
 const validate = (job, i, names, config) => {
   const errors = validateJobName(job, i, names);
 

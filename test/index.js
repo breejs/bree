@@ -186,3 +186,27 @@ test.serial('job created with human interval is using local timezone', (t) => {
   clock.next();
   clock.uninstall();
 });
+
+test('throws if acceptedExtensions is not an array', (t) => {
+  t.throws(
+    () =>
+      new Bree({
+        jobs: ['basic'],
+        ...baseConfig,
+        acceptedExtensions: 'test string'
+      }),
+    { message: '`acceptedExtensions` must be defined and an Array' }
+  );
+});
+
+test('throws if acceptedExtensions is false', (t) => {
+  t.throws(
+    () =>
+      new Bree({
+        jobs: ['basic'],
+        ...baseConfig,
+        acceptedExtensions: false
+      }),
+    { message: '`acceptedExtensions` must be defined and an Array' }
+  );
+});

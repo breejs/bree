@@ -60,6 +60,11 @@ class Bree extends EventEmitter {
       // Could also be mjs if desired
       // (this is the default extension if you just specify a job's name without ".js" or ".mjs")
       defaultExtension: 'js',
+      // an array of accepted extensions
+      // NOTE: if you add to this array you must extend `createWorker`
+      //        to deal with the conversion to acceptable files for
+      //        Node Workers
+      acceptedExtensions: ['.js', '.mjs'],
       // Default worker options to pass to ~`new Worker`~ `new threads.Worker`
       // (can be overridden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
@@ -117,6 +122,14 @@ class Bree extends EventEmitter {
           useSeconds: true
         }
       };
+    }
+
+    // validate acceptedExtensions
+    if (
+      !this.config.acceptedExtensions ||
+      !Array.isArray(this.config.acceptedExtensions)
+    ) {
+      throw new TypeError('`acceptedExtensions` must be defined and an Array');
     }
 
     debug('config', this.config);
@@ -281,7 +294,7 @@ class Bree extends EventEmitter {
           ...(job.worker && job.worker.workerData ? job.worker.workerData : {})
         }
       };
-      this.workers[name] = new threads.Worker(job.path, object);
+      this.workers[name] = this.createWorker(job.path, object);
       this.emit('worker created', name);
       debug('worker started', name);
 
@@ -608,6 +621,10 @@ class Bree extends EventEmitter {
 
       delete this[type][name];
     }
+  }
+
+  createWorker(filename, options) {
+    return new threads.Worker(filename, options);
   }
 }
 

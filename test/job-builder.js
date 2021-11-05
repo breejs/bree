@@ -10,7 +10,8 @@ const baseConfig = {
   timeout: 0,
   interval: 0,
   hasSeconds: false,
-  defaultExtension: 'js'
+  defaultExtension: 'js',
+  acceptedExtensions: ['.js', '.mjs']
 };
 
 function job(t, _job, config, expected) {
