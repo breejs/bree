@@ -770,6 +770,7 @@ Note that you cannot pass a built-in nor bound function.
 
 Please see the [@breejs/ts-worker](https://github.com/breejs/ts-worker) plugin.
 
+
 ## Concurrency
 
 We recommend using the following packages in your workers for handling concurrency:

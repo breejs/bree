@@ -1,10 +1,9 @@
-const fs = require('fs');
-const { join } = require('path');
 const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
+const fs = require('fs');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
-const threads = require('bthreads');
+const { join } = require('path');
 
 const { getName, isSchedule, parseValue } = require('./job-utils');
 
@@ -43,12 +42,9 @@ const validateStringJob = (job, i, config) => {
       : `${job}.${config.defaultExtension}`
   );
 
-  /* istanbul ignore next */
-  if (!threads.browser) {
-    const stats = fs.statSync(path);
-    if (!stats.isFile()) {
-      throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
-    }
+  const stats = fs.statSync(path);
+  if (!stats.isFile()) {
+    throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
   }
 };
 
@@ -96,13 +92,9 @@ const validateJobPath = (job, prefix, config) => {
         );
     if (isValidPath(path)) {
       try {
-        /* istanbul ignore next */
-        if (!threads.browser) {
-          const stats = fs.statSync(path);
-          // eslint-disable-next-line max-depth
-          if (!stats.isFile()) {
-            throw new Error(`${prefix} path missing: ${path}`);
-          }
+        const stats = fs.statSync(path);
+        if (!stats.isFile()) {
+          throw new Error(`${prefix} path missing: ${path}`);
         }
       } catch (err) {
         /* istanbul ignore next */

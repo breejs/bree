@@ -1,7 +1,7 @@
-const ms = require('ms');
 const humanInterval = require('human-interval');
-const later = require('@breejs/later');
 const isSANB = require('is-string-and-not-blank');
+const later = require('@breejs/later');
+const ms = require('ms');
 
 /**
  * Naively checks if passed value is of later.js schedule format (https://breejs.github.io/later/schedules.html)
@@ -95,8 +95,10 @@ const getJobNames = (jobs, excludeIndex) => {
   return names;
 };
 
-module.exports.isSchedule = isSchedule;
-module.exports.getName = getName;
-module.exports.getHumanToMs = getHumanToMs;
-module.exports.parseValue = parseValue;
-module.exports.getJobNames = getJobNames;
+module.exports = {
+  getHumanToMs,
+  getJobNames,
+  getName,
+  isSchedule,
+  parseValue
+};

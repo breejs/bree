@@ -1,13 +1,13 @@
 const EventEmitter = require('events');
-const fs = require('fs');
-const { resolve } = require('path');
-const pWaitFor = require('p-wait-for');
 const combineErrors = require('combine-errors');
 const debug = require('debug')('bree');
+const fs = require('fs');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
-const threads = require('bthreads');
+const pWaitFor = require('p-wait-for');
+const { Worker } = require('worker_threads');
+const { resolve } = require('path');
 const { setTimeout, setInterval } = require('safe-timers');
 
 const {
@@ -20,12 +20,6 @@ const {
 const buildJob = require('./job-builder');
 const validateJob = require('./job-validator');
 
-// Bthreads requires us to do this for web workers (see bthreads docs for insight)
-threads.Buffer = Buffer;
-
-// Instead of `threads.browser` checks below, we previously used this boolean
-// const hasFsStatSync = typeof fs === 'object' && typeof fs.statSync === 'function';
-
 class Bree extends EventEmitter {
   constructor(config) {
     super();
@@ -35,9 +29,7 @@ class Bree extends EventEmitter {
       logger: console,
       // Set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
-      root: threads.browser /* istanbul ignore next */
-        ? threads.resolve('jobs')
-        : resolve('jobs'),
+      root: resolve('jobs'),
       // Default timeout for jobs
       // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
@@ -65,7 +57,7 @@ class Bree extends EventEmitter {
       //        to deal with the conversion to acceptable files for
       //        Node Workers
       acceptedExtensions: ['.js', '.mjs'],
-      // Default worker options to pass to ~`new Worker`~ `new threads.Worker`
+      // Default worker options to pass to ~`new Worker`
       // (can be overridden on a per job basis)
       // <https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options>
       worker: {},
@@ -164,7 +156,7 @@ class Bree extends EventEmitter {
     // Validate root (sync check)
     if (isSANB(this.config.root)) {
       /* istanbul ignore next */
-      if (!threads.browser && isValidPath(this.config.root)) {
+      if (isValidPath(this.config.root)) {
         const stats = fs.statSync(this.config.root);
         if (!stats.isDirectory()) {
           throw new Error(
@@ -191,7 +183,7 @@ class Bree extends EventEmitter {
       (!Array.isArray(this.config.jobs) || this.config.jobs.length === 0)
     ) {
       try {
-        this.config.jobs = threads.require(this.config.root);
+        this.config.jobs = require(this.config.root);
       } catch (err) {
         this.config.logger.error(err);
       }
@@ -624,23 +616,9 @@ class Bree extends EventEmitter {
   }
 
   createWorker(filename, options) {
-    return new threads.Worker(filename, options);
+    return new Worker(filename, options);
   }
 }
-
-// Expose bthreads (useful for tests)
-// https://github.com/chjj/bthreads#api
-Bree.threads = {
-  backend: threads.backend,
-  browser: threads.browser,
-  location: threads.location,
-  filename: threads.filename,
-  dirname: threads.dirname,
-  require: threads.require,
-  resolve: threads.resolve,
-  exit: threads.exit,
-  cores: threads.cores
-};
 
 // plugins inspired by Dayjs
 Bree.extend = (plugin, options) => {

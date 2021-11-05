@@ -1,6 +1,6 @@
 {
   "name": "bree",
-  "description": "The best job scheduler for Node.js and JavaScript with cron, dates, ms, later, and human-friendly support.  Works in Node v10+ and browsers (thanks to bthreads polyfill), uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and lightweight.  Made for Forward Email and Lad.",
+  "description": "The best job scheduler for Node.js and JavaScript with cron, dates, ms, later, and human-friendly support.  Uses workers to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and lightweight.  Made for Forward Email and Lad.",
   "version": "6.5.0",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "ava": {
@@ -15,9 +15,6 @@
       "events.once/polyfill"
     ]
   },
-  "browser": {
-    "fs": false
-  },
   "bugs": {
     "url": "https://github.com/breejs/bree/issues",
     "email": "niftylettuce@gmail.com"
@@ -27,10 +24,8 @@
     "shadowgate15 (https://github.com/shadowgate15)"
   ],
   "dependencies": {
-    "@babel/runtime": "^7.12.5",
     "@breejs/later": "^4.1.0",
     "boolean": "^3.0.2",
-    "bthreads": "^0.5.1",
     "combine-errors": "^3.0.3",
     "cron-validate": "^1.4.1",
     "debug": "^4.3.1",
@@ -42,19 +37,11 @@
     "safe-timers": "^1.1.0"
   },
   "devDependencies": {
-    "@babel/cli": "^7.12.7",
-    "@babel/core": "^7.12.7",
-    "@babel/plugin-transform-runtime": "^7.12.1",
-    "@babel/preset-env": "^7.12.7",
     "@commitlint/cli": "latest",
     "@commitlint/config-conventional": "latest",
     "@goto-bus-stop/envify": "^5.0.0",
     "@sinonjs/fake-timers": "^6.0.1",
     "ava": "latest",
-    "babelify": "^10.0.0",
-    "browser-pack-flat": "^3.4.2",
-    "browserify": "^17.0.0",
-    "bundle-collapser": "^1.4.0",
     "codecov": "latest",
     "cross-env": "latest",
     "delay": "^4.4.0",
@@ -70,16 +57,14 @@
     "nyc": "latest",
     "remark-cli": "latest",
     "remark-preset-github": "latest",
-    "uglifyify": "^5.0.2",
     "unassertify": "^2.1.1",
     "xo": "^0.35.0"
   },
   "engines": {
-    "node": ">= 10"
+    "node": ">= 12.11.0"
   },
   "files": [
-    "lib",
-    "dist"
+    "src"
   ],
   "homepage": "https://github.com/breejs/bree",
   "husky": {
@@ -88,7 +73,6 @@
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
     }
   },
-  "jsdelivr": "dist/bree.min.js",
   "keywords": [
     "agenda",
     "async",
@@ -171,7 +155,7 @@
     "workers"
   ],
   "license": "MIT",
-  "main": "lib/index.js",
+  "main": "src/index.js",
   "publishConfig": {
     "access": "public"
   },
@@ -181,24 +165,15 @@
   },
   "scripts": {
     "ava": "cross-env NODE_ENV=test ava",
-    "browserify": "browserify src/index.js -o dist/bree.js -s Bree -g [ babelify --configFile ./.dist.babelrc ]",
-    "build": "npm run build:clean && npm run build:lib && npm run build:dist",
-    "build:clean": "rimraf lib dist",
-    "build:dist": "npm run browserify && npm run minify",
-    "build:lib": "babel --config-file ./.lib.babelrc src --out-dir lib",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
-    "lint": "yarn run lint:js && yarn run lint:md && yarn run lint:lib && yarn run lint:dist",
-    "lint:dist": "eslint --no-inline-config -c .dist.eslintrc dist",
+    "lint": "yarn run lint:js && yarn run lint:md",
     "lint:js": "xo",
-    "lint:lib": "eslint -c .lib.eslintrc lib",
     "lint:md": "remark . -qfo",
-    "minify": "cross-env NODE_ENV=production browserify src/index.js -o dist/bree.min.js -s Bree -g [ babelify --configFile ./.dist.babelrc ] -g unassertify -g @goto-bus-stop/envify -g uglifyify -p browser-pack-flat/plugin",
     "nyc": "cross-env NODE_ENV=test nyc ava",
-    "pretest": "yarn run build && yarn run lint",
+    "pretest": "yarn run lint",
     "test": "cross-env NODE_ENV=test ava",
     "test-coverage": "cross-env NODE_ENV=test nyc yarn run test"
   },
-  "unpkg": "dist/bree.min.js",
   "xo": {
     "prettier": true,
     "space": true,
