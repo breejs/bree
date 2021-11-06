@@ -16,7 +16,7 @@
 </div>
 <hr />
 <div align="center">
-  Works in Node v10+ and browsers (thanks to <a href="https://github.com/chjj/bthreads">bthreads</a> polyfill), uses <a href="https://nodejs.org/api/worker_threads.html">worker threads</a> (Node.js) and <a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers">web workers</a> (browsers) to spawn sandboxed processes, and supports <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>, <a href="https://github.com/sindresorhus/p-retry">retries</a>, <a href="https://github.com/sindresorhus/p-throttle">throttling</a>, <a href="#concurrency">concurrency</a>, and <a href="#cancellation-retries-stalled-jobs-and-graceful-reloading">cancelable jobs with graceful shutdown</a>.  Simple, fast, and lightweight.  <strong>Made for <a href="https://forwardemail.net">Forward Email</a> and <a href="https://lad.js.org">Lad</a></strong>.
+  Works in Node v12.11.0+, uses <a href="https://nodejs.org/api/worker_threads.html">worker threads</a> (Node.js) to spawn sandboxed processes, and supports <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>, <a href="https://github.com/sindresorhus/p-retry">retries</a>, <a href="https://github.com/sindresorhus/p-throttle">throttling</a>, <a href="#concurrency">concurrency</a>, and <a href="#cancellation-retries-stalled-jobs-and-graceful-reloading">cancelable jobs with graceful shutdown</a>.  Simple, fast, and lightweight.  <strong>Made for <a href="https://forwardemail.net">Forward Email</a> and <a href="https://lad.js.org">Lad</a></strong>.
 </div>
 <hr />
 <div align="center">:heart: Love this project? Support <a href="https://github.com/niftylettuce" target="_blank">@niftylettuce's</a> <a href="https://en.wikipedia.org/wiki/Free_and_open-source_software" target="_blank">FOSS</a> on <a href="https://patreon.com/niftylettuce" target="_blank">Patreon</a> or <a href="https://paypal.me/niftylettuce">PayPal</a> :unicorn:</div>
@@ -27,8 +27,6 @@
 * [Foreword](#foreword)
 * [Install](#install)
 * [Usage and Examples](#usage-and-examples)
-  * [Node](#node)
-  * [Browser](#browser)
 * [Node.js Email Queue Job Scheduling Example](#nodejs-email-queue-job-scheduling-example)
 * [Instance Options](#instance-options)
 * [Job Options](#job-options)
@@ -104,11 +102,7 @@ The option `jobs` passed to a new instance of `Bree` (as shown below) is an Arra
 
 We have also documented all [Instance Options](#instance-options) and [Job Options](#job-options) in this README below.  Be sure to read those sections so you have a complete understanding of how Bree works.
 
-### Node
-
-Since we use [bthreads][], Node v10+ is supported. For versions prior to Node v11.7.0, a polyfill is provided for [workers][] that uses `child_process`.  For versions greater than or equal to Node v11.7.0, it uses [workers][] directly.  You can also pass `--experimental-worker` flag for older versions to use `worker_threads` (instead of the `child_process` polyfill).  See the official Node.js documentation for more information.
-
-> **NOTE:** If you are using Node versions prior to Node v11.7.0, then in your worker files – you will need to use [bthreads][] instead of [workers][].  For example, you will `const thread = require('bthreads');` at the top of your file, instead of requiring `worker_threads`.  This will also require you to install `bthreads` in your project with `npm install bthreads` or `yarn add bthreads`.
+>**NOTE:** [Bree v6.5.0](https://github.com/breejs/bree/releases/tag/v6.5.0) is the last version to support Node v10 and browsers.
 
 ```js
 const path = require('path');
@@ -319,45 +313,6 @@ bree.add('boop');
 bree.remove('boop');
 */
 ```
-
-### Browser
-
-> **NOTE:** Browser support is currently unstable [until this GitHub issue](https://github.com/breejs/bree/issues/27) is resolved. Contributions are welcome!
-
-If you are using Bree in the browser, then please reference the [Web Workers API][web-workers-api] (since it does not use Node.js [worker threads][workers]).  If the Web Workers API [is not yet available](https://caniuse.com/#feat=webworkers), then it will be [polyfilled][polyfill] accordingly.
-
-#### VanillaJS
-
-This is the solution for you if you're just using `<script>` tags everywhere!
-
-```html
-<script src="https://unpkg.com/bree"></script>
-<script>
-  (function() {
-    function hello() {
-      console.log('hello');
-      postMessage('done');
-    }
-
-    var bree = new Bree({
-      jobs: [
-        {
-          name: 'hello',
-          path: hello,
-          interval: '5s',
-        }
-      ]
-    });
-
-    bree.start();
-  })();
-</script>
-```
-
-#### Bundler
-
-Assuming you are using [browserify][], [webpack][], [rollup][], or another bundler, you can simply follow [Node](#node) usage above.
-
 
 ## Node.js Email Queue Job Scheduling Example
 
@@ -769,6 +724,7 @@ Note that you cannot pass a built-in nor bound function.
 ## Typescript Usage
 
 Please see the [@breejs/ts-worker](https://github.com/breejs/ts-worker) plugin.
+
 
 ## Concurrency
 
