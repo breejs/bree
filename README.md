@@ -102,7 +102,7 @@ The option `jobs` passed to a new instance of `Bree` (as shown below) is an Arra
 
 We have also documented all [Instance Options](#instance-options) and [Job Options](#job-options) in this README below.  Be sure to read those sections so you have a complete understanding of how Bree works.
 
->**NOTE:** [Bree v6.5.0](https://github.com/breejs/bree/releases/tag/v6.5.0) is the last version to support Node v10 and browsers.
+> **NOTE:** [Bree v6.5.0](https://github.com/breejs/bree/releases/tag/v6.5.0) is the last version to support Node v10 and browsers.
 
 ```js
 const path = require('path');
@@ -313,6 +313,7 @@ bree.add('boop');
 bree.remove('boop');
 */
 ```
+
 
 ## Node.js Email Queue Job Scheduling Example
 
@@ -843,17 +844,5 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [cabin]: https://cabinjs.com
 
 [moment]: https://momentjs.com
-
-[bthreads]: https://github.com/chjj/bthreads
-
-[web-workers-api]: https://developer.mozilla.org/en-US/docs/Web/API/Web_Workers_API/Using_web_workers
-
-[polyfill]: https://github.com/chjj/bthreads/blob/master/lib/browser/polyfill.js
-
-[browserify]: https://github.com/browserify/browserify
-
-[webpack]: https://github.com/webpack/webpack
-
-[rollup]: https://github.com/rollup/rollup
 
 [ghost]: https://ghost.org/
