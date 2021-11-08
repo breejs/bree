@@ -1,7 +1,7 @@
 ---
 name: "❓ Question"
 about: Something is unclear or needs to be discussed
-title: ''
+title: "[discussion] DESCRIPTIVE TITLE"
 labels: question
 assignees: ''
 
