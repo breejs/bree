@@ -226,8 +226,11 @@ const bree = new Bree({
     {
       name: 'worker-11',
       cron: '0 0 L * *',
+      hasSeconds: true,
       cronValidate: {
-        useLastDayOfMonth: true
+        override: {
+          useLastDayOfMonth: true
+        }
       }
     },
 
