@@ -1,4 +1,5 @@
-const { parentPort } = require('bthreads');
+const process = require('process');
+const { parentPort } = require('worker_threads');
 
 setInterval(() => {}, 10);
 

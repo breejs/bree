@@ -1,9 +1,9 @@
+const { join } = require('path');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
 const { boolean } = require('boolean');
 const { isSchedule, parseValue } = require('./job-utils');
-const { join } = require('path');
 
 later.date.localTime();
 

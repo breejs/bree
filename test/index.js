@@ -1,5 +1,5 @@
-const test = require('ava');
 const path = require('path');
+const test = require('ava');
 const delay = require('delay');
 const humanInterval = require('human-interval');
 const FakeTimers = require('@sinonjs/fake-timers');

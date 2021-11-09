@@ -1,13 +1,14 @@
+const fs = require('fs');
 const EventEmitter = require('events');
+const { Worker } = require('worker_threads');
+const { resolve } = require('path');
+
 const combineErrors = require('combine-errors');
 const debug = require('debug')('bree');
-const fs = require('fs');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
 const pWaitFor = require('p-wait-for');
-const { Worker } = require('worker_threads');
-const { resolve } = require('path');
 const { setTimeout, setInterval } = require('safe-timers');
 
 const {
@@ -154,15 +155,13 @@ class Bree extends EventEmitter {
 
   init() {
     // Validate root (sync check)
-    if (isSANB(this.config.root)) {
-      /* istanbul ignore next */
-      if (isValidPath(this.config.root)) {
-        const stats = fs.statSync(this.config.root);
-        if (!stats.isDirectory()) {
-          throw new Error(
-            `Root directory of ${this.config.root} does not exist`
-          );
-        }
+    if (
+      isSANB(this.config.root) /* istanbul ignore next */ &&
+      isValidPath(this.config.root)
+    ) {
+      const stats = fs.statSync(this.config.root);
+      if (!stats.isDirectory()) {
+        throw new Error(`Root directory of ${this.config.root} does not exist`);
       }
     }
 

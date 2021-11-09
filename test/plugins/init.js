@@ -1,5 +1,5 @@
-const test = require('ava');
 const path = require('path');
+const test = require('ava');
 
 const Bree = require('../../src');
 

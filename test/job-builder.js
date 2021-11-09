@@ -1,5 +1,5 @@
-const test = require('ava');
 const path = require('path');
+const test = require('ava');
 const later = require('@breejs/later');
 
 const jobBuilder = require('../src/job-builder');

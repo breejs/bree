@@ -1,3 +1,3 @@
-const { parentPort, workerData } = require('bthreads');
+const { parentPort, workerData } = require('worker_threads');
 
 if (parentPort) parentPort.postMessage(workerData);

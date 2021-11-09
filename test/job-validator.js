@@ -1,8 +1,9 @@
-const test = require('ava');
 const path = require('path');
+const test = require('ava');
 const later = require('@breejs/later');
 
 const jobValidator = require('../src/job-validator');
+
 const root = path.join(__dirname, 'jobs');
 
 const baseConfig = {

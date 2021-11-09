@@ -35,7 +35,7 @@ test('getHumanToMs: converts values into milliseconds', (t) => {
 });
 
 test('getHumanToMs: supports human readable format', (t) => {
-  t.is(jobUtils.getHumanToMs('minute'), 60000);
+  t.is(jobUtils.getHumanToMs('minute'), 60_000);
 });
 
 test('parseValue: does not parse false value', (t) => {

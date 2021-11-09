@@ -1,12 +1,12 @@
-const FakeTimers = require('@sinonjs/fake-timers');
 const path = require('path');
 const { once } = require('events');
+const FakeTimers = require('@sinonjs/fake-timers');
 
 const test = require('ava');
 
-const Bree = require('../src');
 const later = require('@breejs/later');
 const delay = require('delay');
+const Bree = require('../src');
 
 const root = path.join(__dirname, 'jobs');
 
@@ -463,7 +463,7 @@ test.serial('uses default timezone to schedule a job', (t) => {
     ]
   });
 
-  bree.config.jobs.forEach((job) => t.is(job.timezone, 'America/Mexico_City'));
+  for (const job of bree.config.jobs) t.is(job.timezone, 'America/Mexico_City');
 
   clock.setTimeout = (fn, ms) => {
     t.is(ms, 18e5);

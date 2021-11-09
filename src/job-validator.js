@@ -1,9 +1,9 @@
+const fs = require('fs');
+const { join } = require('path');
 const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
-const fs = require('fs');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
-const { join } = require('path');
 
 const { getName, isSchedule, parseValue } = require('./job-utils');
 
@@ -244,7 +244,7 @@ const validate = (job, i, names, config) => {
     errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
   }
 
-  ['timeout', 'interval'].forEach((prop) => {
+  for (const prop of ['timeout', 'interval']) {
     if (typeof job[prop] !== 'undefined') {
       try {
         parseValue(job[prop]);
@@ -257,7 +257,7 @@ const validate = (job, i, names, config) => {
         );
       }
     }
-  });
+  }
 
   // Validate hasSeconds
   if (
