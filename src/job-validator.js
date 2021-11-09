@@ -138,7 +138,7 @@ const validateCron = (job, prefix, config) => {
     // If `hasSeconds` was `true` then set `cronValidate` and inherit any existing options
     const cronValidate = job.hasSeconds
       ? cronValidateWithSeconds(job, config)
-      : config.cronValidate;
+      : job.cronValidate || config.cronValidate;
 
     //
     // validate cron pattern
