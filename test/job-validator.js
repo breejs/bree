@@ -62,6 +62,31 @@ test('constructs default cronValidate configuration', (t) => {
   t.deepEqual(returned, expected);
 });
 
+// TODO: this can be improved
+test("prefers job's cronValidate configuration with validateCron", (t) => {
+  const job = {
+    hasSeconds: false,
+    cronValidate: {
+      preset: 'custom'
+    }
+  };
+  const config = {
+    cronValidate: {
+      preset: 'global'
+    }
+  };
+
+  const returned = jobValidator.validateCron(job, 'Test prefix', config);
+
+  const expected = [
+    new Error(
+      'Test prefix had an invalid cron pattern: Option preset custom does not exist.'
+    )
+  ];
+
+  t.deepEqual(returned, expected);
+});
+
 test("prefers job's cronValidate configuration", (t) => {
   const job = {
     cronValidate: {

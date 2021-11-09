@@ -320,3 +320,4 @@ const validate = (job, i, names, config) => {
 
 module.exports = validate;
 module.exports.cronValidateWithSeconds = cronValidateWithSeconds;
+module.exports.validateCron = validateCron;
