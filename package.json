@@ -54,7 +54,7 @@
     "eslint-plugin-node": "^11.1.0",
     "events.once": "^2.0.2",
     "fixpack": "latest",
-    "husky": "latest",
+    "husky": "^7.0.0",
     "into-stream": "^7.0.0",
     "lint-staged": "latest",
     "nyc": "latest",
@@ -71,12 +71,6 @@
     "types/index.d.ts"
   ],
   "homepage": "https://github.com/breejs/bree",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "commit-msg": "commitlint -E HUSKY_GIT_PARAMS"
-    }
-  },
   "keywords": [
     "agenda",
     "async",
@@ -160,7 +154,6 @@
   ],
   "license": "MIT",
   "main": "src/index.js",
-  "types": "types",
   "publishConfig": {
     "access": "public"
   },
@@ -171,15 +164,17 @@
   "scripts": {
     "ava": "cross-env NODE_ENV=test ava",
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
+    "dtslint": "cross-env NODE_ENV=test dtslint types",
     "lint": "yarn run lint:js && yarn run lint:md",
     "lint:js": "xo",
     "lint:md": "remark . -qfo",
     "nyc": "cross-env NODE_ENV=test nyc ava",
+    "prepare": "husky install",
     "pretest": "yarn run lint",
     "test": "yarn run ava && yarn run dtslint",
-    "test-coverage": "cross-env NODE_ENV=test nyc yarn run test",
-    "dtslint": "cross-env NODE_ENV=test dtslint types"
+    "test-coverage": "cross-env NODE_ENV=test nyc yarn run test"
   },
+  "types": "types",
   "xo": {
     "prettier": true,
     "space": true,
