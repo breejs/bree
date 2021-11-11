@@ -514,3 +514,18 @@ test('throws if job.timezone is invalid or unsupported', (t) => {
     }
   );
 });
+
+test('throws if path is not a file during object job', (t) => {
+  t.throws(
+    () => jobValidator({ name: 'leroy.js' }, 0, ['exists'], baseConfig),
+    {
+      message: /path missing/
+    }
+  );
+});
+
+test('throws if path is not a file during string job', (t) => {
+  t.throws(() => jobValidator('leroy.js', 0, ['exists'], baseConfig), {
+    message: /path missing/
+  });
+});

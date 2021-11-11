@@ -210,3 +210,15 @@ test('throws if acceptedExtensions is false', (t) => {
     { message: '`acceptedExtensions` must be defined and an Array' }
   );
 });
+
+test('throws if root is not a directory', (t) => {
+  t.throws(
+    () =>
+      new Bree({
+        jobs: ['basic'],
+        ...baseConfig,
+        root: path.resolve(__dirname, 'add.js')
+      }),
+    { message: /Root directory of .+ does not exist/ }
+  );
+});
