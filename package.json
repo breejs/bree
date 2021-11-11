@@ -41,10 +41,13 @@
     "@commitlint/config-conventional": "latest",
     "@goto-bus-stop/envify": "^5.0.0",
     "@sinonjs/fake-timers": "^8.1.0",
+    "@types/node": "^14.0.0",
+    "@types/safe-timers": "^1.1.0",
     "ava": "latest",
     "codecov": "latest",
     "cross-env": "latest",
     "delay": "^5.0.0",
+    "dtslint": "^4.2.0",
     "eslint": "^8.2.0",
     "eslint-config-xo-lass": "latest",
     "eslint-plugin-compat": "^3.13.0",
@@ -64,7 +67,8 @@
     "node": ">= 12.11.0"
   },
   "files": [
-    "src"
+    "src",
+    "types/index.d.ts"
   ],
   "homepage": "https://github.com/breejs/bree",
   "husky": {
@@ -156,6 +160,7 @@
   ],
   "license": "MIT",
   "main": "src/index.js",
+  "types": "types",
   "publishConfig": {
     "access": "public"
   },
@@ -171,8 +176,9 @@
     "lint:md": "remark . -qfo",
     "nyc": "cross-env NODE_ENV=test nyc ava",
     "pretest": "yarn run lint",
-    "test": "cross-env NODE_ENV=test ava",
-    "test-coverage": "cross-env NODE_ENV=test nyc yarn run test"
+    "test": "yarn run ava && yarn run dtslint",
+    "test-coverage": "cross-env NODE_ENV=test nyc yarn run test",
+    "dtslint": "cross-env NODE_ENV=test dtslint types"
   },
   "xo": {
     "prettier": true,
@@ -204,7 +210,29 @@
         "rules": {
           "unicorn/no-process-exit": "off"
         }
+      },
+      {
+        "files": [
+          "*.ts"
+        ],
+        "parserOptions": {
+          "project": [
+            "types/tsconfig.json"
+          ]
+        }
+      },
+      {
+        "files": [
+          "types/tests.ts"
+        ],
+        "rules": {
+          "@typescript-eslint/no-unused-vars": "off",
+          "@typescript-eslint/no-empty-function": "off",
+          "@typescript-eslint/no-unsafe-assignment": "off",
+          "@typescript-eslint/no-unsafe-call": "off"
+        }
       }
-    ]
+    ],
+    "parser": "@typescript-eslint/parser"
   }
 }
