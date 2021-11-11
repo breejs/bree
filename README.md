@@ -77,20 +77,6 @@ npm install bree
 yarn add bree
 ```
 
-For TypeScript bindings:
-
-[npm][]:
-
-```sh
-npm install --save-dev @types/bree
-```
-
-[yarn][]:
-
-```sh
-yarn add -D @types/bree
-```
-
 
 ## Usage and Examples
 
