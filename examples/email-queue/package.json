@@ -1,0 +1,13 @@
+{
+  "name": "email-queue",
+  "version": "0.0.0",
+  "description": "bree simple email queue example",
+  "main": "index.js",
+  "dependencies": {
+    "@ladjs/graceful": "^1.0.5",
+    "bree": "^7.1.0",
+    "cabin": "^9.0.4",
+    "email-templates": "^8.0.8",
+    "p-map": "4"
+  }
+}
