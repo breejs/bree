@@ -1,0 +1,8 @@
+{
+  "name": "bree-js-example",
+  "version": "1.0.0",
+  "description": "basic bree example",
+  "main": "index.js",
+  "author": "Spencer Snyder <sasnyde2@gmail.com> (https://spencersnyder.io/)",
+  "license": "MIT"
+}

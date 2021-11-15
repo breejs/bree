@@ -2,7 +2,7 @@ module.exports = {
   '*.md,!test/**/*.md': [
     (filenames) => filenames.map((filename) => `remark ${filename} -qfo`)
   ],
-  'package.json': 'fixpack',
+  './package.json': 'fixpack',
   '*.js': 'xo --fix',
   '*.ts': 'xo --fix'
 };
