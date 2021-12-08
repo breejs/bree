@@ -166,7 +166,7 @@
     "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "dtslint": "cross-env NODE_ENV=test dtslint types",
     "lint": "yarn run lint:js && yarn run lint:md",
-    "lint:js": "xo",
+    "lint:js": "xo --ignore examples/",
     "lint:md": "remark . -qfo",
     "nyc": "cross-env NODE_ENV=test nyc ava",
     "prepare": "husky install",

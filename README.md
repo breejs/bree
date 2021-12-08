@@ -27,7 +27,6 @@
 * [Foreword](#foreword)
 * [Install](#install)
 * [Usage and Examples](#usage-and-examples)
-* [Node.js Email Queue Job Scheduling Example](#nodejs-email-queue-job-scheduling-example)
 * [Instance Options](#instance-options)
 * [Job Options](#job-options)
 * [Job Interval and Timeout Values](#job-interval-and-timeout-values)
@@ -41,7 +40,7 @@
 * [Complex timeouts and intervals](#complex-timeouts-and-intervals)
 * [Custom Worker Options](#custom-worker-options)
 * [Using functions for jobs](#using-functions-for-jobs)
-* [Typescript Usage](#typescript-usage)
+* [Typescript and Usage with Bundlers](#typescript-and-usage-with-bundlers)
 * [Concurrency](#concurrency)
 * [Plugins](#plugins)
   * [Available Plugins](#available-plugins)
@@ -300,8 +299,7 @@ bree.remove('boop');
 */
 ```
 
-For more examples - including setting up bree with TypeScript, ESModules, and implementing an Email Queue, see the [examples]( ./examples) folder.
-
+For more examples - including setting up bree with TypeScript, ESModules, and implementing an Email Queue, see the [examples](./examples) folder.
 
 For a more complete demo using express see: [Bree Express Demo](https://github.com/breejs/express-example)
 
@@ -313,7 +311,7 @@ Here is the full list of options and their defaults.  See [index.js](index.js) f
 | Property               | Type     | Default Value          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ---------------------- | -------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `logger`               | Object   | `console`              | This is the default logger.  **We recommend using [Cabin][cabin]** instead of using `console` as your default logger.                                                                                                                                                                                                                                                                                                                                    |
-| `root`                 | String   | `path.resolve('jobs')` | Resolves a jobs folder relative to where the project is ran (the directory you call `node` in). Set this value to `false` to prevent requiring a root directory of jobs (e.g. if your jobs are not all in one directory). Set this to `path.join(__dirname, 'jobs')` to keep your jobs directory relative to the file where Bree is set up.                                                                                                                                                                                                                                                                                                                                |
+| `root`                 | String   | `path.resolve('jobs')` | Resolves a jobs folder relative to where the project is ran (the directory you call `node` in). Set this value to `false` to prevent requiring a root directory of jobs (e.g. if your jobs are not all in one directory). Set this to `path.join(__dirname, 'jobs')` to keep your jobs directory relative to the file where Bree is set up.                                                                                                              |
 | `timeout`              | Number   | `0`                    | Default timeout for jobs (e.g. a value of `0` means that jobs will start on boot by default unless a job has a property of `timeout` or `interval` defined.  Set this to `false` if you do not wish for a default value to be set for jobs. **This value does not apply to jobs with a property of `date`.**                                                                                                                                             |
 | `interval`             | Number   | `0`                    | Default interval for jobs (e.g. a value of `0` means that there is no interval, and a value greater than zero indicates a default interval will be set with this value).  **This value does not apply to jobs with a property of `cron`**.                                                                                                                                                                                                               |
 | `jobs`                 | Array    | `[]`                   | Defaults to an empty Array, but if the `root` directory has a `index.js` file, then it will be used.  This allows you to keep your jobs and job definition index in the same place.  See [Job Options](#job-options) below, and [Usage and Examples](#usage-and-examples) above for more insight.                                                                                                                                                        |
@@ -564,14 +562,14 @@ We recommend setting the `root` instance options to `path.join(__dirname,'jobs')
 
 After an example transformation - you should expect the output in your `dist` folder to look like:
 
-```
+```tree
 - dist
   |-jobs
     |-job.js
   |-index.js
 ```
 
-For some example TypeScript set ups - see the [examples folder]( ./examples ).
+For some example TypeScript set ups - see the [examples folder](./examples).
 
 For another alternative also see the [@breejs/ts-worker](https://github.com/breejs/ts-worker) plugin.
 
