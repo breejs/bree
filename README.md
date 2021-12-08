@@ -3,7 +3,7 @@
 </h1>
 <div align="center">
   <a href="https://join.slack.com/t/ladjs/shared_invite/zt-fqei6z11-Bq2trhwHQxVc5x~ifiZG0g"><img src="https://img.shields.io/badge/chat-join%20slack-brightgreen" alt="chat" /></a>
-  <a href="https://travis-ci.com/breejs/bree"><img src="https://travis-ci.com/breejs/bree.svg?branch=master" alt="build status" /></a>
+  <a href="https://github.com/breejs/bree/actions/workflows/ci.yml"><img src="https://github.com/breejs/later/actions/workflows/ci.yml/badge.svg" alt="build status" /></a>
   <a href="https://codecov.io/github/breejs/bree"><img src="https://img.shields.io/codecov/c/github/breejs/bree/master.svg" alt="code coverage" /></a>
   <a href="https://github.com/sindresorhus/xo"><img src="https://img.shields.io/badge/code_style-XO-5ed9c7.svg" alt="code style" /></a>
   <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/styled_with-prettier-ff69b4.svg" alt="styled with prettier" /></a>
