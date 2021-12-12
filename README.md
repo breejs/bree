@@ -569,7 +569,7 @@ After an example transformation - you should expect the output in your `dist` fo
   |-index.js
 ```
 
-For some example TypeScript set ups - see the [examples folder](./examples).
+For some example TypeScript set ups - see the [examples folder](https://github.com/breejs/bree/tree/master/examples).
 
 For another alternative also see the [@breejs/ts-worker](https://github.com/breejs/ts-worker) plugin.
 
