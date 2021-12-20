@@ -67,7 +67,7 @@ declare namespace Bree {
     cronValidate?: Record<string, unknown>;
     closeWorkerAfterMs?: number;
     worker?: Partial<WorkerOptions>;
-    outputWorkerMetadate?: boolean;
+    outputWorkerMetadata?: boolean;
     timezone?: string;
   }
 
@@ -86,7 +86,7 @@ declare namespace Bree {
     worker: WorkerOptions;
     errorHandler?: (error: any, workerMetadata: any) => void;
     workerMessageHandler?: (message: any, workerMetadata: any) => void;
-    outputWorkerMetadate: boolean;
+    outputWorkerMetadata: boolean;
   }
 
   interface BreeOptions {
@@ -104,7 +104,7 @@ declare namespace Bree {
     worker?: WorkerOptions;
     errorHandler?: (error: any, workerMetadata: any) => void;
     workerMessageHandler?: (message: any, workerMetadata: any) => void;
-    outputWorkerMetadate?: boolean;
+    outputWorkerMetadata?: boolean;
   }
 
   type PluginFunc<T = unknown> = (options: T, c: typeof Bree) => void;
