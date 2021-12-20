@@ -125,6 +125,18 @@ class Bree extends EventEmitter {
       throw new TypeError('`acceptedExtensions` must be defined and an Array');
     }
 
+    // convert `false` logger option into noop
+    // <https://github.com/breejs/bree/issues/147>
+    if (this.config.logger === false)
+      this.config.logger = {
+        /* istanbul ignore next */
+        info() {},
+        /* istanbul ignore next */
+        warn() {},
+        /* istanbul ignore next */
+        error() {}
+      };
+
     debug('config', this.config);
 
     this.closeWorkerAfterMs = {};

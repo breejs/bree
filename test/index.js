@@ -222,3 +222,11 @@ test('throws if root is not a directory', (t) => {
     { message: /Root directory of .+ does not exist/ }
   );
 });
+
+test('sets logger to noop if set to false', (t) => {
+  const bree = new Bree({ root, logger: false });
+  t.true(typeof bree.config.logger === 'object');
+  t.true(typeof bree.config.logger.info === 'function');
+  t.true(typeof bree.config.logger.warn === 'function');
+  t.true(typeof bree.config.logger.error === 'function');
+});
