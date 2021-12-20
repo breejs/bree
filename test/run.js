@@ -38,7 +38,7 @@ test('job already running', (t) => {
 });
 
 test.serial('job terminates after closeWorkerAfterMs', async (t) => {
-  t.plan(2);
+  t.plan(3);
 
   const logger = {};
   logger.info = () => {};
@@ -56,6 +56,7 @@ test.serial('job terminates after closeWorkerAfterMs', async (t) => {
 
   const [code] = await once(bree.workers.long, 'exit');
   t.is(code, 1);
+  t.true(typeof bree.closeWorkerAfterMs.long === 'undefined');
 });
 
 test('job terminates before closeWorkerAfterMs', async (t) => {
@@ -75,6 +76,7 @@ test('job terminates before closeWorkerAfterMs', async (t) => {
 
   const [code] = await once(bree.workers.short, 'exit');
   t.is(code, 2);
+  t.true(typeof bree.closeWorkerAfterMs.short === 'undefined');
 });
 
 test('job terminates should clear closeWorkerAfterMs', async (t) => {
