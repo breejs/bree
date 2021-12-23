@@ -90,7 +90,7 @@ declare namespace Bree {
   }
 
   interface BreeOptions {
-    logger?: Record<string, unknown>;
+    logger?: Record<string, unknown> | boolean;
     root?: string | boolean;
     timeout?: number | boolean;
     interval?: number;
