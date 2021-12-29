@@ -117,7 +117,7 @@ test('job terminates on message "done"', async (t) => {
   const [message] = await once(bree.workers.done, 'message');
   t.is(message, 'get ready');
 
-  await delay(100);
+  await once(bree, 'worker deleted');
   t.is(typeof bree.workers.done, 'undefined');
 });
 
@@ -140,7 +140,7 @@ test('job terminates on message "done" should clear closeWorkerAfterMs', async (
   t.is(message, 'get ready');
   t.true(typeof bree.closeWorkerAfterMs.done === 'object');
 
-  await delay(100);
+  await once(bree, 'worker deleted');
   t.is(typeof bree.workers.done, 'undefined');
   t.true(typeof bree.closeWorkerAfterMs.done !== 'object');
 });

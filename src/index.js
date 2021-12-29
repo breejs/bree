@@ -346,6 +346,8 @@ class Bree extends EventEmitter {
 
           // remove closeWorkerAfterMs if exist
           this.removeSafeTimer('closeWorkerAfterMs', name);
+
+          this.emit('worker deleted');
         }
       });
       // NOTE: you cannot catch messageerror since it is a Node internal
