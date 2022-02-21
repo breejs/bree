@@ -34,11 +34,11 @@ test('successfully run job', async (t) => {
   bree.start();
 
   bree.on('worker created', (name) => {
-    t.true(typeof bree.workers[name] === 'object');
+    t.true(bree.workers.has(name));
   });
 
   bree.on('worker deleted', (name) => {
-    t.true(typeof bree.workers[name] === 'undefined');
+    t.false(bree.workers.has(name));
   });
 
   await delay(100);
@@ -181,10 +181,10 @@ test('emits "worker created" and "worker started" events', async (t) => {
   bree.start();
 
   bree.on('worker created', (name) => {
-    t.true(typeof bree.workers[name] === 'object');
+    t.true(bree.workers.has(name));
   });
   bree.on('worker deleted', (name) => {
-    t.true(typeof bree.workers[name] === 'undefined');
+    t.false(bree.workers.has(name));
   });
 
   await delay(1000);
@@ -311,7 +311,7 @@ test('removes job on completion when config.removeCompleted is `true`', async (t
   });
 
   bree.run('basic');
-  await once(bree.workers.basic, 'exit');
+  await once(bree.workers.get('basic'), 'exit');
 
   t.is(bree.config.jobs.length, 0);
 });

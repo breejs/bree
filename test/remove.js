@@ -28,12 +28,12 @@ test('remove > successfully remove and stop jobs', async (t) => {
   await delay(10);
 
   t.is(bree.config.jobs[0].name, 'loop');
-  t.true(typeof bree.workers.loop === 'object');
+  t.true(bree.workers.has('loop'));
 
   await bree.remove('loop');
 
   t.is(typeof bree.config.jobs[0], 'undefined');
-  t.is(typeof bree.workers.loop, 'undefined');
+  t.false(bree.workers.has('loop'));
 });
 
 test('remove > fails if job does not exist', async (t) => {

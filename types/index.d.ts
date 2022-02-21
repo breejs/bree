@@ -9,10 +9,10 @@ export = Bree;
 declare class Bree extends EventEmitter {
   config: Bree.BreeConfigs;
 
-  closeWorkerAfterMs: Record<string, unknown>;
-  workers: Record<string, Worker>;
-  timeouts: Record<string, Timeout>;
-  intervals: Record<string, Interval>;
+  closeWorkerAfterMs: Map<string, Timeout>;
+  workers: Map<string, Worker>;
+  timeouts: Map<string, Timeout>;
+  intervals: Map<string, Interval>;
 
   isSchedule: (value: any) => boolean;
   getWorkerMetadata: (
