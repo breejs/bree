@@ -26,6 +26,7 @@
 
 * [Foreword](#foreword)
 * [Install](#install)
+* [Upgrading](#upgrading)
 * [Usage and Examples](#usage-and-examples)
 * [Instance Options](#instance-options)
 * [Job Options](#job-options)
@@ -75,6 +76,11 @@ npm install bree
 ```sh
 yarn add bree
 ```
+
+
+## Upgrading
+
+To see details about upgrading from the last major version, check out this [doc](./UPGRADING.md).
 
 
 ## Usage and Examples

@@ -10,6 +10,10 @@ docute.init({
       {
         title: 'The best job scheduler for Node.js and JavaScript',
         path: '/'
+      },
+      {
+        title: 'Upgrading',
+        path: '/UPGRADING'
       }
     ]
   },
