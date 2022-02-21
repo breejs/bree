@@ -35,6 +35,10 @@ class Bree extends EventEmitter {
       silenceRootCheckError: false,
       // Set this to `false` to prevent requiring a root directory of jobs
       doRootCheck: true,
+      // Remove jobs upon completion
+      // (set this to `true` if you want jobs to removed from array upon completion)
+      // this will not remove jobs when `stop` is called
+      removeCompleted: false,
       // Default timeout for jobs
       // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
@@ -156,6 +160,7 @@ class Bree extends EventEmitter {
     this.add = this.add.bind(this);
     this.remove = this.remove.bind(this);
     this.removeSafeTimer = this.removeSafeTimer.bind(this);
+    this.handleJobCompletion = this.handleJobCompletion.bind(this);
 
     this.validateJob = validateJob;
     this.getName = getName;
@@ -351,8 +356,7 @@ class Bree extends EventEmitter {
           this.workers[name].terminate();
           delete this.workers[name];
 
-          // remove closeWorkerAfterMs if exist
-          this.removeSafeTimer('closeWorkerAfterMs', name);
+          this.handleJobCompletion(name);
 
           this.emit('worker deleted', name);
         }
@@ -405,8 +409,7 @@ class Bree extends EventEmitter {
 
         delete this.workers[name];
 
-        // remove closeWorkerAfterMs if exist
-        this.removeSafeTimer('closeWorkerAfterMs', name);
+        this.handleJobCompletion(name);
 
         this.emit('worker deleted', name);
       });
@@ -637,6 +640,19 @@ class Bree extends EventEmitter {
 
   createWorker(filename, options) {
     return new Worker(filename, options);
+  }
+
+  handleJobCompletion(name) {
+    // remove closeWorkerAfterMs if exist
+    this.removeSafeTimer('closeWorkerAfterMs', name);
+
+    if (
+      this.config.removeCompleted &&
+      !this.timeouts.name &&
+      !this.intervals.name
+    ) {
+      this.config.jobs = this.config.jobs.filter((j) => j.name !== name);
+    }
   }
 }
 

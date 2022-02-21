@@ -1,5 +1,8 @@
 const path = require('path');
+const { once } = require('events');
+
 const test = require('ava');
+
 const delay = require('delay');
 const humanInterval = require('human-interval');
 const FakeTimers = require('@sinonjs/fake-timers');
@@ -297,4 +300,18 @@ test('sets logger to noop if set to false', (t) => {
   t.true(typeof bree.config.logger.info === 'function');
   t.true(typeof bree.config.logger.warn === 'function');
   t.true(typeof bree.config.logger.error === 'function');
+});
+
+test('removes job on completion when config.removeCompleted is `true`', async (t) => {
+  const bree = new Bree({
+    jobs: ['basic'],
+    ...baseConfig,
+    logger: false,
+    removeCompleted: true
+  });
+
+  bree.run('basic');
+  await once(bree.workers.basic, 'exit');
+
+  t.is(bree.config.jobs.length, 0);
 });

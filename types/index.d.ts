@@ -52,6 +52,8 @@ declare class Bree extends EventEmitter {
 
   createWorker: (filename: string, options: Partial<WorkerOptions>) => Worker;
 
+  handleJobCompletion: (name: string) => void;
+
   constructor(config?: Bree.BreeOptions);
 }
 
@@ -76,6 +78,7 @@ declare namespace Bree {
     root: string | boolean;
     silenceRootCheckError: boolean;
     doRootCheck: boolean;
+    removeCompleted: boolean;
     timeout: number | boolean;
     interval: number;
     timezone: string;
