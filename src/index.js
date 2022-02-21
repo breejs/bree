@@ -31,6 +31,10 @@ class Bree extends EventEmitter {
       // Set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
       root: resolve('jobs'),
+      // Set this to `true` to silence root check error log
+      silenceRootCheckError: false,
+      // Set this to `false` to prevent requiring a root directory of jobs
+      doRootCheck: true,
       // Default timeout for jobs
       // (set this to `false` if you do not wish for a default timeout to be set)
       timeout: 0,
@@ -191,12 +195,15 @@ class Bree extends EventEmitter {
     //
     if (
       this.config.root &&
+      this.config.doRootCheck &&
       (!Array.isArray(this.config.jobs) || this.config.jobs.length === 0)
     ) {
       try {
         this.config.jobs = require(this.config.root);
       } catch (err) {
-        this.config.logger.error(err);
+        if (!this.config.silenceRootCheckError) {
+          this.config.logger.error(err);
+        }
       }
     }
 

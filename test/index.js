@@ -70,18 +70,86 @@ test('preset and override is set by cronValidate config', (t) => {
   t.is(bree.config.cronValidate.override.test, 'works');
 });
 
-test('throws if jobs is not an array', (t) => {
+test('throws if jobs is not an array and logs MODULE_NOT_FOUND error by default', (t) => {
+  t.plan(2);
+
+  const logger = {
+    info: () => {},
+    error: (err) => {
+      t.is(err.code, 'MODULE_NOT_FOUND');
+    }
+  };
+
   t.throws(
     () =>
       new Bree({
         jobs: null,
         ...baseConfig,
+        logger,
         root: path.join(__dirname, 'noIndexJobs')
       }),
     {
       message: 'Jobs must be an Array'
     }
   );
+});
+
+test('logs MODULE_NOT_FOUND error if array is empty', (t) => {
+  t.plan(2);
+
+  const logger = {
+    info: () => {},
+    error: (err) => {
+      t.is(err.code, 'MODULE_NOT_FOUND');
+    }
+  };
+
+  const bree = new Bree({
+    jobs: [],
+    ...baseConfig,
+    logger,
+    root: path.join(__dirname, 'noIndexJobs')
+  });
+
+  t.true(bree instanceof Bree);
+});
+
+test('does not log MODULE_NOT_FOUND error if silenceRootCheckError is false', (t) => {
+  const logger = {
+    info: () => {},
+    error: () => {
+      t.fail();
+    }
+  };
+
+  const bree = new Bree({
+    jobs: [],
+    ...baseConfig,
+    logger,
+    root: path.join(__dirname, 'noIndexJobs'),
+    silenceRootCheckError: true
+  });
+
+  t.true(bree instanceof Bree);
+});
+
+test('does not log MODULE_NOT_FOUND error if doRootCheck is false', (t) => {
+  const logger = {
+    info: () => {},
+    error: () => {
+      t.fail();
+    }
+  };
+
+  const bree = new Bree({
+    jobs: [],
+    ...baseConfig,
+    logger,
+    root: path.join(__dirname, 'noIndexJobs'),
+    doRootCheck: false
+  });
+
+  t.true(bree instanceof Bree);
 });
 
 test('throws during constructor if job-validator throws', (t) => {
