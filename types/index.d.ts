@@ -74,6 +74,8 @@ declare namespace Bree {
   interface BreeConfigs {
     logger: Record<string, unknown>;
     root: string | boolean;
+    silenceRootCheckError: boolean;
+    doRootCheck: boolean;
     timeout: number | boolean;
     interval: number;
     timezone: string;
@@ -89,23 +91,7 @@ declare namespace Bree {
     outputWorkerMetadata: boolean;
   }
 
-  interface BreeOptions {
-    logger?: Record<string, unknown> | boolean;
-    root?: string | boolean;
-    timeout?: number | boolean;
-    interval?: number;
-    timezone?: string;
-    jobs?: Array<string | (() => void) | JobOptions>;
-    hasSeconds?: boolean;
-    cronValidate?: Record<string, unknown>;
-    closeWorkerAfterMs?: number;
-    defaultExtension?: string;
-    acceptedExtensions?: string[];
-    worker?: WorkerOptions;
-    errorHandler?: (error: any, workerMetadata: any) => void;
-    workerMessageHandler?: (message: any, workerMetadata: any) => void;
-    outputWorkerMetadata?: boolean;
-  }
+  type BreeOptions = Partial<BreeConfigs>;
 
   type PluginFunc<T = unknown> = (options: T, c: typeof Bree) => void;
 
