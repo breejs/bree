@@ -84,7 +84,7 @@ declare namespace Bree {
     timeout: number | boolean;
     interval: number;
     timezone: string;
-    jobs: JobOptions[];
+    jobs: Job[];
     hasSeconds: boolean;
     cronValidate: Record<string, unknown>;
     closeWorkerAfterMs: number;
