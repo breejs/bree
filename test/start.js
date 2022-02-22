@@ -24,29 +24,24 @@ test('throws error if job does not exist', (t) => {
 });
 
 test('fails if job already started', async (t) => {
-  t.plan(1);
+  await t.throwsAsync(
+    async () => {
+      const bree = new Bree({
+        root,
+        jobs: ['short']
+      });
 
-  const logger = {};
-  logger.warn = (err) => {
-    t.is(err.message, 'Job "short" is already started');
-  };
+      bree.start('short');
+      await delay(1);
+      bree.start('short');
+      await delay(1);
 
-  logger.info = () => {};
-
-  logger.error = () => {};
-
-  const bree = new Bree({
-    root,
-    jobs: ['short'],
-    logger
-  });
-
-  bree.start('short');
-  await delay(1);
-  bree.start('short');
-  await delay(1);
-
-  await bree.stop();
+      await bree.stop();
+    },
+    {
+      message: `Job "short" is already started`
+    }
+  );
 });
 
 test('fails if date is in the past', async (t) => {
@@ -116,16 +111,13 @@ test('sets interval if date is in the future and interval is schedule', async (t
   bree.start('short');
 
   await once(bree, 'worker created');
-  t.log('first worker created');
   await delay(1);
   t.true(bree.intervals.has('short'));
 
   const [code] = await once(bree.workers.get('short'), 'exit');
-  t.log('timeout runs');
   t.is(code, 2);
 
   await once(bree, 'worker created');
-  t.log('second worker created');
   t.pass();
 
   await bree.stop();

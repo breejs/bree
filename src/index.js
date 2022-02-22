@@ -442,9 +442,7 @@ class Bree extends EventEmitter {
         this.intervals.has(name) ||
         this.workers.has(name)
       ) {
-        return this.config.logger.warn(
-          new Error(`Job "${name}" is already started`)
-        );
+        throw new Error(`Job "${name}" is already started`);
       }
 
       debug('job', job);

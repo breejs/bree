@@ -8,3 +8,4 @@
   * `workers`
   * `timeouts`
   * `intervals`
+* `start()` will now throw an error if the job has already started
