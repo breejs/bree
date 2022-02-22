@@ -454,7 +454,11 @@ class Bree extends EventEmitter {
         debug('job date', job);
         if (job.date.getTime() < Date.now()) {
           debug('job date was in the past');
-          return;
+          // not throwing an error so that jobs can be set with a specifc date
+          // and only run on that date then never run again without changing config
+          return this.config.logger.warn(
+            `Job "${name}" was skipped because it was in the past.`
+          );
         }
 
         this.timeouts.set(
