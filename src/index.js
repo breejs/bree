@@ -1,7 +1,7 @@
 const fs = require('fs');
 const EventEmitter = require('events');
 const { Worker } = require('worker_threads');
-const { resolve } = require('path');
+const { join } = require('path');
 
 const combineErrors = require('combine-errors');
 const debug = require('debug')('bree');
@@ -30,7 +30,7 @@ class Bree extends EventEmitter {
       logger: console,
       // Set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
-      root: resolve('jobs'),
+      root: join(__dirname, 'jobs'),
       // Set this to `true` to silence root check error log
       silenceRootCheckError: false,
       // Set this to `false` to prevent requiring a root directory of jobs
