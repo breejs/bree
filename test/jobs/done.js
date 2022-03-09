@@ -6,6 +6,7 @@ const delay = require('delay');
 
   if (parentPort) {
     parentPort.postMessage('get ready');
+    await delay(10);
     parentPort.postMessage('done');
   }
 })();

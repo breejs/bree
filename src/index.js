@@ -75,7 +75,7 @@ class Bree extends EventEmitter {
       // pass in a callback function with following signature: `(error, workerMetadata) => { // custom handling here }`
       errorHandler: null,
       // Custom handler executed when a `message` event is received from a worker.
-      // A special 'done' even is also broadcasted while leaving worker shutdown logic in place.
+      // A special 'done' event is also broadcasted while leaving worker shutdown logic in place.
       workerMessageHandler: null,
       //
       // if you set this to `true`, then a second arg is passed to log output
