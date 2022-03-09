@@ -295,10 +295,11 @@ class Bree extends EventEmitter {
       }
 
       if (this.workers.has(name)) {
-        return this.config.logger.warn(
+        this.config.logger.warn(
           new Error(`Job "${name}" is already running`),
           this.getWorkerMetadata(name)
         );
+        return;
       }
 
       debug('starting worker', name);
@@ -454,9 +455,10 @@ class Bree extends EventEmitter {
           debug('job date was in the past');
           // not throwing an error so that jobs can be set with a specifc date
           // and only run on that date then never run again without changing config
-          return this.config.logger.warn(
+          this.config.logger.warn(
             `Job "${name}" was skipped because it was in the past.`
           );
+          return;
         }
 
         this.timeouts.set(
