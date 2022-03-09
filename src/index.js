@@ -1,7 +1,7 @@
 const fs = require('fs');
 const EventEmitter = require('events');
 const { Worker } = require('worker_threads');
-const { resolve } = require('path');
+const { join } = require('path');
 
 const combineErrors = require('combine-errors');
 const debug = require('debug')('bree');
@@ -30,7 +30,7 @@ class Bree extends EventEmitter {
       logger: console,
       // Set this to `false` to prevent requiring a root directory of jobs
       // (e.g. if your jobs are not all in one directory)
-      root: resolve('jobs'),
+      root: join(__dirname, 'jobs'),
       // Set this to `true` to silence root check error log
       silenceRootCheckError: false,
       // Set this to `false` to prevent requiring a root directory of jobs
@@ -147,10 +147,10 @@ class Bree extends EventEmitter {
 
     debug('config', this.config);
 
-    this.closeWorkerAfterMs = {};
-    this.workers = {};
-    this.timeouts = {};
-    this.intervals = {};
+    this.closeWorkerAfterMs = new Map();
+    this.workers = new Map();
+    this.timeouts = new Map();
+    this.intervals = new Map();
 
     this.isSchedule = isSchedule;
     this.getWorkerMetadata = this.getWorkerMetadata.bind(this);
@@ -270,16 +270,20 @@ class Bree extends EventEmitter {
         : undefined;
     }
 
-    return this.workers[name]
-      ? {
-          ...meta,
-          worker: {
-            isMainThread: this.workers[name].isMainThread,
-            resourceLimits: this.workers[name].resourceLimits,
-            threadId: this.workers[name].threadId
-          }
+    if (this.workers.has(name)) {
+      const worker = this.workers.get(name);
+
+      return {
+        ...meta,
+        worker: {
+          isMainThread: worker.isMainThread,
+          resourceLimits: worker.resourceLimits,
+          threadId: worker.threadId
         }
-      : meta;
+      };
+    }
+
+    return meta;
   }
 
   run(name) {
@@ -290,11 +294,12 @@ class Bree extends EventEmitter {
         throw new Error(`Job "${name}" does not exist`);
       }
 
-      if (this.workers[name]) {
-        return this.config.logger.warn(
+      if (this.workers.has(name)) {
+        this.config.logger.warn(
           new Error(`Job "${name}" is already running`),
           this.getWorkerMetadata(name)
         );
+        return;
       }
 
       debug('starting worker', name);
@@ -309,12 +314,12 @@ class Bree extends EventEmitter {
           ...(job.worker && job.worker.workerData ? job.worker.workerData : {})
         }
       };
-      this.workers[name] = this.createWorker(job.path, object);
+      this.workers.set(name, this.createWorker(job.path, object));
       this.emit('worker created', name);
       debug('worker started', name);
 
       const prefix = `Worker for job "${name}"`;
-      this.workers[name].on('online', () => {
+      this.workers.get(name).on('online', () => {
         // If we specified a value for `closeWorkerAfterMs`
         // then we need to terminate it after that execution time
         const closeWorkerAfterMs = Number.isFinite(job.closeWorkerAfterMs)
@@ -322,13 +327,16 @@ class Bree extends EventEmitter {
           : this.config.closeWorkerAfterMs;
         if (Number.isFinite(closeWorkerAfterMs) && closeWorkerAfterMs > 0) {
           debug('worker has close set', name, closeWorkerAfterMs);
-          this.closeWorkerAfterMs[name] = setTimeout(() => {
-            /* istanbul ignore else */
-            if (this.workers[name]) {
-              debug('worker has been terminated', name);
-              this.workers[name].terminate();
-            }
-          }, closeWorkerAfterMs);
+          this.closeWorkerAfterMs.set(
+            name,
+            setTimeout(() => {
+              /* istanbul ignore else */
+              if (this.workers.has(name)) {
+                debug('worker has been terminated', name);
+                this.workers.get(name).terminate();
+              }
+            }, closeWorkerAfterMs)
+          );
         }
 
         this.config.logger.info(
@@ -336,7 +344,7 @@ class Bree extends EventEmitter {
           this.getWorkerMetadata(name)
         );
       });
-      this.workers[name].on('message', (message) => {
+      this.workers.get(name).on('message', (message) => {
         const metadata = this.getWorkerMetadata(name, { message });
 
         if (this.config.workerMessageHandler) {
@@ -351,10 +359,11 @@ class Bree extends EventEmitter {
         }
 
         if (message === 'done') {
-          this.workers[name].removeAllListeners('message');
-          this.workers[name].removeAllListeners('exit');
-          this.workers[name].terminate();
-          delete this.workers[name];
+          const worker = this.workers.get(name);
+          worker.removeAllListeners('message');
+          worker.removeAllListeners('exit');
+          worker.terminate();
+          this.workers.delete(name);
 
           this.handleJobCompletion(name);
 
@@ -364,7 +373,7 @@ class Bree extends EventEmitter {
       // NOTE: you cannot catch messageerror since it is a Node internal
       //       (if anyone has any idea how to catch this in tests let us know)
       /* istanbul ignore next */
-      this.workers[name].on('messageerror', (err) => {
+      this.workers.get(name).on('messageerror', (err) => {
         if (this.config.errorHandler) {
           this.config.errorHandler(err, {
             name,
@@ -377,7 +386,7 @@ class Bree extends EventEmitter {
           );
         }
       });
-      this.workers[name].on('error', (err) => {
+      this.workers.get(name).on('error', (err) => {
         if (this.config.errorHandler) {
           this.config.errorHandler(err, {
             name,
@@ -390,7 +399,7 @@ class Bree extends EventEmitter {
           );
         }
       });
-      this.workers[name].on('exit', (code) => {
+      this.workers.get(name).on('exit', (code) => {
         const level = code === 0 ? 'info' : 'error';
         if (level === 'error' && this.config.errorHandler) {
           this.config.errorHandler(
@@ -407,7 +416,7 @@ class Bree extends EventEmitter {
           );
         }
 
-        delete this.workers[name];
+        this.workers.delete(name);
 
         this.handleJobCompletion(name);
 
@@ -429,10 +438,12 @@ class Bree extends EventEmitter {
         throw new Error(`Job ${name} does not exist`);
       }
 
-      if (this.timeouts[name] || this.intervals[name] || this.workers[name]) {
-        return this.config.logger.warn(
-          new Error(`Job "${name}" is already started`)
-        );
+      if (
+        this.timeouts.has(name) ||
+        this.intervals.has(name) ||
+        this.workers.has(name)
+      ) {
+        throw new Error(`Job "${name}" is already started`);
       }
 
       debug('job', job);
@@ -442,94 +453,120 @@ class Bree extends EventEmitter {
         debug('job date', job);
         if (job.date.getTime() < Date.now()) {
           debug('job date was in the past');
+          // not throwing an error so that jobs can be set with a specifc date
+          // and only run on that date then never run again without changing config
+          this.config.logger.warn(
+            `Job "${name}" was skipped because it was in the past.`
+          );
+          this.emit('job past', name);
           return;
         }
 
-        this.timeouts[name] = setTimeout(() => {
-          this.run(name);
-          if (this.isSchedule(job.interval)) {
-            debug('job.interval is schedule', job);
-            this.intervals[name] = later.setInterval(
-              () => this.run(name),
-              job.interval,
-              job.timezone
-            );
-          } else if (Number.isFinite(job.interval) && job.interval > 0) {
-            debug('job.interval is finite', job);
-            this.intervals[name] = setInterval(
-              () => this.run(name),
-              job.interval
-            );
-          } else {
-            debug('job.date was scheduled to run only once', job);
-          }
+        this.timeouts.set(
+          name,
+          setTimeout(() => {
+            this.run(name);
+            if (this.isSchedule(job.interval)) {
+              debug('job.interval is schedule', job);
+              this.intervals.set(
+                name,
+                later.setInterval(
+                  () => this.run(name),
+                  job.interval,
+                  job.timezone
+                )
+              );
+            } else if (Number.isFinite(job.interval) && job.interval > 0) {
+              debug('job.interval is finite', job);
+              this.intervals.set(
+                name,
+                setInterval(() => this.run(name), job.interval)
+              );
+            } else {
+              debug('job.date was scheduled to run only once', job);
+            }
 
-          delete this.timeouts[name];
-        }, job.date.getTime() - Date.now());
+            this.timeouts.delete(name);
+          }, job.date.getTime() - Date.now())
+        );
         return;
       }
 
       // This is only complex because both timeout and interval can be a schedule
       if (this.isSchedule(job.timeout)) {
         debug('job timeout is schedule', job);
-        this.timeouts[name] = later.setTimeout(
-          () => {
-            this.run(name);
-            if (this.isSchedule(job.interval)) {
-              debug('job.interval is schedule', job);
-              this.intervals[name] = later.setInterval(
-                () => this.run(name),
-                job.interval,
-                job.timezone
-              );
-            } else if (Number.isFinite(job.interval) && job.interval > 0) {
-              debug('job.interval is finite', job);
-              this.intervals[name] = setInterval(
-                () => this.run(name),
-                job.interval
-              );
-            }
+        this.timeouts.set(
+          name,
+          later.setTimeout(
+            () => {
+              this.run(name);
+              if (this.isSchedule(job.interval)) {
+                debug('job.interval is schedule', job);
+                this.intervals.set(
+                  name,
+                  later.setInterval(
+                    () => this.run(name),
+                    job.interval,
+                    job.timezone
+                  )
+                );
+              } else if (Number.isFinite(job.interval) && job.interval > 0) {
+                debug('job.interval is finite', job);
+                this.intervals.set(
+                  name,
+                  setInterval(() => this.run(name), job.interval)
+                );
+              }
 
-            delete this.timeouts[name];
-          },
-          job.timeout,
-          job.timezone
+              this.timeouts.delete(name);
+            },
+            job.timeout,
+            job.timezone
+          )
         );
         return;
       }
 
       if (Number.isFinite(job.timeout)) {
         debug('job timeout is finite', job);
-        this.timeouts[name] = setTimeout(() => {
-          this.run(name);
+        this.timeouts.set(
+          name,
+          setTimeout(() => {
+            this.run(name);
 
-          if (this.isSchedule(job.interval)) {
-            debug('job.interval is schedule', job);
-            this.intervals[name] = later.setInterval(
-              () => this.run(name),
-              job.interval,
-              job.timezone
-            );
-          } else if (Number.isFinite(job.interval) && job.interval > 0) {
-            debug('job.interval is finite', job.interval);
-            this.intervals[name] = setInterval(
-              () => this.run(name),
-              job.interval
-            );
-          }
+            if (this.isSchedule(job.interval)) {
+              debug('job.interval is schedule', job);
+              this.intervals.set(
+                name,
+                later.setInterval(
+                  () => this.run(name),
+                  job.interval,
+                  job.timezone
+                )
+              );
+            } else if (Number.isFinite(job.interval) && job.interval > 0) {
+              debug('job.interval is finite', job.interval);
+              this.intervals.set(
+                name,
+                setInterval(() => this.run(name), job.interval)
+              );
+            }
 
-          delete this.timeouts[name];
-        }, job.timeout);
+            this.timeouts.delete(name);
+          }, job.timeout)
+        );
       } else if (this.isSchedule(job.interval)) {
         debug('job.interval is schedule', job);
-        this.intervals[name] = later.setInterval(
-          () => this.run(name),
-          job.interval,
-          job.timezone
+        this.intervals.set(
+          name,
+          later.setInterval(() => this.run(name), job.interval, job.timezone)
         );
       } else if (Number.isFinite(job.interval) && job.interval > 0) {
         debug('job.interval is finite', job);
-        this.intervals[name] = setInterval(() => this.run(name), job.interval);
+        this.intervals.set(
+          name,
+          setInterval(() => this.run(name), job.interval)
+        );
       }
 
       return;
@@ -545,29 +582,29 @@ class Bree extends EventEmitter {
       this.removeSafeTimer('timeouts', name);
       this.removeSafeTimer('intervals', name);
 
-      if (this.workers[name]) {
-        this.workers[name].once('message', (message) => {
+      if (this.workers.has(name)) {
+        this.workers.get(name).once('message', (message) => {
           if (message === 'cancelled') {
             this.config.logger.info(
               `Gracefully cancelled worker for job "${name}"`,
               this.getWorkerMetadata(name)
             );
-            this.workers[name].terminate();
+            this.workers.get(name).terminate();
           }
         });
-        this.workers[name].postMessage('cancel');
+        this.workers.get(name).postMessage('cancel');
       }
 
       this.removeSafeTimer('closeWorkerAfterMs', name);
 
-      return pWaitFor(() => this.workers[name] === undefined);
+      return pWaitFor(() => !this.workers.has(name));
     }
 
     for (const job of this.config.jobs) {
       this.stop(job.name);
     }
 
-    return pWaitFor(() => Object.keys(this.workers).length === 0);
+    return pWaitFor(() => this.workers.size === 0);
   }
 
   add(jobs) {
@@ -626,15 +663,14 @@ class Bree extends EventEmitter {
    * @param {string} name
    */
   removeSafeTimer(type, name) {
-    if (this[type][name]) {
-      if (
-        typeof this[type][name] === 'object' &&
-        typeof this[type][name].clear === 'function'
-      ) {
-        this[type][name].clear();
+    if (this[type].has(name)) {
+      const timer = this[type].get(name);
+
+      if (typeof timer === 'object' && typeof timer.clear === 'function') {
+        timer.clear();
       }
 
-      delete this[type][name];
+      this[type].delete(name);
     }
   }
 
@@ -648,8 +684,8 @@ class Bree extends EventEmitter {
 
     if (
       this.config.removeCompleted &&
-      !this.timeouts.name &&
-      !this.intervals.name
+      !this.timeouts.has(name) &&
+      !this.intervals.has(name)
     ) {
       this.config.jobs = this.config.jobs.filter((j) => j.name !== name);
     }

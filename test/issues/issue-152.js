@@ -21,14 +21,14 @@ test('job terminates after closeWorkerAfterMs and allows run after', async (t) =
   });
 
   bree.run('long');
-  await once(bree.workers.long, 'online');
-  t.true(typeof bree.closeWorkerAfterMs.long === 'object');
+  await once(bree.workers.get('long'), 'online');
+  t.true(bree.closeWorkerAfterMs.has('long'));
 
-  const [code] = await once(bree.workers.long, 'exit');
+  const [code] = await once(bree.workers.get('long'), 'exit');
   t.is(code, 1);
-  t.true(typeof bree.closeWorkerAfterMs.long === 'undefined');
+  t.false(bree.closeWorkerAfterMs.has('long'));
 
   bree.run('long');
-  await once(bree.workers.long, 'online');
-  t.true(typeof bree.closeWorkerAfterMs.long === 'object');
+  await once(bree.workers.get('long'), 'online');
+  t.true(bree.closeWorkerAfterMs.has('long'));
 });

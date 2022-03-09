@@ -9,10 +9,10 @@ export = Bree;
 declare class Bree extends EventEmitter {
   config: Bree.BreeConfigs;
 
-  closeWorkerAfterMs: Record<string, unknown>;
-  workers: Record<string, Worker>;
-  timeouts: Record<string, Timeout>;
-  intervals: Record<string, Interval>;
+  closeWorkerAfterMs: Map<string, Timeout>;
+  workers: Map<string, Worker>;
+  timeouts: Map<string, Timeout>;
+  intervals: Map<string, Interval>;
 
   isSchedule: (value: any) => boolean;
   getWorkerMetadata: (
@@ -58,11 +58,11 @@ declare class Bree extends EventEmitter {
 }
 
 declare namespace Bree {
-  interface JobOptions {
-    name?: string;
-    path?: string | (() => void);
-    timeout?: number | string | boolean;
-    interval?: number | string;
+  interface Job {
+    name: string;
+    path: string | (() => void);
+    timeout: number | string | boolean;
+    interval: number | string;
     date?: Date;
     cron?: string;
     hasSeconds?: boolean;
@@ -73,6 +73,8 @@ declare namespace Bree {
     timezone?: string;
   }
 
+  type JobOptions = Required<Pick<Job, 'name'>> & Partial<Omit<Job, 'name'>>;
+
   interface BreeConfigs {
     logger: Record<string, unknown>;
     root: string | boolean;
@@ -82,7 +84,7 @@ declare namespace Bree {
     timeout: number | boolean;
     interval: number;
     timezone: string;
-    jobs: Array<string | (() => void) | JobOptions>;
+    jobs: Job[];
     hasSeconds: boolean;
     cronValidate: Record<string, unknown>;
     closeWorkerAfterMs: number;
@@ -94,7 +96,9 @@ declare namespace Bree {
     outputWorkerMetadata: boolean;
   }
 
-  type BreeOptions = Partial<BreeConfigs>;
+  type BreeOptions = Partial<BreeConfigs> & {
+    jobs?: Array<string | (() => void) | JobOptions>;
+  };
 
   type PluginFunc<T = unknown> = (options: T, c: typeof Bree) => void;
 

@@ -26,16 +26,16 @@ test('job stops when "cancel" message is sent', async (t) => {
     logger
   });
 
-  t.is(typeof bree.workers.message, 'undefined');
+  t.false(bree.workers.has('message'));
 
   bree.start('message');
   await delay(1);
 
-  t.is(typeof bree.workers.message, 'object');
+  t.true(bree.workers.has('message'));
 
   await bree.stop();
 
-  t.is(typeof bree.workers.message, 'undefined');
+  t.false(bree.workers.has('message'));
 });
 
 test('job stops when process.exit(0) is called', async (t) => {
@@ -56,16 +56,16 @@ test('job stops when process.exit(0) is called', async (t) => {
     logger
   });
 
-  t.is(typeof bree['message-process-exit'], 'undefined');
+  t.false(bree.workers.has('message-process-exit'));
 
   bree.start('message-process-exit');
   await delay(1);
 
-  t.is(typeof bree.workers['message-process-exit'], 'object');
+  t.true(bree.workers.has('message-process-exit'));
 
   await bree.stop();
 
-  t.is(typeof bree.workers['message-process-exit'], 'undefined');
+  t.false(bree.workers.has('message-process-exit'));
 });
 
 test('does not send graceful notice if no cancelled message', async (t) => {
@@ -98,16 +98,16 @@ test('clears closeWorkerAfterMs', async (t) => {
     jobs: [{ name: 'basic', closeWorkerAfterMs: 10 }]
   });
 
-  t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+  t.false(bree.closeWorkerAfterMs.has('basic'));
 
   bree.run('basic');
 
-  await once(bree.workers.basic, 'online');
-  t.is(typeof bree.closeWorkerAfterMs.basic, 'object');
+  await once(bree.workers.get('basic'), 'online');
+  t.true(bree.closeWorkerAfterMs.has('basic'));
 
   await bree.stop('basic');
 
-  t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+  t.false(bree.closeWorkerAfterMs.has('basic'));
 });
 
 test('deletes closeWorkerAfterMs', async (t) => {
@@ -116,19 +116,19 @@ test('deletes closeWorkerAfterMs', async (t) => {
     jobs: [{ name: 'basic', closeWorkerAfterMs: 10 }]
   });
 
-  t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+  t.false(bree.closeWorkerAfterMs.has('basic'));
 
   bree.run('basic');
 
-  await once(bree.workers.basic, 'online');
-  t.is(typeof bree.closeWorkerAfterMs.basic, 'object');
+  await once(bree.workers.get('basic'), 'online');
+  t.true(bree.closeWorkerAfterMs.has('basic'));
 
-  await once(bree.workers.basic, 'exit');
+  await once(bree.workers.get('basic'), 'exit');
 
-  bree.closeWorkerAfterMs.basic = 'test';
+  bree.closeWorkerAfterMs.set('basic', 'test');
   await bree.stop('basic');
 
-  t.is(typeof bree.closeWorkerAfterMs.basic, 'undefined');
+  t.false(bree.closeWorkerAfterMs.has('basic'));
 });
 
 test('clears timeouts', async (t) => {
@@ -137,12 +137,12 @@ test('clears timeouts', async (t) => {
     jobs: [{ name: 'basic', timeout: 1000 }]
   });
 
-  t.is(typeof bree.timeouts.basic, 'undefined');
+  t.false(bree.timeouts.has('basic'));
 
   bree.start('basic');
   await bree.stop('basic');
 
-  t.is(typeof bree.timeouts.basic, 'undefined');
+  t.false(bree.timeouts.has('basic'));
 });
 
 test('deletes timeouts', async (t) => {
@@ -151,13 +151,13 @@ test('deletes timeouts', async (t) => {
     jobs: [{ name: 'basic', timeout: 1000 }]
   });
 
-  t.is(typeof bree.timeouts.basic, 'undefined');
+  t.false(bree.timeouts.has('basic'));
 
   bree.start('basic');
-  bree.timeouts.basic = 'test';
+  bree.timeouts.set('basic', 'test');
   await bree.stop('basic');
 
-  t.is(typeof bree.timeouts.basic, 'undefined');
+  t.false(bree.timeouts.has('basic'));
 });
 
 test('deletes intervals', async (t) => {
@@ -166,11 +166,11 @@ test('deletes intervals', async (t) => {
     jobs: [{ name: 'basic', interval: 1000 }]
   });
 
-  t.is(typeof bree.intervals.basic, 'undefined');
+  t.false(bree.intervals.has('basic'));
 
   bree.start('basic');
-  bree.intervals.basic = 'test';
+  bree.intervals.set('basic', 'test');
   await bree.stop('basic');
 
-  t.is(typeof bree.intervals.basic, 'undefined');
+  t.false(bree.intervals.has('basic'));
 });
