@@ -45,7 +45,7 @@ test('fails if job already started', async (t) => {
 });
 
 test('fails if date is in the past', async (t) => {
-  t.plan(2);
+  t.plan(3);
 
   const logger = {
     warn: (msg) => {
@@ -57,6 +57,10 @@ test('fails if date is in the past', async (t) => {
     root,
     logger,
     jobs: [{ name: 'basic', date: new Date(Date.now() - 10) }]
+  });
+
+  bree.on('job past', (name) => {
+    t.is(name, 'basic');
   });
 
   bree.start('basic');

@@ -458,6 +458,7 @@ class Bree extends EventEmitter {
           this.config.logger.warn(
             `Job "${name}" was skipped because it was in the past.`
           );
+          this.emit('job past', name);
           return;
         }
 
