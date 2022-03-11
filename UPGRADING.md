@@ -10,4 +10,3 @@
   * `intervals`
   * Instead of accessing them like this `bree.workers.NAME`, you should access them like this `bree.workers.get(NAME)`
 * `start()` will now throw an error if the job has already started
-* `config.root` now defaults to `path.join(__dirname, 'jobs')` as opposed to `path.resolve('jobs')`
