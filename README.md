@@ -171,7 +171,9 @@ const bree = new Bree({
       name: 'worker-4',
       cron: '15 10 ? * *',
       cronValidate: {
-        useBlankDay: true
+        override: {
+          useBlankDay: true
+        }
       }
     },
 
