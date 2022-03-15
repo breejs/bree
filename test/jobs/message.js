@@ -1,6 +1,8 @@
 const process = require('process');
 const { parentPort } = require('worker_threads');
 
+const delay = require('delay');
+
 setInterval(() => {}, 10);
 
 if (parentPort) {
@@ -12,6 +14,6 @@ if (parentPort) {
     }
 
     parentPort.postMessage(message);
-    process.exit(0);
+    delay(10).then(() => process.exit(0));
   });
 }
