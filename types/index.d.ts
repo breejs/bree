@@ -96,7 +96,7 @@ declare namespace Bree {
     outputWorkerMetadata: boolean;
   }
 
-  type BreeOptions = Partial<BreeConfigs> & {
+  type BreeOptions = Partial<Omit<BreeConfigs, 'jobs'>> & {
     jobs?: Array<string | (() => void) | JobOptions>;
   };
 
