@@ -302,6 +302,7 @@ class Bree extends EventEmitter {
         return;
       }
 
+      this.emit('before worker created', name);
       debug('starting worker', name);
       const object = {
         ...(this.config.worker ? this.config.worker : {}),
