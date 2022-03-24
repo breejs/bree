@@ -109,9 +109,9 @@ test('job with worker data sent by job', async (t) => {
   await bree.stop();
 });
 
-test('job with worker data modified by "before worker created" event (sync only)', async (t) => {
-  t.plan(1);
-  
+test('job with worker data modified by "before worker created" event (sync)', async (t) => {
+  t.plan(2);
+
   const logger = {
     info: (...args) => {
       if (!args[1] || !args[1].message) {
@@ -131,6 +131,44 @@ test('job with worker data modified by "before worker created" event (sync only)
   });
 
   bree.on('before worker created', (name) => {
+    t.false(bree.workers.has(name));
+
+    const job = bree.config.jobs.find((j) => j.name === name);
+    job.worker.workerData.meta = 'test1';
+  });
+
+  bree.run('worker-data');
+  await delay(1000);
+
+  await bree.stop();
+});
+
+test('job with worker data modified by "before worker created" event (async)', async (t) => {
+  t.plan(2);
+
+  const logger = {
+    info: (...args) => {
+      if (!args[1] || !args[1].message) {
+        return;
+      }
+
+      t.is(args[1].message.meta, 'test');
+    },
+    error: () => {}
+  };
+
+  const bree = new Bree({
+    root,
+    jobs: [{ name: 'worker-data', worker: { workerData: { meta: 'test' } } }],
+    outputWorkerMetadata: true,
+    logger
+  });
+
+  bree.on('before worker created', async (name) => {
+    await delay(100);
+
+    t.false(bree.workers.has(name));
+
     const job = bree.config.jobs.find((j) => j.name === name);
     job.worker.workerData.meta = 'test1';
   });

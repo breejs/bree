@@ -371,12 +371,18 @@ These values can include Number, Object, and String variable types:
 
 Bree extends from [EventEmitter](https://nodejs.org/api/events.html#events_class_eventemitter) and emits two events:
 
+* `before worker created` with an argument of `name`
 * `worker created` with an argument of `name`
 * `worker deleted` with an argument of `name`
 
-If you'd like to know when your workers are created (or deleted), you can do so through this example:
+If you'd like to know when (or before) your workers are created (or deleted), you can do so through this example:
 
 ```js
+bree.on('before worker created', (name) => {
+  console.log('before worker created', name);
+  console.log(bree.workers[name]);
+});
+
 bree.on('worker created', (name) => {
   console.log('worker created', name);
   console.log(bree.workers[name]);
