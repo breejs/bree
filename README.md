@@ -2,7 +2,6 @@
   <a href="https://jobscheduler.net"><img src="https://d1i8ikybhfrv4r.cloudfront.net/bree/bree.png" alt="bree" /></a>
 </h1>
 <div align="center">
-  <a href="https://join.slack.com/t/ladjs/shared_invite/zt-fqei6z11-Bq2trhwHQxVc5x~ifiZG0g"><img src="https://img.shields.io/badge/chat-join%20slack-brightgreen" alt="chat" /></a>
   <a href="https://github.com/breejs/bree/actions/workflows/ci.yml"><img src="https://github.com/breejs/later/actions/workflows/ci.yml/badge.svg" alt="build status" /></a>
   <a href="https://codecov.io/github/breejs/bree"><img src="https://img.shields.io/codecov/c/github/breejs/bree/master.svg" alt="code coverage" /></a>
   <a href="https://github.com/sindresorhus/xo"><img src="https://img.shields.io/badge/code_style-XO-5ed9c7.svg" alt="code style" /></a>
@@ -18,8 +17,6 @@
 <div align="center">
   Works in Node v12.11.0+, uses <a href="https://nodejs.org/api/worker_threads.html">worker threads</a> (Node.js) to spawn sandboxed processes, and supports <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>, <a href="https://github.com/sindresorhus/p-retry">retries</a>, <a href="https://github.com/sindresorhus/p-throttle">throttling</a>, <a href="#concurrency">concurrency</a>, and <a href="#cancellation-retries-stalled-jobs-and-graceful-reloading">cancelable jobs with graceful shutdown</a>.  Simple, fast, and lightweight.  <strong>Made for <a href="https://forwardemail.net">Forward Email</a> and <a href="https://lad.js.org">Lad</a></strong>.
 </div>
-<hr />
-<div align="center">:heart: Love this project? Support <a href="https://github.com/niftylettuce" target="_blank">@niftylettuce's</a> <a href="https://en.wikipedia.org/wiki/Free_and_open-source_software" target="_blank">FOSS</a> on <a href="https://patreon.com/niftylettuce" target="_blank">Patreon</a> or <a href="https://paypal.me/niftylettuce">PayPal</a> :unicorn:</div>
 
 
 ## Table of Contents
@@ -47,20 +44,19 @@
   * [Available Plugins](#available-plugins)
   * [Creating plugins for Bree](#creating-plugins-for-bree)
 * [Real-world usage](#real-world-usage)
-* [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)
 * [Contributors](#contributors)
 * [License](#license)
 
 
 ## Foreword
 
-Before creating Bree, I was a core maintainer (and financially invested in development) of [Agenda][].  I have been with the Node.js community for a very, very long time, and have tried literally every solution out there (see [Alternatives that are not production-ready](#alternatives-that-are-not-production-ready)).  I have found that all existing solutions are subpar, as I have filed countless issues; discovered memory leaks, found functionality not working as described, unresolved core bugs have persisted over time, etc.
+Bree was created to give you fine-grained control with simplicity, and has built-in support for workers, sandboxed processes, graceful reloading, cron jobs, dates, human-friendly time representations, and much more.
 
-Previous to creating this, I was relying heavily on [bull][]; having created [@ladjs/bull][] – but due to core issues (and being Redis-backed) it was not the best tool for the job.  [Bull][] might have been okay if the core issues were fixed, however since it uses [Redis][] it should not be used for a job queue.  From my experience, [Redis][] should only be used for caching and session storage purposes (e.g. CDN or managing user log in state in your application).  As of the time of this writing, it has been months and the core bugs with Bull are still unresolved; as more people are continuing to reproduce and comment on the known issues.
+We recommend you to query a persistent database in your jobs, to prevent specific operations from running more than once.
 
-Since [workers][] are now readily available in LTS versions of Node, I thought it would be a great time to implement them in a job scheduler environment.  Additionally, my research and development of a better anti-spam and anti-phishing classifier with [Spam Scanner][spam-scanner] gave me some necessary insight to using [workers][].
+Bree does not force you to use an additional database layer of [Redis][] or [MongoDB][] to manage job state.
 
-Bree was created to give you fine-grained control with simplicity, and has built-in support for workers, sandboxed processes, graceful reloading, cron jobs, dates, human-friendly time representations, and much more.  We recommend you to query a persistent database in your jobs, to prevent specific operations from running more than once.  Bree does not force you to use an additional database layer of [Redis][] or [MongoDB][] to manage job state.  In doing so, you should manage boolean job states yourself using queries.  For instance, if you have to send a welcome email to users, only send a welcome email to users that do not have a Date value set yet for `welcome_email_sent_at`.
+In doing so, you should manage boolean job states yourself using queries.  For instance, if you have to send a welcome email to users, only send a welcome email to users that do not have a Date value set yet for `welcome_email_sent_at`.
 
 
 ## Install
@@ -628,18 +624,6 @@ Plugins should be a function that recieves an `options` object and the `Bree` cl
 More detailed examples can be found in [Forward Email][forward-email], [Lad][], and [Ghost][ghost].
 
 
-## Alternatives that are not production-ready
-
-Kudos to the authors of all these packages, however they did not work well enough for myself in real-world production environments.
-
-* [bull][] has core issues with [repeatable jobs](https://github.com/OptimalBits/bull/issues/1739), [emptying of jobs](https://github.com/OptimalBits/bull/issues/1792), and [event emitters](https://github.com/OptimalBits/bull/issues/1659)
-* [@ladjs/bull][] used [bull][] internally, but was unusable due to [bull issues](https://github.com/ladjs/bull/issues/2)
-* [agenda][] had memory leaks, [12 issues filed by myself alone](https://github.com/agenda/agenda/issues?q=author%3Aniftylettuce), has 100+ open issues, and its structure leads it to be hard to maintain (in my biased opinion)
-* [kue][] is no longer maintained, has core bugs, and recommends [bull][] (and its Redis backed too)
-* [node-cron][] does not provide enough functionality out of the box, as it only provides function invocation using cron expression intervals
-* [sfn-scheduler][] did [not support](https://github.com/hyurl/sfn-scheduler/issues/1) cronjob syntax and did not have any means to spawn worker threads nor jobs in general
-
-
 ## Contributors
 
 | Name             | Website                           |
@@ -680,20 +664,6 @@ Kudos to the authors of all these packages, however they did not work well enoug
 [forward-email]: https://github.com/forwardemail/forwardemail.net
 
 [dayjs]: https://github.com/iamkun/dayjs
-
-[sfn-scheduler]: https://github.com/hyurl/sfn-scheduler
-
-[spam-scanner]: https://spamscanner.net
-
-[agenda]: https://github.com/agenda/agenda
-
-[node-cron]: https://github.com/node-cron/node-cron
-
-[kue]: https://github.com/Automattic/kue
-
-[@ladjs/bull]: https://github.com/ladjs/bull
-
-[bull]: https://github.com/OptimalBits/bull
 
 [redis]: https://redis.io/
 
