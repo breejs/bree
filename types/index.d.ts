@@ -76,7 +76,7 @@ declare namespace Bree {
   type JobOptions = Required<Pick<Job, 'name'>> & Partial<Omit<Job, 'name'>>;
 
   interface BreeConfigs {
-    logger: Record<string, unknown>;
+    logger: Record<string, unknown> | boolean;
     root: string | boolean;
     silenceRootCheckError: boolean;
     doRootCheck: boolean;
