@@ -25,7 +25,7 @@
   ],
   "dependencies": {
     "@breejs/later": "^4.1.0",
-    "boolean": "^3.1.4",
+    "boolean": "^3.2.0",
     "combine-errors": "^3.0.3",
     "cron-validate": "^1.4.3",
     "debug": "^4.3.3",
