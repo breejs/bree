@@ -375,12 +375,12 @@ If you'd like to know when your workers are created (or deleted), you can do so 
 ```js
 bree.on('worker created', (name) => {
   console.log('worker created', name);
-  console.log(bree.workers[name]);
+  console.log(bree.workers.get(name));
 });
 
 bree.on('worker deleted', (name) => {
   console.log('worker deleted', name);
-  console.log(typeof bree.workers[name] === 'undefined');
+  console.log(!bree.worker.has(name));
 });
 ```
 
