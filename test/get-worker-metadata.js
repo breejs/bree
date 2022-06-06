@@ -62,7 +62,7 @@ test('returns meta if output set to true', (t) => {
 
 test('returns meta and worker data if running', async (t) => {
   const logger = {
-    info: () => {}
+    info() {}
   };
 
   const bree = new Bree({
@@ -86,14 +86,14 @@ test('job with worker data sent by job', async (t) => {
   t.plan(1);
 
   const logger = {
-    info: (...args) => {
+    info(...args) {
       if (!args[1] || !args[1].message) {
         return;
       }
 
       t.is(args[1].message.test, 'test');
     },
-    error: () => {}
+    error() {}
   };
 
   const bree = new Bree({

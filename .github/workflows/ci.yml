@@ -14,6 +14,7 @@ jobs:
           - 12
           - 14
           - 16
+          - 18
 
     name: Node ${{ matrix.node_version }} on ${{ matrix.os }}
 
@@ -26,15 +27,5 @@ jobs:
         with:
           node-version: ${{ matrix.node_version }}
 
-      - name: Install yarn
-        run: npm install -g yarn
-
-      - name: Install dependencies
-        run: yarn --frozen-lockfile
-
       - name: Run tests
-        run: yarn test-coverage
-
-      - name: Uninstall yarn
-        if: always()
-        run: npm uninstall -g yarn
+        run: npm run test-coverage

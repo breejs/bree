@@ -22,7 +22,7 @@ test('successfully run job', async (t) => {
   t.plan(2);
 
   const logger = {
-    info: () => {}
+    info() {}
   };
 
   const bree = new Bree({
@@ -77,8 +77,8 @@ test('throws if jobs is not an array and logs MODULE_NOT_FOUND error by default'
   t.plan(2);
 
   const logger = {
-    info: () => {},
-    error: (err) => {
+    info() {},
+    error(err) {
       t.is(err.code, 'MODULE_NOT_FOUND');
     }
   };
@@ -101,8 +101,8 @@ test('logs MODULE_NOT_FOUND error if array is empty', (t) => {
   t.plan(2);
 
   const logger = {
-    info: () => {},
-    error: (err) => {
+    info() {},
+    error(err) {
       t.is(err.code, 'MODULE_NOT_FOUND');
     }
   };
@@ -119,8 +119,8 @@ test('logs MODULE_NOT_FOUND error if array is empty', (t) => {
 
 test('does not log MODULE_NOT_FOUND error if silenceRootCheckError is false', (t) => {
   const logger = {
-    info: () => {},
-    error: () => {
+    info() {},
+    error() {
       t.fail();
     }
   };
@@ -138,8 +138,8 @@ test('does not log MODULE_NOT_FOUND error if silenceRootCheckError is false', (t
 
 test('does not log MODULE_NOT_FOUND error if doRootCheck is false', (t) => {
   const logger = {
-    info: () => {},
-    error: () => {
+    info() {},
+    error() {
       t.fail();
     }
   };

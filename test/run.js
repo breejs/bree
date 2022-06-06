@@ -118,6 +118,7 @@ test('job terminates on message "done"', async (t) => {
   t.is(message, 'get ready');
 
   await once(bree, 'worker deleted');
+  await delay(1);
   t.false(bree.workers.has('done'));
 });
 
@@ -141,6 +142,7 @@ test('job terminates on message "done" should clear closeWorkerAfterMs', async (
   t.true(bree.closeWorkerAfterMs.has('done'));
 
   await once(bree, 'worker deleted');
+  await delay(1);
   t.false(bree.workers.has('done'));
   t.false(bree.closeWorkerAfterMs.has('done'));
 });
@@ -168,12 +170,12 @@ test('job sent a message', async (t) => {
 
 test('job sent an error', async (t) => {
   const logger = {
-    error: (message) => {
+    error(message) {
       if (message === 'Worker for job "message" had an error') {
         t.pass();
       }
     },
-    info: () => {}
+    info() {}
   };
 
   const bree = new Bree({
@@ -193,15 +195,15 @@ test('job sent an error', async (t) => {
 test('job sent an error with custom handler', async (t) => {
   t.plan(5);
   const logger = {
-    error: () => {},
-    info: () => {}
+    error() {},
+    info() {}
   };
 
   const bree = new Bree({
     root,
     jobs: [{ name: 'message' }],
     logger,
-    errorHandler: (err, workerMeta) => {
+    errorHandler(err, workerMeta) {
       t.true(workerMeta.name === 'message');
 
       if (workerMeta.err) {
@@ -225,15 +227,15 @@ test('job sent a message with custom worker message handler', async (t) => {
   t.plan(3);
 
   const logger = {
-    error: () => {},
-    info: () => {}
+    error() {},
+    info() {}
   };
 
   const bree = new Bree({
     root,
     jobs: [{ name: 'message' }],
     logger,
-    workerMessageHandler: (metadata) => {
+    workerMessageHandler(metadata) {
       t.is(Object.keys(metadata).length, 2);
       t.is(metadata.message, 'hey Bob!');
       t.is(metadata.name, 'message');
@@ -251,8 +253,8 @@ test('job sent a message with custom worker message handler and metadata', async
   t.plan(4);
 
   const logger = {
-    error: () => {},
-    info: () => {}
+    error() {},
+    info() {}
   };
 
   const bree = new Bree({
@@ -260,7 +262,7 @@ test('job sent a message with custom worker message handler and metadata', async
     jobs: [{ name: 'message' }],
     logger,
     outputWorkerMetadata: true,
-    workerMessageHandler: (metadata) => {
+    workerMessageHandler(metadata) {
       t.is(Object.keys(metadata).length, 3);
       t.is(metadata.message, 'hi Alice!');
       t.is(metadata.name, 'message');
@@ -321,7 +323,7 @@ test('job runs with no worker options in config', async (t) => {
 test('job runs and passes workerData from config', async (t) => {
   t.plan(4);
   const logger = {
-    info: (...args) => {
+    info(...args) {
       if (!args[1] || !args[1].message) {
         return;
       }

@@ -48,7 +48,7 @@ test('fails if date is in the past', async (t) => {
   t.plan(3);
 
   const logger = {
-    warn: (msg) => {
+    warn(msg) {
       t.is(msg, `Job "basic" was skipped because it was in the past.`);
     }
   };
@@ -104,7 +104,7 @@ test('sets interval if date is in the future and interval is schedule', async (t
     jobs: [
       {
         name: 'short',
-        date: new Date(Date.now() + 10),
+        date: new Date(Date.now() + 1000),
         interval: later.parse.text('every 1 second')
       }
     ]
@@ -122,6 +122,7 @@ test('sets interval if date is in the future and interval is schedule', async (t
   t.is(code, 2);
 
   await once(bree, 'worker created');
+  await delay(1);
   t.pass();
 
   await bree.stop();
@@ -153,6 +154,7 @@ test('sets interval if date is in the future and interval is number', async (t) 
   t.is(code, 2);
 
   await once(bree, 'worker created');
+  await delay(1);
   t.pass();
 
   await bree.stop();
@@ -187,6 +189,7 @@ test('sets timeout if interval is schedule and timeout is schedule', async (t) =
   t.is(code, 2);
 
   await once(bree, 'worker created');
+  await delay(1);
   t.pass();
 
   await bree.stop();
@@ -213,7 +216,7 @@ test('sets timeout if interval is number and timeout is schedule', async (t) => 
   t.true(bree.timeouts.has('short'));
 
   await once(bree, 'worker created');
-  await delay('1');
+  await delay(1);
   t.true(bree.intervals.has('short'));
   t.false(bree.timeouts.has('short'));
 
@@ -221,6 +224,7 @@ test('sets timeout if interval is number and timeout is schedule', async (t) => 
   t.is(code, 2);
 
   await once(bree, 'worker created');
+  await delay(1);
   t.pass();
 
   await bree.stop();
@@ -247,7 +251,6 @@ test('sets timeout if interval is 0 and timeout is schedule', async (t) => {
   t.true(bree.timeouts.has('short'));
 
   await once(bree, 'worker created');
-
   await delay(1);
 
   t.false(bree.timeouts.has('short'));
@@ -341,6 +344,7 @@ test('sets interval if interval is schedule', async (t) => {
   bree.start('infinite');
 
   await once(bree, 'worker created');
+  await delay(1);
   t.true(bree.intervals.has('infinite'));
 
   const [code] = await once(bree.workers.get('infinite'), 'exit');
@@ -363,6 +367,7 @@ test('sets interval if interval is number', async (t) => {
 
   bree.start('infinite');
   await once(bree, 'worker created');
+  await delay(1);
   t.true(bree.intervals.has('infinite'));
 
   const [code] = await once(bree.workers.get('infinite'), 'exit');
@@ -403,7 +408,7 @@ test.serial('uses job.timezone to schedule a job', (t) => {
   const bree = new Bree({
     root,
     jobs: [
-      // todo: job.date
+      // TODO: job.date
       {
         name: 'tz_cron',
         path: noop,
@@ -449,7 +454,7 @@ test.serial('uses default timezone to schedule a job', (t) => {
     timezone: 'America/Mexico_City',
     root,
     jobs: [
-      // todo: job.date
+      // TODO: job.date
       {
         name: 'tz_cron',
         path: noop,

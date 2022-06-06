@@ -70,12 +70,12 @@ test('job stops when process.exit(0) is called', async (t) => {
 
 test('does not send graceful notice if no cancelled message', async (t) => {
   const logger = {
-    info: (message) => {
+    info(message) {
       if (message === 'Gracefully cancelled worker for job "message"') {
         t.fail();
       }
     },
-    error: () => {}
+    error() {}
   };
 
   const bree = new Bree({

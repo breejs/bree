@@ -3,18 +3,6 @@
   "description": "The best job scheduler for Node.js and JavaScript with cron, dates, ms, later, and human-friendly support.  Works in Node v12.11.0+, uses worker threads to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and lightweight.  Made for Forward Email and Lad.",
   "version": "8.0.3",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
-  "ava": {
-    "files": [
-      "test/*.js",
-      "test/**/*.js",
-      "!test/jobs",
-      "!test/noIndexJobs"
-    ],
-    "verbose": true,
-    "require": [
-      "events.once/polyfill"
-    ]
-  },
   "bugs": {
     "url": "https://github.com/breejs/bree/issues",
     "email": "niftylettuce@gmail.com"
@@ -25,10 +13,10 @@
   ],
   "dependencies": {
     "@breejs/later": "^4.1.0",
-    "boolean": "^3.1.4",
+    "boolean": "^3.2.0",
     "combine-errors": "^3.0.3",
     "cron-validate": "^1.4.3",
-    "debug": "^4.3.3",
+    "debug": "^4.3.4",
     "human-interval": "^2.0.1",
     "is-string-and-not-blank": "^0.0.2",
     "is-valid-path": "^0.1.1",
@@ -37,31 +25,32 @@
     "safe-timers": "^1.1.0"
   },
   "devDependencies": {
-    "@commitlint/cli": "latest",
-    "@commitlint/config-conventional": "latest",
+    "@commitlint/cli": "^17.0.2",
+    "@commitlint/config-conventional": "^17.0.2",
     "@goto-bus-stop/envify": "^5.0.0",
-    "@sinonjs/fake-timers": "^8.1.0",
-    "@types/node": "^14.0.0",
+    "@sinonjs/fake-timers": "^9.1.2",
+    "@types/node": "^17.0.40",
     "@types/safe-timers": "^1.1.0",
-    "ava": "latest",
-    "codecov": "latest",
-    "cross-env": "latest",
+    "@typescript-eslint/eslint-plugin": "^5.27.0",
+    "@typescript-eslint/parser": "^5.27.0",
+    "ava": "^4.3.0",
+    "cross-env": "^7.0.3",
     "delay": "^5.0.0",
     "dtslint": "^4.2.1",
-    "eslint": "^8.5.0",
-    "eslint-config-xo-lass": "latest",
-    "eslint-plugin-compat": "^4.0.0",
+    "eslint": "^8.17.0",
+    "eslint-config-xo-lass": "^2.0.1",
+    "eslint-plugin-compat": "^4.0.2",
     "eslint-plugin-node": "^11.1.0",
     "events.once": "^2.0.2",
     "fixpack": "latest",
-    "husky": "^7.0.4",
+    "husky": "^8.0.1",
     "into-stream": "^7.0.0",
-    "lint-staged": "latest",
-    "nyc": "latest",
-    "remark-cli": "latest",
-    "remark-preset-github": "latest",
+    "lint-staged": "^13.0.0",
+    "nyc": "^15.1.0",
+    "remark-cli": "^10.0.1",
+    "remark-preset-github": "^4.0.4",
     "unassertify": "^2.1.1",
-    "xo": "^0.47.0"
+    "xo": "^0.49.0"
   },
   "engines": {
     "node": ">= 12.11.0"
@@ -163,71 +152,15 @@
   },
   "scripts": {
     "ava": "cross-env NODE_ENV=test ava",
-    "coverage": "nyc report --reporter=text-lcov > coverage.lcov && codecov",
     "dtslint": "cross-env NODE_ENV=test dtslint types",
-    "lint": "yarn run lint:js && yarn run lint:md",
+    "lint": "npm run lint:js && npm run lint:md",
     "lint:js": "xo --ignore examples/",
     "lint:md": "remark . -qfo",
     "nyc": "cross-env NODE_ENV=test nyc ava",
     "prepare": "husky install",
-    "pretest": "yarn run lint",
-    "test": "yarn run ava && yarn run dtslint",
-    "test-coverage": "cross-env NODE_ENV=test nyc yarn run test"
+    "pretest": "npm run lint",
+    "test": "npm run ava && npm run dtslint",
+    "test-coverage": "cross-env NODE_ENV=test nyc npm run test"
   },
-  "types": "types",
-  "xo": {
-    "prettier": true,
-    "space": true,
-    "extends": [
-      "xo-lass"
-    ],
-    "ignore": [
-      "config.js"
-    ],
-    "rules": {
-      "capitalized-comments": "off",
-      "unicorn/catch-error-name": "off",
-      "unicorn/require-post-message-target-origin": "off",
-      "node/no-unsupported-features/node-builtins": [
-        "error",
-        {
-          "ignores": [
-            "events.once"
-          ]
-        }
-      ]
-    },
-    "overrides": [
-      {
-        "files": [
-          "test/jobs/*.js"
-        ],
-        "rules": {
-          "unicorn/no-process-exit": "off"
-        }
-      },
-      {
-        "files": [
-          "*.ts"
-        ],
-        "parserOptions": {
-          "project": [
-            "types/tsconfig.json"
-          ]
-        }
-      },
-      {
-        "files": [
-          "types/tests.ts"
-        ],
-        "rules": {
-          "@typescript-eslint/no-unused-vars": "off",
-          "@typescript-eslint/no-empty-function": "off",
-          "@typescript-eslint/no-unsafe-assignment": "off",
-          "@typescript-eslint/no-unsafe-call": "off"
-        }
-      }
-    ],
-    "parser": "@typescript-eslint/parser"
-  }
+  "types": "types"
 }
