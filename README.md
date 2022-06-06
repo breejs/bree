@@ -7,6 +7,7 @@
   <a href="https://github.com/prettier/prettier"><img src="https://img.shields.io/badge/styled_with-prettier-ff69b4.svg" alt="styled with prettier" /></a>
   <a href="https://lass.js.org"><img src="https://img.shields.io/badge/made_with-lass-95CC28.svg" alt="made with lass" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/breejs/bree.svg" alt="license" /></a>
+  <a href="https://npm.im/bree"><img src="https://img.shields.io/npm/dt/bree.svg" alt="npm downloads" /></a>
 </div>
 <br />
 <div align="center">
