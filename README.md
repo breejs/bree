@@ -564,9 +564,9 @@ Note that you cannot pass a built-in nor bound function.
 
 ## Typescript and Usage with Bundlers
 
-When working with a bundler or a tool that transpiles your code in some form or another, we reccomend that your bundler is set up in a way that transforms both your application code and your jobs. Because your jobs are in their own files and are run in their own separate threads, they will not be part of your applications dependency graph and need to be setup as their own entry points. You need to ensure you have configured your tool to bundle your jobs into a jobs folder and keep them properly relative to your entry point folder.
+When working with a bundler or a tool that transpiles your code in some form or another, we recommend that your bundler is set up in a way that transforms both your application code and your jobs. Because your jobs are in their own files and are run in their own separate threads, they will not be part of your applications dependency graph and need to be setup as their own entry points. You need to ensure you have configured your tool to bundle your jobs into a jobs folder and keep them properly relative to your entry point folder.
 
-We recommend setting the `root` instance options to `path.join(__dirname,'jobs')` so that bree searches for your jobs folder relative to the file being ran. (by default it searches for jobs relative to where `node` is invoked). We reccomend treating each job as an entry point and running all jobs through the same transformations as your app code.
+We recommend setting the `root` instance options to `path.join(__dirname,'jobs')` so that bree searches for your jobs folder relative to the file being ran. (by default it searches for jobs relative to where `node` is invoked). We recommend treating each job as an entry point and running all jobs through the same transformations as your app code.
 
 After an example transformation - you should expect the output in your `dist` folder to look like:
 
