@@ -3,12 +3,11 @@
 
 ## Upgrading from v8 to v9
 
-**There are four major breaking changes:**
+**There are three major breaking changes:**
 
 1. The usage of `bree.start()` and `bree.run()` methods must be changed to `await bree.start()` or `await bree.run()` (see the example below).
-2. Passing a custom value for the `root` option with a file's path must be changed to include the file's extension.  For example, an option of `root: '/path/to/dir/index'` must be changed to `root: '/path/to/dir/index.js`.
-3. The usage of `bree.add()` must be changed to `await bree.add()` (since we now have asynchronous job validation and loading).
-4. We have opted for `util.debuglog` as opposed to the userland `debug` package for debug logging.  This means you must run `NODE_DEBUG=bree node app.js` as opposed to `DEBUG=bree node app.js`.
+2. The usage of `bree.add()` must be changed to `await bree.add()` (since we now have asynchronous job validation and loading).
+3. We have opted for `util.debuglog` as opposed to the userland `debug` package for debug logging.  This means you must run `NODE_DEBUG=bree node app.js` as opposed to `DEBUG=bree node app.js`.
 
 Here is a complete list of the underlying changes made:
 
@@ -44,7 +43,7 @@ Here is a complete list of the underlying changes made:
   * However we have dummy-proofed this new approach, and `bree.init()` will be invoked (if and only if it has not yet been invoked successfully) when you call `bree.start()` (or any similar method that accesses `this.config.jobs` internally).
   * Internal methods such as `validate` exported by `src/job-validator.js` are now asynchronous and return Promises (you do not need to worry about this unless you're doing something custom with these functions).
 
-* The default `root` option has been changed from `resolve('jobs')` to ``resolve(`jobs/index.${config.defaultExtension}`)`` (the default value for `config.defaultExtension` is `"js"`).  You may need to change this or the value for `defaultExtension` entirely if you are using `.mjs` extension on the file name in your root directory (only applicable if you use this option and do not have it set to `false`).
+* The default `root` option will now attempt to resolve an absolute file path for an index since we are using dynamic imports.  If you are using `index.mjs` (as opposed to `index.js` then you will need to set a value for the option `defaultRootIndex`).
 
 * The method `add()` is now a Promise (you should call `await bree.add(jobs)`.
 
@@ -53,8 +52,6 @@ Here is a complete list of the underlying changes made:
   * The method `stop()` is now a Promise (**but you do not need to `await` it** if you already called `await bree.start()` or `await bree.init()` or `await bree.run()` nor any of the methods listed below).
 
 * We've also refactored synchronous methods such as `fs.statSync` to `fs.promises.stat` and made job validation asynchronous.
-
-* Since we use `await import(...)` and use dynamic imports (as opposed to v8 behavior which was to use `require`), we will automatically fetch the `root` directory file for a file of `defaultRootIndex` (this is configurable, see the new option added).
 
 * Plugins that extend `bree.init()` may need rewritten, as `bree.init()` is now a Promise.
 
