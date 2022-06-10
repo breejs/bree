@@ -15,45 +15,53 @@ const baseConfig = {
   defaultExtension: 'js'
 };
 
-test('throws if no job exists', (t) => {
+test('throws if no job exists', async (t) => {
   const bree = new Bree({
     jobs: ['basic'],
     ...baseConfig
   });
+
+  await bree.init();
 
   t.throws(() => bree.getWorkerMetadata('test'), {
     message: 'Job "test" does not exist'
   });
 });
 
-test('returns undefined if output not set to true', (t) => {
+test('returns undefined if output not set to true', async (t) => {
   const bree = new Bree({
     jobs: ['basic'],
     ...baseConfig
   });
+
+  await bree.init();
 
   const meta = { test: 1 };
 
   t.is(typeof bree.getWorkerMetadata('basic', meta), 'undefined');
 });
 
-test('returns meta if error', (t) => {
+test('returns meta if error', async (t) => {
   const bree = new Bree({
     jobs: ['basic'],
     ...baseConfig
   });
+
+  await bree.init();
 
   const meta = { err: true, message: true };
 
   t.is(bree.getWorkerMetadata('basic', meta), meta);
 });
 
-test('returns meta if output set to true', (t) => {
+test('returns meta if output set to true', async (t) => {
   const bree = new Bree({
     jobs: ['basic'],
     ...baseConfig,
     outputWorkerMetadata: true
   });
+
+  await bree.init();
 
   const meta = { test: 1 };
 
@@ -72,8 +80,8 @@ test('returns meta and worker data if running', async (t) => {
     logger
   });
 
-  bree.start();
-  await delay(1);
+  await bree.start();
+  await delay(10);
 
   const meta = { test: 1 };
 
@@ -103,7 +111,7 @@ test('job with worker data sent by job', async (t) => {
     logger
   });
 
-  bree.run('worker-data');
+  await bree.run('worker-data');
   await delay(1000);
 
   await bree.stop();

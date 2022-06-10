@@ -4,4 +4,6 @@ const bree = new Bree({
   jobs: ['job']
 });
 
-bree.start();
+(async () => {
+  await bree.start();
+})();

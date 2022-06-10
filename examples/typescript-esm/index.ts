@@ -21,4 +21,4 @@ const bree = new Bree({
   jobs: ['job']
 });
 
-bree.start();
+await bree.start();

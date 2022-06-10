@@ -6,13 +6,7 @@ module.exports = {
   rules: {
     'capitalized-comments': 'off',
     'unicorn/catch-error-name': 'off',
-    'unicorn/require-post-message-target-origin': 'off',
-    'node/no-unsupported-features/node-builtins': [
-      'error',
-      {
-        ignores: ['events.once']
-      }
-    ]
+    'unicorn/require-post-message-target-origin': 'off'
   },
   overrides: [
     {
@@ -22,14 +16,13 @@ module.exports = {
       }
     },
     {
-      files: [ '*.ts', '**/*.ts' ],
+      files: ['*.ts', '**/*.ts'],
       parserOptions: {
         project: 'types/tsconfig.json'
       },
       rules: {
         'no-redeclare': 'warn',
         'no-unused-vars': 'warn',
-        '@typescript-eslint/no-unsafe-assignment': 'warn',
         '@typescript-eslint/no-unsafe-assignment': 'warn',
         '@typescript-eslint/no-unsafe-call': 'warn',
         '@typescript-eslint/no-unused-vars': 'warn',

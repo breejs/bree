@@ -11,7 +11,7 @@ test('successfully remove jobs', async (t) => {
     root,
     jobs: ['basic', 'infinite']
   });
-
+  await bree.init();
   t.is(typeof bree.config.jobs[1], 'object');
 
   await bree.remove('infinite');
@@ -24,7 +24,7 @@ test('remove > successfully remove and stop jobs', async (t) => {
     root,
     jobs: ['loop']
   });
-  bree.start('loop');
+  await bree.start('loop');
   await delay(10);
 
   t.is(bree.config.jobs[0].name, 'loop');

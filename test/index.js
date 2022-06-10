@@ -31,7 +31,7 @@ test('successfully run job', async (t) => {
     logger
   });
 
-  bree.start();
+  await bree.start();
 
   bree.on('worker created', (name) => {
     t.true(bree.workers.has(name));
@@ -73,37 +73,33 @@ test('preset and override is set by cronValidate config', (t) => {
   t.is(bree.config.cronValidate.override.test, 'works');
 });
 
-test('throws if jobs is not an array and logs MODULE_NOT_FOUND error by default', (t) => {
-  t.plan(2);
+test('throws if jobs is not an array and logs ERR_MODULE_NOT_FOUND error by default', async (t) => {
+  t.plan(3);
 
   const logger = {
     info() {},
     error(err) {
-      t.is(err.code, 'MODULE_NOT_FOUND');
+      t.is(err.code, 'ERR_MODULE_NOT_FOUND');
     }
   };
 
-  t.throws(
-    () =>
-      new Bree({
-        jobs: null,
-        ...baseConfig,
-        logger,
-        root: path.join(__dirname, 'noIndexJobs')
-      }),
-    {
-      message: 'Jobs must be an Array'
-    }
-  );
+  const bree = new Bree({
+    jobs: null,
+    ...baseConfig,
+    logger,
+    root: path.join(__dirname, 'noIndexJobs')
+  });
+  const err = await t.throwsAsync(bree.init());
+  t.is(err.message, 'Jobs must be an Array');
 });
 
-test('logs MODULE_NOT_FOUND error if array is empty', (t) => {
+test('logs ERR_MODULE_NOT_FOUND error if array is empty', async (t) => {
   t.plan(2);
 
   const logger = {
     info() {},
     error(err) {
-      t.is(err.code, 'MODULE_NOT_FOUND');
+      t.is(err.code, 'ERR_MODULE_NOT_FOUND');
     }
   };
 
@@ -114,10 +110,12 @@ test('logs MODULE_NOT_FOUND error if array is empty', (t) => {
     root: path.join(__dirname, 'noIndexJobs')
   });
 
+  await bree.init();
+
   t.true(bree instanceof Bree);
 });
 
-test('does not log MODULE_NOT_FOUND error if silenceRootCheckError is false', (t) => {
+test('does not log ERR_MODULE_NOT_FOUND error if silenceRootCheckError is false', async (t) => {
   const logger = {
     info() {},
     error() {
@@ -133,10 +131,12 @@ test('does not log MODULE_NOT_FOUND error if silenceRootCheckError is false', (t
     silenceRootCheckError: true
   });
 
+  await bree.init();
+
   t.true(bree instanceof Bree);
 });
 
-test('does not log MODULE_NOT_FOUND error if doRootCheck is false', (t) => {
+test('does not log ERR_MODULE_NOT_FOUND error if doRootCheck is false', async (t) => {
   const logger = {
     info() {},
     error() {
@@ -152,20 +152,20 @@ test('does not log MODULE_NOT_FOUND error if doRootCheck is false', (t) => {
     doRootCheck: false
   });
 
+  await bree.init();
+
   t.true(bree instanceof Bree);
 });
 
-test('throws during constructor if job-validator throws', (t) => {
-  t.throws(
-    () =>
-      new Bree({
-        jobs: [{ name: 'basic', hasSeconds: 'test' }],
-        ...baseConfig
-      }),
-    {
-      message:
-        'Job #1 named "basic" had hasSeconds value of test (it must be a Boolean)'
-    }
+test('throws during constructor if job-validator throws', async (t) => {
+  const bree = new Bree({
+    jobs: [{ name: 'basic', hasSeconds: 'test' }],
+    ...baseConfig
+  });
+  const err = await t.throwsAsync(bree.init());
+  t.is(
+    err.message,
+    'Job #1 named "basic" had hasSeconds value of test (it must be a Boolean)'
   );
 });
 
@@ -178,7 +178,7 @@ test('emits "worker created" and "worker started" events', async (t) => {
     timeout: 100
   });
 
-  bree.start();
+  await bree.start();
 
   bree.on('worker created', (name) => {
     t.true(bree.workers.has(name));
@@ -192,7 +192,7 @@ test('emits "worker created" and "worker started" events', async (t) => {
   await bree.stop();
 });
 
-test.serial('job with long timeout runs', (t) => {
+test.serial('job with long timeout runs', async (t) => {
   t.plan(2);
 
   const bree = new Bree({
@@ -201,12 +201,13 @@ test.serial('job with long timeout runs', (t) => {
     timeout: '3 months'
   });
 
+  await bree.init();
   t.is(bree.config.jobs[0].timeout, humanInterval('3 months'));
 
   const now = Date.now();
   const clock = FakeTimers.install({ now: Date.now() });
 
-  bree.start('infinite');
+  await bree.start('infinite');
   bree.on('worker created', () => {
     // Only complicated because of runtime - this removes flakiness
     t.true(
@@ -220,78 +221,82 @@ test.serial('job with long timeout runs', (t) => {
   clock.uninstall();
 });
 
-test.serial('job created with cron string is using local timezone', (t) => {
-  t.plan(2);
-  const bree = new Bree({
-    root,
-    jobs: [{ name: 'basic', cron: '0 18 * * *' }]
-  });
+test.serial(
+  'job created with cron string is using local timezone',
+  async (t) => {
+    t.plan(2);
+    const bree = new Bree({
+      root,
+      jobs: [{ name: 'basic', cron: '0 18 * * *' }]
+    });
 
-  const clock = FakeTimers.install({ now: Date.now() });
-  bree.start('basic');
-  bree.on('worker created', () => {
-    const now = new Date(clock.now);
-    const offsetOfLocalDates = new Date().getTimezoneOffset();
+    const clock = FakeTimers.install({ now: Date.now() });
+    await bree.start('basic');
+    bree.on('worker created', () => {
+      const now = new Date(clock.now);
+      const offsetOfLocalDates = new Date().getTimezoneOffset();
 
-    t.is(now.getTimezoneOffset(), offsetOfLocalDates);
-    t.is(now.getHours(), 18);
-  });
-  clock.next();
-  clock.uninstall();
-});
+      t.is(now.getTimezoneOffset(), offsetOfLocalDates);
+      t.is(now.getHours(), 18);
+    });
+    clock.next();
+    clock.uninstall();
+  }
+);
 
-test.serial('job created with human interval is using local timezone', (t) => {
-  t.plan(2);
-  const bree = new Bree({
-    root,
-    jobs: [{ name: 'basic', interval: 'at 13:26' }]
-  });
+test.serial(
+  'job created with human interval is using local timezone',
+  async (t) => {
+    t.plan(2);
+    const bree = new Bree({
+      root,
+      jobs: [{ name: 'basic', interval: 'at 13:26' }]
+    });
 
-  const clock = FakeTimers.install({ now: Date.now() });
-  bree.start('basic');
-  bree.on('worker created', () => {
-    const now = new Date(clock.now);
-    t.is(now.getHours(), 13);
-    t.is(now.getMinutes(), 26);
-  });
-  clock.next();
-  clock.uninstall();
-});
+    const clock = FakeTimers.install({ now: Date.now() });
+    await bree.start('basic');
+    bree.on('worker created', () => {
+      const now = new Date(clock.now);
+      t.is(now.getHours(), 13);
+      t.is(now.getMinutes(), 26);
+    });
+    clock.next();
+    clock.uninstall();
+  }
+);
 
 test('throws if acceptedExtensions is not an array', (t) => {
-  t.throws(
+  const err = t.throws(
     () =>
       new Bree({
         jobs: ['basic'],
         ...baseConfig,
         acceptedExtensions: 'test string'
-      }),
-    { message: '`acceptedExtensions` must be defined and an Array' }
+      })
   );
+  t.is(err.message, '`acceptedExtensions` must be defined and an Array');
 });
 
 test('throws if acceptedExtensions is false', (t) => {
-  t.throws(
+  const err = t.throws(
     () =>
       new Bree({
         jobs: ['basic'],
         ...baseConfig,
         acceptedExtensions: false
-      }),
-    { message: '`acceptedExtensions` must be defined and an Array' }
+      })
   );
+  t.is(err.message, '`acceptedExtensions` must be defined and an Array');
 });
 
-test('throws if root is not a directory', (t) => {
-  t.throws(
-    () =>
-      new Bree({
-        jobs: ['basic'],
-        ...baseConfig,
-        root: path.resolve(__dirname, 'add.js')
-      }),
-    { message: /Root directory of .+ does not exist/ }
-  );
+test('throws if root is not a directory', async (t) => {
+  const bree = new Bree({
+    jobs: ['basic'],
+    ...baseConfig,
+    root: path.resolve(__dirname, 'add.js')
+  });
+  const err = await t.throwsAsync(bree.init());
+  t.regex(err.message, /Root directory of .+ does not exist/);
 });
 
 test('sets logger to noop if set to false', (t) => {
@@ -310,8 +315,54 @@ test('removes job on completion when config.removeCompleted is `true`', async (t
     removeCompleted: true
   });
 
-  bree.run('basic');
+  await bree.run('basic');
   await once(bree.workers.get('basic'), 'exit');
 
   t.is(bree.config.jobs.length, 0);
+});
+
+test('ensures defaultExtension does not start with a period', (t) => {
+  const err = t.throws(() => new Bree({ defaultExtension: '.js' }));
+  t.is(
+    err.message,
+    '`defaultExtension` should not start with a ".", please enter the file extension without a leading period'
+  );
+});
+
+test('handleJobCompletion throws if bree.init() was not called', (t) => {
+  const bree = new Bree();
+  const err = t.throws(() => bree.handleJobCompletion('foo'));
+  t.is(
+    err.message,
+    'bree.init() was not called, see <https://github.com/breejs/bree/blob/master/UPGRADING.md#upgrading-from-v8-to-v9>'
+  );
+});
+
+test('getWorkerMetadata throws if bree.init() was not called', (t) => {
+  const bree = new Bree();
+  const err = t.throws(() => bree.getWorkerMetadata());
+  t.is(
+    err.message,
+    'bree.init() was not called, see <https://github.com/breejs/bree/blob/master/UPGRADING.md#upgrading-from-v8-to-v9>'
+  );
+});
+
+test(`bree.init() is called if bree.remove() is called`, async (t) => {
+  const bree = new Bree({ root, jobs: ['basic'] });
+  await bree.remove('basic');
+  t.true(bree._init);
+});
+
+test(`bree.init() is called if bree.stop() is called`, async (t) => {
+  const bree = new Bree({ root, jobs: ['basic'] });
+  await bree.stop('basic');
+  t.true(bree._init);
+});
+
+test(`bree.init() is called if bree.add() is called`, async (t) => {
+  const bree = new Bree({ root, jobs: ['basic'] });
+  await bree.add('short');
+  t.true(bree._init);
+  await bree.add('message');
+  t.true(bree._init);
 });

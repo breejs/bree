@@ -12,7 +12,7 @@ const baseConfig = {
   defaultExtension: 'js'
 };
 
-test('plugin can extend init', (t) => {
+test('plugin can extend init', async (t) => {
   t.plan(3);
 
   const plugin = (_, c) => {
@@ -30,6 +30,7 @@ test('plugin can extend init', (t) => {
   t.is(plugin.$i, true);
 
   const bree = new Bree({ ...baseConfig });
+  await bree.init();
 
   t.true(bree instanceof Bree);
 });

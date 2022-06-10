@@ -274,11 +274,11 @@ const graceful = new Graceful({ brees: [bree] });
 graceful.listen();
 
 // start all jobs (this is the equivalent of reloading a crontab):
-bree.start();
+await bree.start();
 
 /*
 // start only a specific job:
-bree.start('foo');
+await bree.start('foo');
 
 // stop all jobs
 bree.stop();
@@ -293,11 +293,11 @@ bree.run();
 bree.run('beep');
 
 // add a job array after initialization:
-const added = bree.add(['boop']); // will return array of added jobs
+const added = await bree.add(['boop']); // will return array of added jobs
 // this must then be started using one of the above methods
 
 // add a job after initialization:
-bree.add('boop');
+await bree.add('boop');
 // this must then be started using one of the above methods
 
 // remove a job after initialization:
@@ -327,6 +327,7 @@ Here is the full list of options and their defaults.  See [index.js](index.js) f
 | `hasSeconds`            | Boolean  | `false`                | This value is passed to `later` for parsing jobs, and can be overridden on a per job basis.  See [later cron parsing](https://breejs.github.io/later/parsers.html#cron) documentation for more insight. Note that setting this to `true` will automatically set `cronValidate` defaults to have `{ preset: 'default', override: { useSeconds: true } }`                                                                                                  |
 | `cronValidate`          | Object   | `{}`                   | This value is passed to `cron-validate` for validation of cron expressions.  See the [cron-validate](https://github.com/Airfooox/cron-validate) documentation for more insight.                                                                                                                                                                                                                                                                          |
 | `closeWorkerAfterMs`    | Number   | `0`                    | If you set a value greater than `0` here, then it will terminate workers after this specified time (in milliseconds).  **As of v6.0.0, workers now terminate after they have been signaled as "online" (as opposed to previous versions which did not take this into account and started the timer when jobs were initially "run").**  By default there is no termination done, and jobs can run for infinite periods of time.                           |
+| `defaultRootIndex`      | String   | `index.js`             | This value should be the file name inside of the `root` directory option (if you pass a `root` directory or use the default `root` String value (and your index file name is different than `index.js`).                                                                                                                                                                                                                                                 |
 | `defaultExtension`      | String   | `js`                   | This value can either be `js` or `mjs`.  The default is `js`, and is the default extension added to jobs that are simply defined with a name and without a path.  For example, if you define a job `test`, then it will look for `/path/to/root/test.js` as the file used for workers.                                                                                                                                                                   |
 | `acceptedExtensions`    | Array    | `['.js', '.mjs']`      | This defines all of the accepted extensions for file validation and job creation. Please note if you add to this list you must override the `createWorker` function to properly handle the new file types.                                                                                                                                                                                                                                               |
 | `worker`                | Object   | `{}`                   | These are default options to pass when creating a `new Worker` instance.  See the [Worker class](https://nodejs.org/api/worker_threads.html#worker_threads_new_worker_filename_options) documentation for more insight.                                                                                                                                                                                                                                  |

@@ -28,8 +28,8 @@ test('job stops when "cancel" message is sent', async (t) => {
 
   t.false(bree.workers.has('message'));
 
-  bree.start('message');
-  await delay(1);
+  await bree.start('message');
+  await delay(10);
 
   t.true(bree.workers.has('message'));
 
@@ -58,8 +58,8 @@ test('job stops when process.exit(0) is called', async (t) => {
 
   t.false(bree.workers.has('message-process-exit'));
 
-  bree.start('message-process-exit');
-  await delay(1);
+  await bree.start('message-process-exit');
+  await delay(10);
 
   t.true(bree.workers.has('message-process-exit'));
 
@@ -84,8 +84,8 @@ test('does not send graceful notice if no cancelled message', async (t) => {
     logger
   });
 
-  bree.start('message-ungraceful');
-  await delay(1);
+  await bree.start('message-ungraceful');
+  await delay(10);
   console.log(bree);
   await bree.stop('message-ungraceful');
 
@@ -100,7 +100,7 @@ test('clears closeWorkerAfterMs', async (t) => {
 
   t.false(bree.closeWorkerAfterMs.has('basic'));
 
-  bree.run('basic');
+  await bree.run('basic');
 
   await once(bree.workers.get('basic'), 'online');
   t.true(bree.closeWorkerAfterMs.has('basic'));
@@ -118,7 +118,7 @@ test('deletes closeWorkerAfterMs', async (t) => {
 
   t.false(bree.closeWorkerAfterMs.has('basic'));
 
-  bree.run('basic');
+  await bree.run('basic');
 
   await once(bree.workers.get('basic'), 'online');
   t.true(bree.closeWorkerAfterMs.has('basic'));
@@ -139,7 +139,7 @@ test('clears timeouts', async (t) => {
 
   t.false(bree.timeouts.has('basic'));
 
-  bree.start('basic');
+  await bree.start('basic');
   await bree.stop('basic');
 
   t.false(bree.timeouts.has('basic'));
@@ -153,7 +153,7 @@ test('deletes timeouts', async (t) => {
 
   t.false(bree.timeouts.has('basic'));
 
-  bree.start('basic');
+  await bree.start('basic');
   bree.timeouts.set('basic', 'test');
   await bree.stop('basic');
 
@@ -168,7 +168,7 @@ test('deletes intervals', async (t) => {
 
   t.false(bree.intervals.has('basic'));
 
-  bree.start('basic');
+  await bree.start('basic');
   bree.intervals.set('basic', 'test');
   await bree.stop('basic');
 

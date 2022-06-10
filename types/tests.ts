@@ -138,8 +138,9 @@ const fn = () => {};
       }
     ]
   });
+
   // start only a specific job:
-  bree.start('foo');
+  await bree.start('foo');
 
   // stop all jobs
   await bree.stop();
@@ -148,20 +149,20 @@ const fn = () => {};
   await bree.stop('beep');
 
   // run all jobs (this does not abide by timeout/interval/cron and spawns workers immediately)
-  bree.run();
+  await bree.run();
 
   // run a specific job (...)
-  bree.run('beep');
+  await bree.run('beep');
 
   // add a job array after initialization:
-  bree.add(['boop']);
+  await bree.add(['boop']);
   // this must then be started using one of the above methods
 
   // add a job after initialization:
-  bree.add('boop');
+  await bree.add('boop');
   // this must then be started using one of the above methods
 
-  bree.add(fn);
+  await bree.add(fn);
 
   // remove a job after initialization:
   await bree.remove('boop');

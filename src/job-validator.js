@@ -16,7 +16,7 @@ const validateReservedJobName = (name) => {
   }
 };
 
-const validateStringJob = (job, i, config) => {
+const validateStringJob = async (job, i, config) => {
   const errors = [];
 
   const jobNameError = validateReservedJobName(job);
@@ -42,7 +42,7 @@ const validateStringJob = (job, i, config) => {
       : `${job}.${config.defaultExtension}`
   );
 
-  const stats = fs.statSync(path);
+  const stats = await fs.promises.stat(path);
   if (!stats.isFile()) {
     throw new Error(`Job #${i + 1} "${job}" path missing: ${path}`);
   }
@@ -64,7 +64,7 @@ const validateFunctionJob = (job, i) => {
   }
 };
 
-const validateJobPath = (job, prefix, config) => {
+const validateJobPath = async (job, prefix, config) => {
   const errors = [];
 
   if (typeof job.path === 'function') {
@@ -92,7 +92,7 @@ const validateJobPath = (job, prefix, config) => {
         );
     if (isValidPath(path)) {
       try {
-        const stats = fs.statSync(path);
+        const stats = await fs.promises.stat(path);
         if (!stats.isFile()) {
           throw new Error(`${prefix} path missing: ${path}`);
         }
@@ -200,7 +200,7 @@ const validateJobName = (job, i, reservedNames) => {
 };
 
 // eslint-disable-next-line complexity
-const validate = (job, i, names, config) => {
+const validate = async (job, i, names, config) => {
   const errors = validateJobName(job, i, names);
 
   if (errors.length > 0) {
@@ -220,7 +220,7 @@ const validate = (job, i, names, config) => {
   // Use a prefix for errors
   const prefix = `Job #${i + 1} named "${job.name}"`;
 
-  errors.push(...validateJobPath(job, prefix, config));
+  errors.push(...(await validateJobPath(job, prefix, config)));
 
   // Don't allow users to mix interval AND cron
   if (typeof job.interval !== 'undefined' && typeof job.cron !== 'undefined') {

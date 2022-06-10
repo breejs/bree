@@ -1,10 +1,14 @@
+//
+// NOTE: we could use `node:` prefix but it is only supported in ESM v14.13.1+ and v12.20+
+//       and since this is a CJS module then it is only supported in v14.18+ and v16+
+//
 const fs = require('fs');
 const EventEmitter = require('events');
 const { Worker } = require('worker_threads');
-const { resolve } = require('path');
+const { join, resolve } = require('path');
+const { debuglog } = require('util');
 
 const combineErrors = require('combine-errors');
-const debug = require('debug')('bree');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
@@ -20,6 +24,10 @@ const {
 } = require('./job-utils');
 const buildJob = require('./job-builder');
 const validateJob = require('./job-validator');
+
+const debug = debuglog('bree');
+
+class ImportError extends Error {}
 
 class Bree extends EventEmitter {
   constructor(config) {
@@ -60,6 +68,7 @@ class Bree extends EventEmitter {
       closeWorkerAfterMs: 0,
       // Could also be mjs if desired
       // (this is the default extension if you just specify a job's name without ".js" or ".mjs")
+      defaultRootIndex: 'index.js',
       defaultExtension: 'js',
       // an array of accepted extensions
       // NOTE: if you add to this array you must extend `createWorker`
@@ -93,6 +102,12 @@ class Bree extends EventEmitter {
       outputWorkerMetadata: false,
       ...config
     };
+
+    // `defaultExtension` option should not start with a period
+    if (this.config.defaultExtension.indexOf('.') === 0)
+      throw new Error(
+        '`defaultExtension` should not start with a ".", please enter the file extension without a leading period'
+      );
 
     // Validate timezone string
     // `.toLocaleString()` will throw a `RangeError` if `timeZone` string
@@ -169,18 +184,23 @@ class Bree extends EventEmitter {
 
     // so plugins can extend constructor
     this.init = this.init.bind(this);
-    this.init();
 
-    debug('this.config.jobs', this.config.jobs);
+    // store whether init was successful
+    this._init = false;
+
+    debug('jobs', this.config.jobs);
   }
 
-  init() {
-    // Validate root (sync check)
+  async init() {
+    debug('init');
+
+    // Validate root
+    // <https://nodejs.org/api/esm.html#esm_mandatory_file_extensions>
     if (
       isSANB(this.config.root) /* istanbul ignore next */ &&
       isValidPath(this.config.root)
     ) {
-      const stats = fs.statSync(this.config.root);
+      const stats = await fs.promises.stat(this.config.root);
       if (!stats.isDirectory()) {
         throw new Error(`Root directory of ${this.config.root} does not exist`);
       }
@@ -198,14 +218,34 @@ class Bree extends EventEmitter {
     // if `this.config.jobs` is an empty array
     // then we should try to load `jobs/index.js`
     //
+    debug('root', this.config.root);
+    debug('doRootCheck', this.config.doRootCheck);
+    debug('jobs', this.config.jobs);
     if (
       this.config.root &&
       this.config.doRootCheck &&
       (!Array.isArray(this.config.jobs) || this.config.jobs.length === 0)
     ) {
       try {
-        this.config.jobs = require(this.config.root);
+        const importPath = join(this.config.root, this.config.defaultRootIndex);
+        debug('importPath', importPath);
+        const obj = await import(importPath);
+        if (typeof obj.default !== 'object') {
+          throw new ImportError(
+            `Root index file missing default export at: ${importPath}`
+          );
+        }
+
+        this.config.jobs = obj.default;
       } catch (err) {
+        debug(err);
+
+        //
+        // NOTE: this is only applicable for Node <= 12.20.0
+        //
+        /* istanbul ignore next */
+        if (err.message === 'Not supported') throw err;
+        if (err instanceof ImportError) throw err;
         if (!this.config.silenceRootCheckError) {
           this.config.logger.error(err);
         }
@@ -239,25 +279,36 @@ class Bree extends EventEmitter {
     ]
     */
 
-    for (let i = 0; i < this.config.jobs.length; i++) {
-      try {
-        const names = getJobNames(this.config.jobs, i);
-
-        validateJob(this.config.jobs[i], i, names, this.config);
-
-        this.config.jobs[i] = buildJob(this.config.jobs[i], this.config);
-      } catch (err) {
-        errors.push(err);
-      }
-    }
+    this.config.jobs = await Promise.all(
+      this.config.jobs.map(async (job, index) => {
+        try {
+          const names = getJobNames(this.config.jobs, index);
+          await validateJob(job, index, names, this.config);
+          return buildJob(job, this.config);
+        } catch (err) {
+          errors.push(err);
+        }
+      })
+    );
 
     // If there were any errors then throw them
     if (errors.length > 0) {
       throw combineErrors(errors);
     }
+
+    // Otherwise set that init was called successfully
+    this._init = true;
+    debug('init was successful');
   }
 
   getWorkerMetadata(name, meta = {}) {
+    debug('getWorkerMetadata', name, { meta });
+
+    if (!this._init)
+      throw new Error(
+        'bree.init() was not called, see <https://github.com/breejs/bree/blob/master/UPGRADING.md#upgrading-from-v8-to-v9>'
+      );
+
     const job = this.config.jobs.find((j) => j.name === name);
     if (!job) {
       throw new Error(`Job "${name}" does not exist`);
@@ -286,8 +337,11 @@ class Bree extends EventEmitter {
     return meta;
   }
 
-  run(name) {
+  async run(name) {
     debug('run', name);
+
+    if (!this._init) await this.init();
+
     if (name) {
       const job = this.config.jobs.find((j) => j.name === name);
       if (!job) {
@@ -430,8 +484,11 @@ class Bree extends EventEmitter {
     }
   }
 
-  start(name) {
+  async start(name) {
     debug('start', name);
+
+    if (!this._init) await this.init();
+
     if (name) {
       const job = this.config.jobs.find((j) => j.name === name);
       if (!job) {
@@ -578,6 +635,10 @@ class Bree extends EventEmitter {
   }
 
   async stop(name) {
+    debug('stop', name);
+
+    if (!this._init) await this.init();
+
     if (name) {
       this.removeSafeTimer('timeouts', name);
       this.removeSafeTimer('intervals', name);
@@ -607,7 +668,11 @@ class Bree extends EventEmitter {
     return pWaitFor(() => this.workers.size === 0);
   }
 
-  add(jobs) {
+  async add(jobs) {
+    debug('add', jobs);
+
+    if (!this._init) await this.init();
+
     //
     // make sure jobs is an array
     //
@@ -618,21 +683,25 @@ class Bree extends EventEmitter {
     const errors = [];
     const addedJobs = [];
 
-    for (const [i, job_] of jobs.entries()) {
-      try {
-        const names = [
-          ...getJobNames(jobs, i),
-          ...getJobNames(this.config.jobs)
-        ];
+    await Promise.all(
+      // handle `jobs` in case it is a Set or an Array
+      // <https://stackoverflow.com/a/42624575>
+      [...jobs].map(async (job_, index) => {
+        try {
+          const names = [
+            ...getJobNames(jobs, index),
+            ...getJobNames(this.config.jobs)
+          ];
 
-        validateJob(job_, i, names, this.config);
-        const job = buildJob(job_, this.config);
+          await validateJob(job_, index, names, this.config);
+          const job = buildJob(job_, this.config);
 
-        addedJobs.push(job);
-      } catch (err) {
-        errors.push(err);
-      }
-    }
+          addedJobs.push(job);
+        } catch (err) {
+          errors.push(err);
+        }
+      })
+    );
 
     debug('jobs added', this.config.jobs);
 
@@ -646,6 +715,10 @@ class Bree extends EventEmitter {
   }
 
   async remove(name) {
+    debug('remove', name);
+
+    if (!this._init) await this.init();
+
     const job = this.config.jobs.find((j) => j.name === name);
     if (!job) {
       throw new Error(`Job "${name}" does not exist`);
@@ -679,6 +752,13 @@ class Bree extends EventEmitter {
   }
 
   handleJobCompletion(name) {
+    debug('handleJobCompletion', name);
+
+    if (!this._init)
+      throw new Error(
+        'bree.init() was not called, see <https://github.com/breejs/bree/blob/master/UPGRADING.md#upgrading-from-v8-to-v9>'
+      );
+
     // remove closeWorkerAfterMs if exist
     this.removeSafeTimer('closeWorkerAfterMs', name);
 

@@ -6,6 +6,8 @@ import { Timeout, Interval } from 'safe-timers';
 
 export = Bree;
 
+type AsyncFunction<A, O> = (...args: A) => Promise<O>;
+
 declare class Bree extends EventEmitter {
   config: Bree.BreeConfigs;
 
@@ -20,28 +22,33 @@ declare class Bree extends EventEmitter {
     meta?: Record<string, unknown>
   ) => Record<string, unknown>;
 
-  run: (name?: string) => void;
+  run: AsyncFunction<[name?: string], void>;
+  start: AsyncFunction<[name?: string], void>;
+  stop: AsyncFunction<[name?: string], void>;
+  add: AsyncFunction<
+    [
+      jobs:
+        | string
+        | (() => void)
+        | Bree.JobOptions
+        | Array<string | (() => void) | Bree.JobOptions>
+    ],
+    void
+  >;
 
-  start: (name?: string) => void;
-  stop: (name?: string) => Promise<void>;
-  add: (
-    jobs:
-      | string
-      | (() => void)
-      | Bree.JobOptions
-      | Array<string | (() => void) | Bree.JobOptions>
-  ) => void;
-
-  remove: (name: string) => Promise<void>;
+  remove: AsyncFunction<[name?: string], void>;
 
   removeSafeTimer: (type: string, name: string) => void;
 
-  validateJob: (
-    job: string | (() => void) | Bree.JobOptions,
-    i: number,
-    names: string[],
-    config: Bree.BreeOptions
-  ) => void;
+  validateJob: AsyncFunction<
+    [
+      job: string | (() => void) | Bree.JobOptions,
+      i: number,
+      names: string[],
+      config: Bree.BreeOptions
+    ],
+    void
+  >;
 
   getName: (job: string | Record<string, unknown> | (() => void)) => string;
 
@@ -53,6 +60,9 @@ declare class Bree extends EventEmitter {
   createWorker: (filename: string, options: Partial<WorkerOptions>) => Worker;
 
   handleJobCompletion: (name: string) => void;
+
+  // init: Promise() => void;
+  // _init: boolean;
 
   constructor(config?: Bree.BreeOptions);
 }
@@ -88,6 +98,7 @@ declare namespace Bree {
     hasSeconds: boolean;
     cronValidate: Record<string, unknown>;
     closeWorkerAfterMs: number;
+    defaultRootIndex: string;
     defaultExtension: string;
     acceptedExtensions: string[];
     worker: WorkerOptions;

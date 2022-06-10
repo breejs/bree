@@ -20,7 +20,7 @@ test('job terminates after closeWorkerAfterMs and allows run after', async (t) =
     logger
   });
 
-  bree.run('long');
+  await bree.run('long');
   await once(bree.workers.get('long'), 'online');
   t.true(bree.closeWorkerAfterMs.has('long'));
 
@@ -28,7 +28,7 @@ test('job terminates after closeWorkerAfterMs and allows run after', async (t) =
   t.is(code, 1);
   t.false(bree.closeWorkerAfterMs.has('long'));
 
-  bree.run('long');
+  await bree.run('long');
   await once(bree.workers.get('long'), 'online');
   t.true(bree.closeWorkerAfterMs.has('long'));
 });

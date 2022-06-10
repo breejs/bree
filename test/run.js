@@ -8,18 +8,17 @@ const Bree = require('../src');
 
 const root = path.join(__dirname, 'jobs');
 
-test('job does not exist', (t) => {
+test('job does not exist', async (t) => {
   const bree = new Bree({
     root,
     jobs: ['basic']
   });
 
-  t.throws(() => bree.run('leroy'), {
-    message: 'Job "leroy" does not exist'
-  });
+  const err = await t.throwsAsync(bree.run('leroy'));
+  t.is(err.message, 'Job "leroy" does not exist');
 });
 
-test('job already running', (t) => {
+test('job already running', async (t) => {
   const logger = {};
   logger.warn = (err, _) => {
     t.is(err.message, 'Job "basic" is already running');
@@ -33,8 +32,8 @@ test('job already running', (t) => {
     logger
   });
 
-  bree.run('basic');
-  bree.run('basic');
+  await bree.run('basic');
+  await bree.run('basic');
 });
 
 test.serial('job terminates after closeWorkerAfterMs', async (t) => {
@@ -50,7 +49,7 @@ test.serial('job terminates after closeWorkerAfterMs', async (t) => {
     logger
   });
 
-  bree.run('long');
+  await bree.run('long');
   await once(bree.workers.get('long'), 'online');
   t.true(bree.closeWorkerAfterMs.has('long'));
 
@@ -70,7 +69,7 @@ test('job terminates before closeWorkerAfterMs', async (t) => {
     logger
   });
 
-  bree.run('short');
+  await bree.run('short');
   await once(bree.workers.get('short'), 'online');
   t.true(bree.closeWorkerAfterMs.has('short'));
 
@@ -90,7 +89,7 @@ test('job terminates should clear closeWorkerAfterMs', async (t) => {
     logger
   });
 
-  bree.run('short');
+  await bree.run('short');
   await once(bree.workers.get('short'), 'online');
   t.true(bree.closeWorkerAfterMs.has('short'));
 
@@ -109,16 +108,16 @@ test('job terminates on message "done"', async (t) => {
     logger
   });
 
-  bree.run('done');
+  await bree.run('done');
 
-  await delay(1);
+  await delay(10);
 
   t.true(bree.workers.has('done'));
   const [message] = await once(bree.workers.get('done'), 'message');
   t.is(message, 'get ready');
 
   await once(bree, 'worker deleted');
-  await delay(1);
+  await delay(10);
   t.false(bree.workers.has('done'));
 });
 
@@ -132,9 +131,9 @@ test('job terminates on message "done" should clear closeWorkerAfterMs', async (
     logger
   });
 
-  bree.run('done');
+  await bree.run('done');
 
-  await delay(1);
+  await delay(10);
 
   t.true(bree.workers.has('done'));
   const [message] = await once(bree.workers.get('done'), 'message');
@@ -142,7 +141,7 @@ test('job terminates on message "done" should clear closeWorkerAfterMs', async (
   t.true(bree.closeWorkerAfterMs.has('done'));
 
   await once(bree, 'worker deleted');
-  await delay(1);
+  await delay(10);
   t.false(bree.workers.has('done'));
   t.false(bree.closeWorkerAfterMs.has('done'));
 });
@@ -161,7 +160,7 @@ test('job sent a message', async (t) => {
     logger
   });
 
-  bree.run('message');
+  await bree.run('message');
 
   bree.workers.get('message').postMessage('test');
 
@@ -184,7 +183,7 @@ test('job sent an error', async (t) => {
     logger
   });
 
-  bree.run('message');
+  await bree.run('message');
 
   bree.workers.get('message').postMessage('error');
 
@@ -215,7 +214,7 @@ test('job sent an error with custom handler', async (t) => {
     }
   });
 
-  bree.run('message');
+  await bree.run('message');
 
   bree.workers.get('message').postMessage('error');
 
@@ -242,7 +241,7 @@ test('job sent a message with custom worker message handler', async (t) => {
     }
   });
 
-  bree.run('message');
+  await bree.run('message');
 
   bree.workers.get('message').postMessage('hey Bob!');
 
@@ -270,7 +269,7 @@ test('job sent a message with custom worker message handler and metadata', async
     }
   });
 
-  bree.run('message');
+  await bree.run('message');
 
   bree.workers.get('message').postMessage('hi Alice!');
 
@@ -287,8 +286,8 @@ test('jobs run all when no name designated', async (t) => {
     logger
   });
 
-  bree.run();
-  await delay(1);
+  await bree.run();
+  await delay(10);
 
   t.true(bree.workers.has('basic'));
 
@@ -309,8 +308,8 @@ test('job runs with no worker options in config', async (t) => {
     worker: false
   });
 
-  bree.run('basic');
-  await delay(1);
+  await bree.run('basic');
+  await delay(10);
 
   t.true(bree.workers.has('basic'));
 
@@ -343,9 +342,9 @@ test('job runs and passes workerData from config', async (t) => {
     }
   });
 
-  bree.run('worker-data');
+  await bree.run('worker-data');
 
-  await delay(1);
+  await delay(10);
   t.true(bree.workers.has('worker-data'));
 
   const [code] = await once(bree.workers.get('worker-data'), 'exit');

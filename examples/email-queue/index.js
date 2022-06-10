@@ -27,4 +27,6 @@ const graceful = new Graceful({ brees: [bree] });
 graceful.listen();
 
 // start all jobs (this is the equivalent of reloading a crontab):
-bree.start();
+(async () => {
+  await bree.start();
+})();
