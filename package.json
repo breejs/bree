@@ -38,8 +38,6 @@
     "dtslint": "^4.2.1",
     "eslint": "^8.17.0",
     "eslint-config-xo-lass": "^2.0.1",
-    "eslint-plugin-compat": "^4.0.2",
-    "eslint-plugin-node": "^11.1.0",
     "events.once": "^2.0.2",
     "fixpack": "^4.0.0",
     "husky": "^8.0.1",
