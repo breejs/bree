@@ -25,6 +25,8 @@
 * [Install](#install)
 * [Upgrading](#upgrading)
 * [Usage and Examples](#usage-and-examples)
+  * [ECMAScript modules (ESM)](#ecmascript-modules-esm)
+  * [CommonJS (CJS)](#commonjs-cjs)
 * [Instance Options](#instance-options)
 * [Job Options](#job-options)
 * [Job Interval and Timeout Values](#job-interval-and-timeout-values)
@@ -76,7 +78,11 @@ yarn add bree
 
 ## Upgrading
 
-To see details about upgrading from the last major version, check out this [doc](./UPGRADING.md).
+To see details about upgrading from the last major version, please see [UPGRADING.md](https://github.com/breejs/bree/blob/master/UPGRADING.md).
+
+> **IMPORTANT:** [Bree v9.0.0](https://github.com/breejs/bree/releases/tag/v9.0.0) has several breaking changes, please see [UPGRADING.md](https://github.com/breejs/bree/blob/master/UPGRADING.md) for more insight.
+
+> **NOTE:** [Bree v6.5.0](https://github.com/breejs/bree/releases/tag/v6.5.0) is the last version to support Node v10 and browsers.
 
 
 ## Usage and Examples
@@ -85,13 +91,34 @@ The example below assumes that you have a directory `jobs` in the root of the di
 
 Inside this `jobs` directory are individual scripts which are run using [Workers][] per optional timeouts, and additionally, an optional interval or cron expression.  The example below contains comments, which help to clarify how this works.
 
-The option `jobs` passed to a new instance of `Bree` (as shown below) is an Array.  It contains values which can either be a String (name of a job in the `jobs` directory, which is run on boot) OR it can be an Object with `name`, `path`, `timeout`, and `interval` properties.  If you do not supply a `path`, then the path is created using the root directory (defaults to `jobs`) in combination with the `name`.  If you do not supply values for `timeout` and/nor `interval`, then these values are defaulted to `0` (which is the default for both, see [index.js](src/index.js) for more insight into configurable default options).
+The option `jobs` passed to a new instance of `Bree` (as shown below) is an Array.  It contains values which can either be a String (name of a job in the `jobs` directory, which is run on boot) OR it can be an Object with `name`, `path`, `timeout`, and `interval` properties.  If you do not supply a `path`, then the path is created using the root directory (defaults to `jobs`) in combination with the `name`.  If you do not supply values for `timeout` and/nor `interval`, then these values are defaulted to `0` (which is the default for both, see [index.js](https://github.com/breejs/bree/blob/master/src/index.js) for more insight into configurable default options).
 
 We have also documented all [Instance Options](#instance-options) and [Job Options](#job-options) in this README below.  Be sure to read those sections so you have a complete understanding of how Bree works.
 
-> **NOTE:** [Bree v6.5.0](https://github.com/breejs/bree/releases/tag/v6.5.0) is the last version to support Node v10 and browsers.
+### ECMAScript modules (ESM)
 
 ```js
+// app.mjs
+
+import Bree from 'bree';
+
+const bree = new Bree({
+  // ... (see below) ...
+});
+
+// top-level await supported in Node v14.8+
+await bree.start();
+
+// ... (see below) ...
+```
+
+**Please reference the [#CommonJS](#commonjs-cjs) example below for more insight and options.**
+
+### CommonJS (CJS)
+
+```js
+// app.js
+
 const path = require('path');
 
 // optional
@@ -274,11 +301,15 @@ const graceful = new Graceful({ brees: [bree] });
 graceful.listen();
 
 // start all jobs (this is the equivalent of reloading a crontab):
-await bree.start();
+(async () => {
+  await bree.start();
+})();
 
 /*
 // start only a specific job:
-await bree.start('foo');
+(async () => {
+  await bree.start('foo');
+})();
 
 // stop all jobs
 bree.stop();
@@ -292,13 +323,16 @@ bree.run();
 // run a specific job (...)
 bree.run('beep');
 
-// add a job array after initialization:
-const added = await bree.add(['boop']); // will return array of added jobs
-// this must then be started using one of the above methods
+(async () => {
+  // add a job array after initialization:
+  const added = await bree.add(['boop']); // will return array of added jobs
+  // this must then be started using one of the above methods
 
-// add a job after initialization:
-await bree.add('boop');
-// this must then be started using one of the above methods
+  // add a job after initialization:
+  await bree.add('boop');
+  // this must then be started using one of the above methods
+})();
+
 
 // remove a job after initialization:
 bree.remove('boop');
@@ -312,7 +346,7 @@ For a more complete demo using express see: [Bree Express Demo](https://github.c
 
 ## Instance Options
 
-Here is the full list of options and their defaults.  See [index.js](index.js) for more insight if necessary.
+Here is the full list of options and their defaults.  See [src/index.js](https://github.com/breejs/bree/blob/master/src/index.js) for more insight if necessary.
 
 | Property                | Type     | Default Value          | Description                                                                                                                                                                                                                                                                                                                                                                                                                                              |
 | ----------------------- | -------- | ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
