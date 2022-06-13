@@ -64,7 +64,8 @@ Bree.prototype.init = function () {
     this.config.acceptedExtensions.push('.ts');
 
 -  oldInit.bind(this)();
-+  return oldInit.bind(this)();
++  // note it is not invoked anymore and we now return it
++  return oldInit.bind(this);
 };
 ```
 
