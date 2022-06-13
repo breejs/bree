@@ -6,7 +6,7 @@ import { Timeout, Interval } from 'safe-timers';
 
 export = Bree;
 
-type AsyncFunction<A, O> = (...args: A) => Promise<O>;
+type AsyncFunction<A extends any[], O> = (...args: A) => Promise<O>;
 
 declare class Bree extends EventEmitter {
   config: Bree.BreeConfigs;
