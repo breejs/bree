@@ -59,13 +59,13 @@ Here is a complete list of the underlying changes made:
 
 ```diff
 // define accepted extensions
-Bree.prototype.init = function () {
+-Bree.prototype.init = function () {
++Bree.prototype.init = async function () {
   if (!this.config.acceptedExtensions.includes('.ts'))
     this.config.acceptedExtensions.push('.ts');
 
 -  oldInit.bind(this)();
-+  // note it is not invoked anymore and we now return it
-+  return oldInit.bind(this);
++  return oldInit.call(this);
 };
 ```
 
