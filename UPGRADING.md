@@ -55,6 +55,19 @@ Here is a complete list of the underlying changes made:
 
 * If you are on Node version <= v12.20.0, please upgrade to the latest Node v12, but preferably please upgrade to the latest Node LTS (at the time of this writing it is Node v16, but if you can't upgrade to Node v16, at least upgrade to Node v14).  Node v12 is EOL as of April 2022.
 
+* Plugins will need to now `return init()` if you override the `init` function, for example (this is the change we had to make in `@breejs/ts-worker`):
+
+```diff
+// define accepted extensions
+Bree.prototype.init = function () {
+  if (!this.config.acceptedExtensions.includes('.ts'))
+    this.config.acceptedExtensions.push('.ts');
+
+-  oldInit.bind(this)();
++  return oldInit.bind(this)();
+};
+```
+
 
 ## Upgrading from v7 to v8
 
