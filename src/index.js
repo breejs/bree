@@ -25,6 +25,12 @@ const {
 const buildJob = require('./job-builder');
 const validateJob = require('./job-validator');
 
+function omit(obj, props) {
+  obj = { ...obj };
+  for (const prop of props) delete obj[prop];
+  return obj;
+}
+
 const debug = debuglog('bree');
 
 class ImportError extends Error {}
@@ -361,7 +367,10 @@ class Bree extends EventEmitter {
         ...(this.config.worker ? this.config.worker : {}),
         ...(job.worker ? job.worker : {}),
         workerData: {
-          job,
+          job: {
+            ...job,
+            ...(job.worker ? { worker: omit(job.worker, ['env']) } : {})
+          },
           ...(this.config.worker && this.config.worker.workerData
             ? this.config.worker.workerData
             : {}),
