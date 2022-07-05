@@ -36,7 +36,7 @@ Here is a complete list of the underlying changes made:
 
 * ESM module support has been added (per [#180](https://github.com/breejs/bree/issues/180)) by using dynamic imports to load the job Array (CJS is still supported).
   * For a majority of users, you do not need to make any changes to your code for v9 to work when you upgrade from v8 (**with the exception of now having to do `await bree.start()`**).
-  * Top-level await support is added in Node v14.8+ (without requiring any Node flags), and therefore you can call `await bree.start();` (e.g. if your `package.json` has `"type": "module"` and/or the file extension you're running with Node is `.mjs`).  Note that Bree still works in Node v12.11+
+  * Top-level await support is added in Node v14.8+ (without requiring any Node flags), and therefore you can call `await bree.start();` (e.g. if your `package.json` has `"type": "module"` and/or the file extension you're running with Node is `.mjs`).  Note that Bree still works in Node v12.17+
   * The major difference is that Bree no longer initializes `this.config.jobs` in the constructor.
   * However we have dummy-proofed this new approach, and `bree.init()` will be invoked (if and only if it has not yet been invoked successfully) when you call `bree.start()` (or any similar method that accesses `this.config.jobs` internally).
   * Internal methods such as `validate` exported by `src/job-validator.js` are now asynchronous and return Promises (you do not need to worry about this unless you're doing something custom with these functions).

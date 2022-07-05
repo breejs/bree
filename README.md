@@ -15,7 +15,7 @@
 </div>
 <hr />
 <div align="center">
-  Works in Node v12.11.0+, uses <a href="https://nodejs.org/api/worker_threads.html">worker threads</a> (Node.js) to spawn sandboxed processes, and supports <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>, <a href="https://github.com/sindresorhus/p-retry">retries</a>, <a href="https://github.com/sindresorhus/p-throttle">throttling</a>, <a href="#concurrency">concurrency</a>, and <a href="#cancellation-retries-stalled-jobs-and-graceful-reloading">cancelable jobs with graceful shutdown</a>.  Simple, fast, and lightweight.  <strong>Made for <a href="https://forwardemail.net">Forward Email</a> and <a href="https://lad.js.org">Lad</a></strong>.
+  Works in Node v12.17.0+, uses <a href="https://nodejs.org/api/worker_threads.html">worker threads</a> (Node.js) to spawn sandboxed processes, and supports <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function">async/await</a>, <a href="https://github.com/sindresorhus/p-retry">retries</a>, <a href="https://github.com/sindresorhus/p-throttle">throttling</a>, <a href="#concurrency">concurrency</a>, and <a href="#cancellation-retries-stalled-jobs-and-graceful-reloading">cancelable jobs with graceful shutdown</a>.  Simple, fast, and lightweight.  <strong>Made for <a href="https://forwardemail.net">Forward Email</a> and <a href="https://lad.js.org">Lad</a></strong>.
 </div>
 
 
