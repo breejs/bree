@@ -86,7 +86,7 @@ declare namespace Bree {
   type JobOptions = Required<Pick<Job, 'name'>> & Partial<Omit<Job, 'name'>>;
 
   interface BreeConfigs {
-    logger: Record<string, unknown> | boolean;
+    logger: BreeLogger | boolean;
     root: string | boolean;
     silenceRootCheckError: boolean;
     doRootCheck: boolean;
@@ -114,4 +114,10 @@ declare namespace Bree {
   type PluginFunc<T = unknown> = (options: T, c: typeof Bree) => void;
 
   function extend<T = unknown>(plugin: PluginFunc<T>, options?: T): Bree;
+
+  interface BreeLogger {
+    info: (...args: any[]) => any;
+    warn: (...args: any[]) => any;
+    error: (...args: any[]) => any;
+  }
 }
