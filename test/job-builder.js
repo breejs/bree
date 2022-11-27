@@ -5,6 +5,8 @@ const later = require('@breejs/later');
 const jobBuilder = require('../src/job-builder');
 
 const root = path.join(__dirname, 'jobs');
+const jobPathBasic = path.join(root, 'basic.js');
+
 const baseConfig = {
   root,
   timeout: 0,
@@ -26,7 +28,7 @@ test(
   job,
   null,
   {},
-  { name: 'basic', path: `${root}/basic.js`, timeout: 0, interval: 0 }
+  { name: 'basic', path: jobPathBasic, timeout: 0, interval: 0 }
 );
 
 test(
@@ -34,7 +36,12 @@ test(
   job,
   'basic.js',
   {},
-  { name: 'basic.js', path: `${root}/basic.js`, timeout: 0, interval: 0 }
+  {
+    name: 'basic.js',
+    path: jobPathBasic,
+    timeout: 0,
+    interval: 0
+  }
 );
 
 function basic() {
@@ -74,7 +81,7 @@ test(
   job,
   { name: 'basic', path: '' },
   {},
-  { name: 'basic', path: `${root}/basic.js`, timeout: 0 }
+  { name: 'basic', path: jobPathBasic, timeout: 0 }
 );
 
 test(
@@ -82,15 +89,15 @@ test(
   job,
   { name: 'basic.js', path: '' },
   {},
-  { name: 'basic.js', path: `${root}/basic.js`, timeout: 0 }
+  { name: 'basic.js', path: jobPathBasic, timeout: 0 }
 );
 
 test(
   'job.path is path to file',
   job,
-  { path: `${root}/basic.js` },
+  { path: jobPathBasic },
   {},
-  { path: `${root}/basic.js`, timeout: 0 }
+  { path: jobPathBasic, timeout: 0 }
 );
 
 test(
@@ -104,26 +111,26 @@ test(
 test(
   'job.timeout is value',
   job,
-  { path: `${root}/basic.js`, timeout: 10 },
+  { path: jobPathBasic, timeout: 10 },
   {},
-  { path: `${root}/basic.js`, timeout: 10 }
+  { path: jobPathBasic, timeout: 10 }
 );
 
 test(
   'job.interval is value',
   job,
-  { path: `${root}/basic.js`, interval: 10 },
+  { path: jobPathBasic, interval: 10 },
   {},
-  { path: `${root}/basic.js`, interval: 10 }
+  { path: jobPathBasic, interval: 10 }
 );
 
 test(
   'job.cron is value',
   job,
-  { path: `${root}/basic.js`, cron: '* * * * *' },
+  { path: jobPathBasic, cron: '* * * * *' },
   {},
   {
-    path: `${root}/basic.js`,
+    path: jobPathBasic,
     cron: '* * * * *',
     interval: later.parse.cron('* * * * *')
   }
@@ -132,10 +139,10 @@ test(
 test(
   'job.cron is value with hasSeconds config',
   job,
-  { path: `${root}/basic.js`, cron: '* * * * *', hasSeconds: false },
+  { path: jobPathBasic, cron: '* * * * *', hasSeconds: false },
   {},
   {
-    path: `${root}/basic.js`,
+    path: jobPathBasic,
     cron: '* * * * *',
     interval: later.parse.cron('* * * * *'),
     hasSeconds: false
@@ -145,10 +152,10 @@ test(
 test(
   'job.cron is schedule',
   job,
-  { path: `${root}/basic.js`, cron: later.parse.cron('* * * * *') },
+  { path: jobPathBasic, cron: later.parse.cron('* * * * *') },
   {},
   {
-    path: `${root}/basic.js`,
+    path: jobPathBasic,
     cron: later.parse.cron('* * * * *'),
     interval: later.parse.cron('* * * * *')
   }
@@ -159,7 +166,7 @@ test(
   job,
   { name: 'basic', interval: undefined },
   { interval: 10 },
-  { name: 'basic', path: `${root}/basic.js`, timeout: 0, interval: 10 }
+  { name: 'basic', path: jobPathBasic, timeout: 0, interval: 10 }
 );
 
 test(
@@ -170,7 +177,7 @@ test(
   {
     timezone: 'local',
     name: 'basic',
-    path: `${root}/basic.js`,
+    path: jobPathBasic,
     timeout: 0,
     interval: 0
   }
@@ -199,7 +206,7 @@ test(
   {
     timezone: 'local',
     name: 'basic',
-    path: `${root}/basic.js`,
+    path: jobPathBasic,
     timeout: 0
   }
 );
@@ -212,7 +219,7 @@ test(
   {
     timezone: 'America/New_York',
     name: 'basic',
-    path: `${root}/basic.js`,
+    path: jobPathBasic,
     timeout: 0
   }
 );

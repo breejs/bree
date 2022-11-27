@@ -4,6 +4,7 @@
 //
 const fs = require('fs');
 const EventEmitter = require('events');
+const { pathToFileURL } = require('url');
 const { Worker } = require('worker_threads');
 const { join, resolve } = require('path');
 const { debuglog } = require('util');
@@ -235,7 +236,13 @@ class Bree extends EventEmitter {
       try {
         const importPath = join(this.config.root, this.config.defaultRootIndex);
         debug('importPath', importPath);
-        const obj = await import(importPath);
+        const importUrl = pathToFileURL(importPath).toString();
+        debug('importUrl', importUrl);
+        // hint: import statement expect a esm-url-string, not a file-path-string (https://github.com/breejs/bree/issues/202)
+        // otherwise the following error is expected:
+        // Error [ERR_UNSUPPORTED_ESM_URL_SCHEME]: Only URLs with a scheme in: file, data are supported by the default ESM loader.
+        // On Windows, absolute paths must be valid file:// URLs.
+        const obj = await import(importUrl);
         if (typeof obj.default !== 'object') {
           throw new ImportError(
             `Root index file missing default export at: ${importPath}`
