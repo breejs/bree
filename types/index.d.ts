@@ -86,25 +86,25 @@ declare namespace Bree {
   type JobOptions = Required<Pick<Job, 'name'>> & Partial<Omit<Job, 'name'>>;
 
   interface BreeConfigs {
-    logger: BreeLogger | boolean;
-    root: string | boolean;
-    silenceRootCheckError: boolean;
-    doRootCheck: boolean;
-    removeCompleted: boolean;
-    timeout: number | boolean;
-    interval: number;
-    timezone: string;
-    jobs: Job[];
-    hasSeconds: boolean;
-    cronValidate: Record<string, unknown>;
-    closeWorkerAfterMs: number;
-    defaultRootIndex: string;
-    defaultExtension: string;
-    acceptedExtensions: string[];
-    worker: WorkerOptions;
+    logger?: BreeLogger | boolean;
+    root?: string | boolean;
+    silenceRootCheckError?: boolean;
+    doRootCheck?: boolean;
+    removeCompleted?: boolean;
+    timeout?: number | boolean;
+    interval?: number;
+    timezone?: string;
+    jobs?: Job[];
+    hasSeconds?: boolean;
+    cronValidate?: Record<string, unknown>;
+    closeWorkerAfterMs?: number;
+    defaultRootIndex?: string;
+    defaultExtension?: string;
+    acceptedExtensions?: string[];
+    worker?: WorkerOptions;
     errorHandler?: (error: any, workerMetadata: any) => void;
     workerMessageHandler?: (message: any, workerMetadata: any) => void;
-    outputWorkerMetadata: boolean;
+    outputWorkerMetadata?: boolean;
   }
 
   type BreeOptions = Partial<Omit<BreeConfigs, 'jobs'>> & {
