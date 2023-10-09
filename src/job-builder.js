@@ -3,7 +3,7 @@ const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
 const { boolean } = require('boolean');
-const { isSchedule, parseValue } = require('./job-utils');
+const { isSchedule, parseValue, getJobPath } = require('./job-utils');
 
 later.date.localTime();
 
@@ -12,9 +12,7 @@ const buildJob = (job, config) => {
   if (isSANB(job)) {
     const path = join(
       config.root,
-      config.acceptedExtensions.some((ext) => job.endsWith(ext))
-        ? job
-        : `${job}.${config.defaultExtension}`
+      getJobPath(job, config.acceptedExtensions, config.defaultExtension)
     );
 
     const jobObject = {
@@ -61,9 +59,11 @@ const buildJob = (job, config) => {
       ? job.path
       : join(
           config.root,
-          config.acceptedExtensions.some((ext) => job.name.endsWith(ext))
-            ? job.name
-            : `${job.name}.${config.defaultExtension}`
+          getJobPath(
+            job.name,
+            config.acceptedExtensions,
+            config.defaultExtension
+          )
         );
 
     if (isValidPath(path)) {

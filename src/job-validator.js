@@ -5,7 +5,7 @@ const cron = require('cron-validate');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 
-const { getName, isSchedule, parseValue } = require('./job-utils');
+const { getName, isSchedule, parseValue, getJobPath } = require('./job-utils');
 
 const validateReservedJobName = (name) => {
   // Don't allow a job to have the `index` file name
@@ -37,9 +37,7 @@ const validateStringJob = async (job, i, config) => {
 
   const path = join(
     config.root,
-    config.acceptedExtensions.some((ext) => job.endsWith(ext))
-      ? job
-      : `${job}.${config.defaultExtension}`
+    getJobPath(job, config.acceptedExtensions, config.defaultExtension)
   );
 
   const stats = await fs.promises.stat(path);
@@ -86,9 +84,11 @@ const validateJobPath = async (job, prefix, config) => {
       ? job.path
       : join(
           config.root,
-          config.acceptedExtensions.some((ext) => job.name.endsWith(ext))
-            ? job.name
-            : `${job.name}.${config.defaultExtension}`
+          getJobPath(
+            job.name,
+            config.acceptedExtensions,
+            config.defaultExtension
+          )
         );
     if (isValidPath(path)) {
       try {

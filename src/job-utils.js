@@ -95,9 +95,34 @@ const getJobNames = (jobs, excludeIndex) => {
   return names;
 };
 
+/**
+ * Processes job name to generate a partial path for the job
+ * Allows for resiliancy when the path extensions are either
+ * provided or not on both default and accepted extensions
+ *
+ * @param {string} name
+ * @param {number} acceptedExtensions
+ * @param {string} defaultExtension
+ * @returns {string} job path
+ */
+const getJobPath = (name, acceptedExtensions, defaultExtension) => {
+  const extFindArray = acceptedExtensions.map((ext) => {
+    return ext.startsWith('.') ? ext : `.${ext}`;
+  });
+
+  const hasExt = extFindArray.find((ext) => name.endsWith(ext));
+
+  if (hasExt) return name;
+
+  return defaultExtension.startsWith('.')
+    ? `${name}${defaultExtension}`
+    : `${name}.${defaultExtension}`;
+};
+
 module.exports = {
   getHumanToMs,
   getJobNames,
+  getJobPath,
   getName,
   isSchedule,
   parseValue
