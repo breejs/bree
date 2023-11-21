@@ -1,0 +1,22 @@
+{
+  "name": "bree-js-example-jobserver",
+  "version": "1.0.0",
+  "description": "basic bree typescript jobserver example",
+  "main": "index.ts",
+  "author": "Mike Valstar <mike@valstar.dev> (https://valstar.dev/)",
+  "license": "MIT",
+  "devDependencies": {
+    "@tsconfig/node20": "^20.1.2",
+    "@types/node": "^20.8.0",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.6.2",
+    "typescript": "^5.2.2"
+  },
+  "scripts": {
+    "dev": "TS_NODE=true NODE_OPTIONS=\"-r ts-node/register\" node index.ts",
+    "start": "rm -rf dist && tsc && node dist/index.js"
+  },
+  "dependencies": {
+    "bree": "latest"
+  }
+}
