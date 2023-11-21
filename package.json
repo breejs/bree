@@ -1,7 +1,7 @@
 {
   "name": "bree",
   "description": "The best job scheduler for Node.js and JavaScript with cron, dates, ms, later, and human-friendly support.  Works in Node v12.17.0+, uses worker threads to spawn sandboxed processes, and supports async/await, retries, throttling, concurrency, and cancelable promises (graceful shutdown).  Simple, fast, and lightweight.  Made for Forward Email and Lad.",
-  "version": "9.2.1",
+  "version": "9.2.2",
   "author": "Nick Baugh <niftylettuce@gmail.com> (http://niftylettuce.com/)",
   "bugs": {
     "url": "https://github.com/breejs/bree/issues",
