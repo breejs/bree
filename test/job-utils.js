@@ -92,3 +92,15 @@ test('getJobNames: ignores jobs with no valid name', (t) => {
 
   t.deepEqual(names, ['hey', 'hello']);
 });
+
+test('getJobPath: missing dot in accepted extensions', (t) => {
+  const path = jobUtils.getJobPath('foo', ['js', 'ts'], 'js');
+
+  t.is(path, 'foo.js');
+});
+
+test('getJobPath: having dot in default extension', (t) => {
+  const path = jobUtils.getJobPath('foo', ['js', 'ts'], '.js');
+
+  t.is(path, 'foo.js');
+});
