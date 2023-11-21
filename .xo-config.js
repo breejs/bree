@@ -11,7 +11,8 @@ module.exports = {
     'unicorn/prefer-top-level-await': 'warn',
     'unicorn/prefer-event-target': 'off',
     'unicorn/no-empty-file': 'warn',
-    'unicorn/no-process-exit': 'warn'
+    'unicorn/no-process-exit': 'warn',
+    'unicorn/prefer-logical-operator-over-ternary': 'warn'
   },
   overrides: [
     {

@@ -1,8 +1,8 @@
 // Definitions by: Taylor Schley <https://github.com/shadowgate15>
 
 import { EventEmitter } from 'node:events';
-import type { WorkerOptions, Worker } from 'node:worker_threads';
-import type { Timeout, Interval } from 'safe-timers';
+import { WorkerOptions, Worker } from 'node:worker_threads';
+import { Timeout, Interval } from 'safe-timers';
 
 export = Bree;
 
@@ -68,7 +68,7 @@ declare class Bree extends EventEmitter {
 }
 
 declare namespace Bree {
-  type Job = {
+  interface Job {
     name: string;
     path: string | (() => void);
     timeout: number | string | boolean;
@@ -81,11 +81,11 @@ declare namespace Bree {
     worker?: Partial<WorkerOptions>;
     outputWorkerMetadata?: boolean;
     timezone?: string;
-  };
+  }
 
   type JobOptions = Required<Pick<Job, 'name'>> & Partial<Omit<Job, 'name'>>;
 
-  type BreeConfigs = {
+  interface BreeConfigs {
     logger: BreeLogger | boolean;
     root: string | boolean;
     silenceRootCheckError: boolean;
@@ -105,7 +105,7 @@ declare namespace Bree {
     errorHandler?: (error: any, workerMetadata: any) => void;
     workerMessageHandler?: (message: any, workerMetadata: any) => void;
     outputWorkerMetadata: boolean;
-  };
+  }
 
   type BreeOptions = Partial<Omit<BreeConfigs, 'jobs'>> & {
     jobs?: Array<string | (() => void) | JobOptions>;
@@ -115,9 +115,9 @@ declare namespace Bree {
 
   function extend<T = unknown>(plugin: PluginFunc<T>, options?: T): Bree;
 
-  type BreeLogger = {
+  interface BreeLogger {
     info: (...args: any[]) => any;
     warn: (...args: any[]) => any;
     error: (...args: any[]) => any;
-  };
+  }
 }
