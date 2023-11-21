@@ -6,7 +6,10 @@ module.exports = {
   rules: {
     'capitalized-comments': 'off',
     'unicorn/catch-error-name': 'off',
-    'unicorn/require-post-message-target-origin': 'off'
+    'unicorn/require-post-message-target-origin': 'off',
+    'unicorn/prefer-node-protocol': 'warn',
+    'unicorn/prefer-top-level-await': 'warn',
+    'unicorn/prefer-logical-operator-over-ternary': 'warn'
   },
   overrides: [
     {
@@ -26,7 +29,9 @@ module.exports = {
         '@typescript-eslint/no-unsafe-assignment': 'warn',
         '@typescript-eslint/no-unsafe-call': 'warn',
         '@typescript-eslint/no-unused-vars': 'warn',
-        '@typescript-eslint/no-empty-function': 'warn'
+        '@typescript-eslint/no-empty-function': 'warn',
+        '@typescript-eslint/consistent-type-definitions': 'warn',
+        '@typescript-eslint/consistent-type-imports': 'warn'
       }
     }
   ],
