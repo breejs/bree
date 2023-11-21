@@ -2,12 +2,12 @@
 // NOTE: we could use `node:` prefix but it is only supported in ESM v14.13.1+ and v12.20+
 //       and since this is a CJS module then it is only supported in v14.18+ and v16+
 //
-const fs = require('fs');
-const EventEmitter = require('events');
-const { pathToFileURL } = require('url');
-const { Worker } = require('worker_threads');
-const { join, resolve } = require('path');
-const { debuglog } = require('util');
+const fs = require('node:fs');
+const EventEmitter = require('node:events');
+const { pathToFileURL } = require('node:url');
+const { Worker } = require('node:worker_threads');
+const { join, resolve } = require('node:path');
+const { debuglog } = require('node:util');
 
 const combineErrors = require('combine-errors');
 const isSANB = require('is-string-and-not-blank');

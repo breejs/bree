@@ -1,4 +1,4 @@
-const path = require('path');
+const path = require('node:path');
 const FakeTimers = require('@sinonjs/fake-timers');
 
 const test = require('ava');

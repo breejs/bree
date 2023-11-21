@@ -1,5 +1,5 @@
-const process = require('process');
-const { parentPort } = require('worker_threads');
+const process = require('node:process');
+const { parentPort } = require('node:worker_threads');
 
 const delay = require('delay');
 

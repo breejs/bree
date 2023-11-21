@@ -1,5 +1,5 @@
-const path = require('path');
-const { SHARE_ENV } = require('worker_threads');
+const path = require('node:path');
+const { SHARE_ENV } = require('node:worker_threads');
 
 const test = require('ava');
 
