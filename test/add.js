@@ -1,8 +1,6 @@
 const path = require('node:path');
 const FakeTimers = require('@sinonjs/fake-timers');
-
 const test = require('ava');
-
 const Bree = require('../src');
 
 const root = path.join(__dirname, 'jobs');

@@ -1,7 +1,6 @@
 const path = require('node:path');
 const test = require('ava');
 const later = require('@breejs/later');
-
 const jobBuilder = require('../src/job-builder');
 
 const root = path.join(__dirname, 'jobs');
@@ -18,7 +17,7 @@ const baseConfig = {
 
 function job(t, _job, config, expected) {
   t.deepEqual(
-    jobBuilder(_job ? _job : 'basic', { ...baseConfig, ...config }),
+    jobBuilder(_job || 'basic', { ...baseConfig, ...config }),
     expected
   );
 }

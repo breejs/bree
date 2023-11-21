@@ -1,6 +1,5 @@
 const process = require('node:process');
 const { parentPort } = require('node:worker_threads');
-
 const delay = require('delay');
 
 setInterval(() => {}, 10);

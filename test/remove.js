@@ -1,7 +1,6 @@
 const path = require('node:path');
 const delay = require('delay');
 const test = require('ava');
-
 const Bree = require('../src');
 
 const root = path.join(__dirname, 'jobs');

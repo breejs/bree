@@ -8,14 +8,12 @@ const { pathToFileURL } = require('node:url');
 const { Worker } = require('node:worker_threads');
 const { join, resolve } = require('node:path');
 const { debuglog } = require('node:util');
-
 const combineErrors = require('combine-errors');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
 const pWaitFor = require('p-wait-for');
 const { setTimeout, setInterval } = require('safe-timers');
-
 const {
   isSchedule,
   getName,
@@ -328,8 +326,7 @@ class Bree extends EventEmitter {
     }
 
     if (!this.config.outputWorkerMetadata && !job.outputWorkerMetadata) {
-      return meta &&
-        (typeof meta.err !== 'undefined' || typeof meta.message !== 'undefined')
+      return meta && (meta.err !== undefined || meta.message !== undefined)
         ? meta
         : undefined;
     }
@@ -371,8 +368,8 @@ class Bree extends EventEmitter {
 
       debug('starting worker', name);
       const object = {
-        ...(this.config.worker ? this.config.worker : {}),
-        ...(job.worker ? job.worker : {}),
+        ...this.config.worker,
+        ...job.worker,
         workerData: {
           job: {
             ...job,

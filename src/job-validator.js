@@ -4,7 +4,6 @@ const combineErrors = require('combine-errors');
 const cron = require('cron-validate');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
-
 const { getName, isSchedule, parseValue, getJobPath } = require('./job-utils');
 
 const validateReservedJobName = (name) => {
@@ -111,8 +110,8 @@ const cronValidateWithSeconds = (job, config) => {
     job.cronValidate && job.cronValidate.preset
       ? job.cronValidate.preset
       : config.cronValidate && config.cronValidate.preset
-      ? config.cronValidate.preset
-      : 'default';
+        ? config.cronValidate.preset
+        : 'default';
   const override = {
     ...(config.cronValidate && config.cronValidate.override
       ? config.cronValidate.override
@@ -223,14 +222,14 @@ const validate = async (job, i, names, config) => {
   errors.push(...(await validateJobPath(job, prefix, config)));
 
   // Don't allow users to mix interval AND cron
-  if (typeof job.interval !== 'undefined' && typeof job.cron !== 'undefined') {
+  if (job.interval !== undefined && job.cron !== undefined) {
     errors.push(
       new Error(`${prefix} cannot have both interval and cron configuration`)
     );
   }
 
   // Don't allow users to mix timeout AND date
-  if (typeof job.timeout !== 'undefined' && typeof job.date !== 'undefined') {
+  if (job.timeout !== undefined && job.date !== undefined) {
     errors.push(new Error(`${prefix} cannot have both timeout and date`));
   }
 
@@ -240,12 +239,12 @@ const validate = async (job, i, names, config) => {
   }
 
   // Validate date
-  if (typeof job.date !== 'undefined' && !(job.date instanceof Date)) {
+  if (job.date !== undefined && !(job.date instanceof Date)) {
     errors.push(new Error(`${prefix} had an invalid Date of ${job.date}`));
   }
 
   for (const prop of ['timeout', 'interval']) {
-    if (typeof job[prop] !== 'undefined') {
+    if (job[prop] !== undefined) {
       try {
         parseValue(job[prop]);
       } catch (err) {
@@ -260,10 +259,7 @@ const validate = async (job, i, names, config) => {
   }
 
   // Validate hasSeconds
-  if (
-    typeof job.hasSeconds !== 'undefined' &&
-    typeof job.hasSeconds !== 'boolean'
-  ) {
+  if (job.hasSeconds !== undefined && typeof job.hasSeconds !== 'boolean') {
     errors.push(
       new Error(
         `${prefix} had hasSeconds value of ${job.hasSeconds} (it must be a Boolean)`
@@ -272,10 +268,7 @@ const validate = async (job, i, names, config) => {
   }
 
   // Validate cronValidate
-  if (
-    typeof job.cronValidate !== 'undefined' &&
-    typeof job.cronValidate !== 'object'
-  ) {
+  if (job.cronValidate !== undefined && typeof job.cronValidate !== 'object') {
     errors.push(
       new Error(
         `${prefix} had cronValidate value set, but it must be an Object`
@@ -283,13 +276,13 @@ const validate = async (job, i, names, config) => {
     );
   }
 
-  if (typeof job.cron !== 'undefined') {
+  if (job.cron !== undefined) {
     errors.push(...validateCron(job, prefix, config));
   }
 
   // Validate closeWorkerAfterMs
   if (
-    typeof job.closeWorkerAfterMs !== 'undefined' &&
+    job.closeWorkerAfterMs !== undefined &&
     (!Number.isFinite(job.closeWorkerAfterMs) || job.closeWorkerAfterMs <= 0)
   ) {
     errors.push(

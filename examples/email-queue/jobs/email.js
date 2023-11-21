@@ -1,7 +1,6 @@
-const os = require('os');
-const process = require('process');
-const { parentPort } = require('worker_threads');
-
+const os = require('node:os');
+const process = require('node:process');
+const { parentPort } = require('node:worker_threads');
 const Cabin = require('cabin');
 const Email = require('email-templates');
 const pMap = require('p-map');

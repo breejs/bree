@@ -77,16 +77,16 @@ const buildJob = (job, config) => {
     }
   }
 
-  if (typeof job.timeout !== 'undefined') {
+  if (job.timeout !== undefined) {
     job.timeout = parseValue(job.timeout);
   }
 
-  if (typeof job.interval !== 'undefined') {
+  if (job.interval !== undefined) {
     job.interval = parseValue(job.interval);
   }
 
   // Build cron
-  if (typeof job.cron !== 'undefined') {
+  if (job.cron !== undefined) {
     if (isSchedule(job.cron)) {
       job.interval = job.cron;
       // Delete job.cron;
@@ -94,9 +94,7 @@ const buildJob = (job, config) => {
       job.interval = later.parse.cron(
         job.cron,
         boolean(
-          typeof job.hasSeconds === 'undefined'
-            ? config.hasSeconds
-            : job.hasSeconds
+          job.hasSeconds === undefined ? config.hasSeconds : job.hasSeconds
         )
       );
     }
@@ -108,10 +106,10 @@ const buildJob = (job, config) => {
   if (
     Number.isFinite(config.timeout) &&
     config.timeout >= 0 &&
-    typeof job.timeout === 'undefined' &&
-    typeof job.cron === 'undefined' &&
-    typeof job.date === 'undefined' &&
-    typeof job.interval === 'undefined'
+    job.timeout === undefined &&
+    job.cron === undefined &&
+    job.date === undefined &&
+    job.interval === undefined
   ) {
     job.timeout = config.timeout;
   }
@@ -122,9 +120,9 @@ const buildJob = (job, config) => {
   if (
     ((Number.isFinite(config.interval) && config.interval > 0) ||
       isSchedule(config.interval)) &&
-    typeof job.interval === 'undefined' &&
-    typeof job.cron === 'undefined' &&
-    typeof job.date === 'undefined'
+    job.interval === undefined &&
+    job.cron === undefined &&
+    job.date === undefined
   ) {
     job.interval = config.interval;
   }

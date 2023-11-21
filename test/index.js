@@ -1,12 +1,9 @@
 const path = require('node:path');
 const { once } = require('node:events');
-
 const test = require('ava');
-
 const delay = require('delay');
 const humanInterval = require('human-interval');
 const FakeTimers = require('@sinonjs/fake-timers');
-
 const Bree = require('../src');
 
 const root = path.join(__dirname, 'jobs');

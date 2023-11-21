@@ -1,7 +1,5 @@
 const path = require('node:path');
-
 const test = require('ava');
-
 const delay = require('delay');
 const Bree = require('../src');
 

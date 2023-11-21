@@ -1,7 +1,6 @@
 const path = require('node:path');
 const test = require('ava');
 const later = require('@breejs/later');
-
 const jobValidator = require('../src/job-validator');
 
 const root = path.join(__dirname, 'jobs');

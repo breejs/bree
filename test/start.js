@@ -1,9 +1,7 @@
 const path = require('node:path');
 const { once } = require('node:events');
 const FakeTimers = require('@sinonjs/fake-timers');
-
 const test = require('ava');
-
 const later = require('@breejs/later');
 const delay = require('delay');
 const Bree = require('../src');

@@ -1,5 +1,4 @@
 const test = require('ava');
-
 const jobUtils = require('../src/job-utils');
 
 test('isSchedule: passes for valid schedule object', (t) => {

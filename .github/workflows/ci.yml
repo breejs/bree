@@ -12,7 +12,6 @@ jobs:
           # TODO: re-enable windows
           #- windows-latest
         node_version:
-          - 12
           - 14
           - 16
           - 18

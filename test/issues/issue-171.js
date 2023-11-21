@@ -1,8 +1,6 @@
 const path = require('node:path');
 const { SHARE_ENV } = require('node:worker_threads');
-
 const test = require('ava');
-
 const Bree = require('../../src');
 
 const root = path.join(__dirname, '../jobs');
