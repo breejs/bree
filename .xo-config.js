@@ -33,8 +33,8 @@ module.exports = {
         '@typescript-eslint/no-unsafe-call': 'warn',
         '@typescript-eslint/no-unused-vars': 'warn',
         '@typescript-eslint/no-empty-function': 'warn',
-        '@typescript-eslint/consistent-type-definitions': 'warn',
-        '@typescript-eslint/consistent-type-imports': 'warn'
+        '@typescript-eslint/consistent-type-definitions': 'off',
+        '@typescript-eslint/consistent-type-imports': 'off'
       }
     }
   ],
