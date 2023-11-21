@@ -110,8 +110,8 @@ const cronValidateWithSeconds = (job, config) => {
     job.cronValidate && job.cronValidate.preset
       ? job.cronValidate.preset
       : config.cronValidate && config.cronValidate.preset
-        ? config.cronValidate.preset
-        : 'default';
+      ? config.cronValidate.preset
+      : 'default';
   const override = {
     ...(config.cronValidate && config.cronValidate.override
       ? config.cronValidate.override

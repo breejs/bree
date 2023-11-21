@@ -9,7 +9,9 @@ module.exports = {
     'unicorn/require-post-message-target-origin': 'off',
     'unicorn/prefer-node-protocol': 'warn',
     'unicorn/prefer-top-level-await': 'warn',
-    'unicorn/prefer-event-target': 'off'
+    'unicorn/prefer-event-target': 'off',
+    'unicorn/no-empty-file': 'warn',
+    'unicorn/no-process-exit': 'warn'
   },
   overrides: [
     {
