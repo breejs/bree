@@ -8,8 +8,7 @@ module.exports = {
     'unicorn/catch-error-name': 'off',
     'unicorn/require-post-message-target-origin': 'off',
     'unicorn/prefer-node-protocol': 'warn',
-    'unicorn/prefer-top-level-await': 'warn',
-    'unicorn/prefer-logical-operator-over-ternary': 'warn'
+    'unicorn/prefer-top-level-await': 'warn'
   },
   overrides: [
     {
