@@ -7,7 +7,7 @@
     "@ladjs/graceful": "^1.0.5",
     "bree": "^7.1.0",
     "cabin": "^9.0.4",
-    "email-templates": "^8.0.8",
+    "email-templates": "^11.1.1",
     "p-map": "4"
   }
 }
