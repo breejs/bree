@@ -1,5 +1,5 @@
 import * as path from 'node:path';
-import * as Bree from 'bree';
+import * as Bree from '..';
 
 Bree.extend((o, b) => {}, {});
 
