@@ -52,8 +52,7 @@
     "node": ">=12.17.0 <13.0.0-0||>=13.2.0"
   },
   "files": [
-    "src",
-    "types"
+    "src"
   ],
   "homepage": "https://github.com/breejs/bree",
   "keywords": [
@@ -157,5 +156,5 @@
     "test": "npm run ava && tsd",
     "test-coverage": "cross-env NODE_ENV=test nyc npm run test"
   },
-  "types": "types"
+  "types": "src/index.d.ts"
 }

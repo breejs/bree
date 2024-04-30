@@ -16,27 +16,33 @@ module.exports = {
   },
   overrides: [
     {
+      files: '**/*.mjs',
+      parserOptions: {
+        sourceType: 'module'
+      }
+    },
+    {
       files: 'test/jobs/*.js',
       rules: {
         'unicorn/no-process-exit': 'off'
       }
     },
     {
-      files: ['*.ts', '**/*.ts'],
-      parserOptions: {
-        project: 'types/tsconfig.json'
-      },
+      files: ['**/*.d.ts'],
       rules: {
-        'no-redeclare': 'warn',
-        'no-unused-vars': 'warn',
-        '@typescript-eslint/no-unsafe-assignment': 'warn',
-        '@typescript-eslint/no-unsafe-call': 'warn',
-        '@typescript-eslint/no-unused-vars': 'warn',
-        '@typescript-eslint/no-empty-function': 'warn',
-        '@typescript-eslint/consistent-type-definitions': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off'
+        'no-unused-vars': 'off',
+        '@typescript-eslint/naming-convention': 'off',
+        'no-redeclare': 'off',
+        '@typescript-eslint/no-redeclare': 'off'
+      }
+    },
+    {
+      files: ['**/*.test-d.ts'],
+      rules: {
+        '@typescript-eslint/no-unsafe-call': 'off',
+        '@typescript-eslint/no-confusing-void-expression': 'off', // Conflicts with `expectError` assertion.
+        '@typescript-eslint/no-unsafe-assignment': 'off'
       }
     }
-  ],
-  parser: '@typescript-eslint/parser'
+  ]
 };

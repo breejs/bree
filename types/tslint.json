@@ -1,7 +1,0 @@
-{
-  "extends": "dtslint/dtslint.json",
-  "rule": {
-    "semicolon": true,
-    "indent": [true, "spaces", 2]
-  }
-}
