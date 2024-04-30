@@ -15,6 +15,9 @@ jobs:
           - 14
           - 16
           - 18
+        exclude:
+          - os: macos-latest
+            node: 14
     name: Node ${{ matrix.node_version }} on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
