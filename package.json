@@ -39,7 +39,7 @@
     "eslint-config-xo-lass": "^2.0.1",
     "events.once": "^2.0.2",
     "fixpack": "^4.0.0",
-    "husky": "^9.0.11",
+    "husky": "8.0.3",
     "into-stream": "7",
     "lint-staged": "^15.2.2",
     "nyc": "^15.1.0",
