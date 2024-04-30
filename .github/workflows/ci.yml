@@ -11,20 +11,20 @@ jobs:
           - macos-latest
           # TODO: re-enable windows
           #- windows-latest
-        node_version:
+        node:
           - 14
           - 16
           - 18
         exclude:
           - os: macos-latest
             node: 14
-    name: Node ${{ matrix.node_version }} on ${{ matrix.os }}
+    name: Node ${{ matrix.node }} on ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v3
       - name: Setup node
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.node_version }}
+          node-version: ${{ matrix.node }}
       - name: Install dependencies
         run: npm install
       - name: Run tests
