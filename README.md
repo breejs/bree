@@ -415,7 +415,7 @@ bree.on('worker created', (name) => {
 
 bree.on('worker deleted', (name) => {
   console.log('worker deleted', name);
-  console.log(!bree.worker.has(name));
+  console.log(!bree.workers.has(name));
 });
 ```
 
