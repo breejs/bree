@@ -606,7 +606,7 @@ We recommend setting the `root` instance options to `path.join(__dirname,'jobs')
 
 After an example transformation - you should expect the output in your `dist` folder to look like:
 
-```tree
+```sh
 - dist
   |-jobs
     |-job.js
