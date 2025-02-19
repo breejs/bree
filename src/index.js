@@ -9,12 +9,12 @@ const { Worker } = require('node:worker_threads');
 const { join, resolve } = require('node:path');
 const { debuglog } = require('node:util');
 const combineErrors = require('combine-errors');
-const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
 const pWaitFor = require('p-wait-for');
 const { setTimeout, setInterval } = require('safe-timers');
 const {
+  isSANB,
   isSchedule,
   getName,
   getHumanToMs,
