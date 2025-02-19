@@ -2,7 +2,6 @@ const { join } = require('node:path');
 const isSANB = require('is-string-and-not-blank');
 const isValidPath = require('is-valid-path');
 const later = require('@breejs/later');
-const { boolean } = require('boolean');
 const { isSchedule, parseValue, getJobPath } = require('./job-utils');
 
 later.date.localTime();
@@ -93,9 +92,7 @@ const buildJob = (job, config) => {
     } else {
       job.interval = later.parse.cron(
         job.cron,
-        boolean(
-          job.hasSeconds === undefined ? config.hasSeconds : job.hasSeconds
-        )
+        job.hasSeconds === undefined ? config.hasSeconds : job.hasSeconds
       );
     }
   }
