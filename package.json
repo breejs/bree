@@ -16,7 +16,7 @@
     "combine-errors": "^3.0.3",
     "cron-validate": "^1.4.5",
     "human-interval": "^2.0.1",
-    "is-valid-path": "^0.1.1",
+    "is-invalid-path": "^0.1.0",
     "ms": "^2.1.3",
     "p-wait-for": "3",
     "safe-timers": "^1.1.0"

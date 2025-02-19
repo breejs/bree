@@ -1,5 +1,5 @@
 const { join } = require('node:path');
-const isValidPath = require('is-valid-path');
+const isInvalidPath = require('is-invalid-path');
 const later = require('@breejs/later');
 const { isSANB, isSchedule, parseValue, getJobPath } = require('./job-utils');
 
@@ -64,14 +64,14 @@ const buildJob = (job, config) => {
           )
         );
 
-    if (isValidPath(path)) {
-      job.path = path;
-    } else {
+    if (isInvalidPath(path)) {
       // Assume that it's a transformed eval string
       job.worker = {
         eval: true,
         ...job.worker
       };
+    } else {
+      job.path = path;
     }
   }
 
