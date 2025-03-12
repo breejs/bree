@@ -786,9 +786,25 @@ class Bree extends EventEmitter {
 }
 
 // plugins inspired by Dayjs
-Bree.extend = (plugin, options) => {
+Bree.extend = function (plugin, options) {
   if (!plugin.$i) {
-    // install plugin only once
+    // Check if the plugin is an async function
+    if (plugin.constructor.name === 'AsyncFunction') {
+      // Override the extend function to be async
+      Bree.extend = async function (plugin, options) {
+        if (!plugin.$i) {
+          await plugin(options, Bree);
+          plugin.$i = true;
+        }
+
+        return Bree;
+      };
+
+      // Call the overridden async extend function
+      return Bree.extend(plugin, options);
+    }
+
+    // Synchronous plugin logic
     plugin(options, Bree);
     plugin.$i = true;
   }

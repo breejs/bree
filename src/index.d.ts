@@ -111,9 +111,15 @@ declare namespace Bree {
     jobs?: Array<string | (() => void) | JobOptions>;
   };
 
-  type PluginFunc<T = unknown> = (options: T, c: typeof Bree) => void;
+  type PluginFunc<T = unknown> = (
+    options: T,
+    c: typeof Bree
+  ) => void | Promise<void>;
 
-  function extend<T = unknown>(plugin: PluginFunc<T>, options?: T): Bree;
+  function extend<T = unknown>(
+    plugin: PluginFunc<T>,
+    options?: T
+  ): Bree | Promise<Bree>;
 
   type BreeLogger = {
     info: (...args: any[]) => any;
