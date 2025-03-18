@@ -6,7 +6,7 @@
   "dependencies": {
     "@ladjs/graceful": "^1.0.5",
     "bree": "^7.1.0",
-    "cabin": "^9.0.4",
+    "cabin": "^11.0.0",
     "email-templates": "^8.0.8",
     "p-map": "4"
   }
