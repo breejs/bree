@@ -15,7 +15,7 @@
     "@breejs/later": "^4.2.0",
     "boolean": "^3.2.0",
     "combine-errors": "^3.0.3",
-    "cron-validate": "^1.4.5",
+    "cron-validate": "~1.4.5",
     "human-interval": "^2.0.1",
     "is-string-and-not-blank": "^0.0.2",
     "is-valid-path": "^0.1.1",
