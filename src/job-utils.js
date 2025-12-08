@@ -1,7 +1,16 @@
 const humanInterval = require('human-interval');
-const isSANB = require('is-string-and-not-blank');
 const later = require('@breejs/later');
 const ms = require('ms');
+
+/**
+ * Returns true if `val` is a string and it's not blank.
+ *
+ * @param {any} value
+ * @returns {boolean}
+ */
+const isSANB = (value) => {
+  return typeof value === 'string' && value.trim().length > 0;
+};
 
 /**
  * Naively checks if passed value is of later.js schedule format (https://breejs.github.io/later/schedules.html)
@@ -124,6 +133,7 @@ module.exports = {
   getJobNames,
   getJobPath,
   getName,
+  isSANB,
   isSchedule,
   parseValue
 };

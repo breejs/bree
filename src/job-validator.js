@@ -1,10 +1,15 @@
 const fs = require('node:fs');
 const { join } = require('node:path');
 const combineErrors = require('combine-errors');
+const isInvalidPath = require('is-invalid-path');
+const {
+  getName,
+  isSANB,
+  isSchedule,
+  parseValue,
+  getJobPath
+} = require('./job-utils');
 const { default: cron } = require('cron-validate');
-const isSANB = require('is-string-and-not-blank');
-const isValidPath = require('is-valid-path');
-const { getName, isSchedule, parseValue, getJobPath } = require('./job-utils');
 
 const validateReservedJobName = (name) => {
   // Don't allow a job to have the `index` file name
@@ -89,7 +94,7 @@ const validateJobPath = async (job, prefix, config) => {
             config.defaultExtension
           )
         );
-    if (isValidPath(path)) {
+    if (!isInvalidPath(path)) {
       try {
         const stats = await fs.promises.stat(path);
         if (!stats.isFile()) {

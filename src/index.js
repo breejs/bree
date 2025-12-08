@@ -9,12 +9,12 @@ const { Worker } = require('node:worker_threads');
 const { join, resolve } = require('node:path');
 const { debuglog } = require('node:util');
 const combineErrors = require('combine-errors');
-const isSANB = require('is-string-and-not-blank');
-const isValidPath = require('is-valid-path');
+const isInvalidPath = require('is-invalid-path');
 const later = require('@breejs/later');
 const pWaitFor = require('p-wait-for');
 const { setTimeout, setInterval } = require('safe-timers');
 const {
+  isSANB,
   isSchedule,
   getName,
   getHumanToMs,
@@ -203,7 +203,7 @@ class Bree extends EventEmitter {
     // <https://nodejs.org/api/esm.html#esm_mandatory_file_extensions>
     if (
       isSANB(this.config.root) /* istanbul ignore next */ &&
-      isValidPath(this.config.root)
+      !isInvalidPath(this.config.root)
     ) {
       const stats = await fs.promises.stat(this.config.root);
       if (!stats.isDirectory()) {
