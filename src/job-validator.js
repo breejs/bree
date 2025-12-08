@@ -1,7 +1,6 @@
 const fs = require('node:fs');
 const { join } = require('node:path');
 const combineErrors = require('combine-errors');
-const cron = require('cron-validate');
 const isInvalidPath = require('is-invalid-path');
 const {
   getName,
@@ -10,6 +9,7 @@ const {
   parseValue,
   getJobPath
 } = require('./job-utils');
+const { default: cron } = require('cron-validate');
 
 const validateReservedJobName = (name) => {
   // Don't allow a job to have the `index` file name
