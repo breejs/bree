@@ -71,7 +71,7 @@ declare namespace Bree {
   type Job = {
     name: string;
     path: string | (() => void);
-    timeout: number | string | boolean;
+    timeout: number | string | false;
     interval: number | string;
     date?: Date;
     cron?: string;
