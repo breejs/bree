@@ -3,6 +3,7 @@
 import { EventEmitter } from 'node:events';
 import { type WorkerOptions, type Worker } from 'node:worker_threads';
 import { type Timeout, type Interval } from 'safe-timers';
+import { type ScheduleData } from '@breejs/later';
 
 export = Bree;
 
@@ -72,7 +73,7 @@ declare namespace Bree {
     name: string;
     path: string | (() => void);
     timeout: number | string | false;
-    interval: number | string;
+    interval: number | string | ScheduleData;
     date?: Date;
     cron?: string;
     hasSeconds?: boolean;
