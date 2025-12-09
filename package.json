@@ -26,6 +26,7 @@
     "@commitlint/config-conventional": "^19.2.2",
     "@goto-bus-stop/envify": "^5.0.0",
     "@sinonjs/fake-timers": "^11.2.2",
+    "@types/breejs__later": "^4.1.5",
     "@types/node": "^20.12.7",
     "@types/safe-timers": "^1.1.2",
     "@typescript-eslint/eslint-plugin": "6.21.0",
