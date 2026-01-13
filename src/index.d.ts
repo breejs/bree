@@ -8,6 +8,7 @@ import { type ScheduleData } from '@breejs/later';
 export = Bree;
 
 type AsyncFunction<A extends any[], O> = (...args: A) => Promise<O>;
+type Mutable<T> = { -readonly [P in keyof T]: T[P]; };
 
 declare class Bree extends EventEmitter {
   config: Bree.BreeConfigs;
@@ -86,6 +87,21 @@ declare namespace Bree {
 
   type JobOptions = Required<Pick<Job, 'name'>> & Partial<Omit<Job, 'name'>>;
 
+  type WorkerMetadata = Mutable<Pick<Worker, 'resourceLimits' | 'threadId'>> & {
+    isMainThread: boolean;
+  };
+
+  type HandlerData = {
+    name: string;
+    worker?: WorkerMetadata;
+  };
+  type ErrorHandlerData = HandlerData & {
+    err: unknown;
+  };
+  type MessageHandlerData = HandlerData & {
+    message: unknown;
+  };
+
   type BreeConfigs = {
     logger: BreeLogger | boolean;
     root: string | boolean;
@@ -103,8 +119,8 @@ declare namespace Bree {
     defaultExtension: string;
     acceptedExtensions: string[];
     worker: WorkerOptions;
-    errorHandler?: (error: any, workerMetadata: any) => void;
-    workerMessageHandler?: (message: any, workerMetadata: any) => void;
+    errorHandler?: (error: unknown, data: ErrorHandlerData) => void;
+    workerMessageHandler?: (data: MessageHandlerData) => void;
     outputWorkerMetadata: boolean;
   };
 
