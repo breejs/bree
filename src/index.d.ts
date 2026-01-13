@@ -8,7 +8,7 @@ import { type ScheduleData } from '@breejs/later';
 export = Bree;
 
 type AsyncFunction<A extends any[], O> = (...args: A) => Promise<O>;
-type Mutable<T> = { -readonly [P in keyof T]: T[P]; };
+type Mutable<T> = { -readonly [P in keyof T]: T[P] };
 
 declare class Bree extends EventEmitter {
   config: Bree.BreeConfigs;
