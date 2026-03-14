@@ -1,6 +1,6 @@
 const humanInterval = require('human-interval');
 const later = require('@breejs/later');
-const ms = require('ms');
+const ms = require('ms-tiny');
 
 /**
  * Returns true if `val` is a string and it's not blank.
@@ -41,7 +41,15 @@ const getName = (job) => {
  */
 const getHumanToMs = (_value) => {
   const value = humanInterval(_value);
-  if (Number.isNaN(value)) return ms(_value);
+  if (Number.isNaN(value)) {
+    try {
+      return ms(_value);
+    } catch (err) {
+      throw new Error(
+        `Value "${_value}" is not parseable as a time interval (see <https://breejs.github.io/later/parsers.html#text> for examples)`
+      );
+    }
+  }
   return value;
 };
 
