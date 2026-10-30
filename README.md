@@ -627,6 +627,7 @@ We recommend using the following packages in your workers for handling concurren
 * <https://github.com/sindresorhus/p-all>
 * <https://github.com/sindresorhus/p-limit>
 * <https://github.com/sindresorhus/p-queue>
+* [BetterQueue](https://github.com/Saiop68/better-queue) - Distributed rate limiter and job queue for Node.js with Redis-backed state, cross-process priority and crash recovery.
 * <https://github.com/sindresorhus/p-map>
 
 
