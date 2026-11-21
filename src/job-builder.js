@@ -86,6 +86,7 @@ const buildJob = (job, config) => {
   // Build cron
   if (job.cron !== undefined) {
     if (isSchedule(job.cron)) {
+      job.cron = parseValue(job.cron);
       job.interval = job.cron;
       // Delete job.cron;
     } else {

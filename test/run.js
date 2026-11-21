@@ -2,9 +2,28 @@ const path = require('node:path');
 const { once } = require('node:events');
 const test = require('ava');
 const delay = require('delay');
+const later = require('@breejs/later');
 const Bree = require('../src');
 
 const root = path.join(__dirname, 'jobs');
+
+for (const property of ['timeout', 'interval', 'cron']) {
+  test(`runs a worker with a recurrence ${property}`, async (t) => {
+    const recurrence = later.parse.recur().every(10).second();
+    const bree = new Bree({
+      root,
+      logger: false,
+      jobs: [{ name: 'basic', [property]: recurrence }]
+    });
+    t.teardown(() => bree.stop());
+
+    await bree.run('basic');
+    const [code] = await once(bree.workers.get('basic'), 'exit');
+
+    t.is(code, 0);
+    t.is(typeof recurrence.every, 'function');
+  });
+}
 
 test('job does not exist', async (t) => {
   const bree = new Bree({

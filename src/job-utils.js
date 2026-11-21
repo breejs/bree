@@ -56,7 +56,12 @@ const parseValue = (value) => {
 
   if (value === false) return value;
 
-  if (isSchedule(value)) return value;
+  if (isSchedule(value)) {
+    // Recurrence builders include functions that cannot be cloned into workers.
+    return Object.fromEntries(
+      Object.entries(value).filter(([, entry]) => typeof entry !== 'function')
+    );
+  }
 
   if (isSANB(value)) {
     const schedule = later.schedule(later.parse.text(value));
