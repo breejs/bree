@@ -1,4 +1,6 @@
+const { serialize } = require('node:v8');
 const test = require('ava');
+const later = require('@breejs/later');
 const jobUtils = require('../src/job-utils');
 
 test('isSchedule: passes for valid schedule object', (t) => {
@@ -43,6 +45,31 @@ test('parseValue: does not parse false value', (t) => {
 
 test('parseValue: returns unmodified schedule value', (t) => {
   t.deepEqual(jobUtils.parseValue({ schedules: [1] }), { schedules: [1] });
+});
+
+test('parseValue: recurrence schedules can be cloned without changing the builder', (t) => {
+  const recurrence = later.parse
+    .recur()
+    .every(10)
+    .second()
+    .except()
+    .on(30)
+    .second();
+  const schedule = jobUtils.parseValue(recurrence);
+
+  t.deepEqual(schedule, {
+    schedules: recurrence.schedules,
+    exceptions: recurrence.exceptions
+  });
+  t.notThrows(() => serialize(schedule));
+  t.is(typeof recurrence.every, 'function');
+  t.is(
+    later
+      .schedule(schedule)
+      .next(1, new Date(2026, 0, 1, 0, 0, 21))
+      .getSeconds(),
+    40
+  );
 });
 
 test('parseValue: parses human readable values', (t) => {
